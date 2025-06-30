@@ -1,0 +1,48 @@
+{
+    "name": "symfony/ai-bundle",
+    "type": "symfony-bundle",
+    "description": "Integration bundle for Symfony AI components",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Christopher Hertel",
+            "email": "mail@christopher-hertel.de"
+        },
+        {
+            "name": "Oskar Stark",
+            "email": "oskarstark@googlemail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.2",
+        "symfony/ai-agent": "@dev",
+        "symfony/ai-platform": "@dev",
+        "symfony/ai-store": "@dev",
+        "symfony/config": "^6.4 || ^7.0",
+        "symfony/dependency-injection": "^6.4 || ^7.0",
+        "symfony/framework-bundle": "^6.4 || ^7.0",
+        "symfony/string": "^6.4 || ^7.0"
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^2.1",
+        "phpunit/phpunit": "^11.5"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "Symfony\\AI\\AIBundle\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Symfony\\AI\\AIBundle\\Tests\\": "tests/"
+        }
+    },
+    "repositories": [
+        {"type": "path", "url": "../agent"},
+        {"type": "path", "url": "../platform"},
+        {"type": "path", "url": "../store"}
+    ]
+}
