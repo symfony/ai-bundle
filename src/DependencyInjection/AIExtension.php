@@ -49,6 +49,7 @@ use Symfony\AI\Store\Bridge\Azure\SearchStore as AzureSearchStore;
 use Symfony\AI\Store\Bridge\ChromaDB\Store as ChromaDBStore;
 use Symfony\AI\Store\Bridge\MongoDB\Store as MongoDBStore;
 use Symfony\AI\Store\Bridge\Pinecone\Store as PineconeStore;
+use Symfony\AI\Store\Document\Vectorizer;
 use Symfony\AI\Store\Indexer;
 use Symfony\AI\Store\StoreInterface;
 use Symfony\AI\Store\VectorStoreInterface;
@@ -484,9 +485,14 @@ final class AIExtension extends Extension
         $modelDefinition->addTag('symfony_ai.model.embeddings_model');
         $container->setDefinition('symfony_ai.indexer.'.$name.'.model', $modelDefinition);
 
-        $definition = new Definition(Indexer::class, [
-            '$model' => new Reference('symfony_ai.indexer.'.$name.'.model'),
+        $vectorizerDefinition = new Definition(Vectorizer::class, [
             '$platform' => new Reference($config['platform']),
+            '$model' => new Reference('symfony_ai.indexer.'.$name.'.model'),
+        ]);
+        $container->setDefinition('symfony_ai.indexer.'.$name.'.vectorizer', $vectorizerDefinition);
+
+        $definition = new Definition(Indexer::class, [
+            '$vectorizer' => new Reference('symfony_ai.indexer.'.$name.'.vectorizer'),
             '$store' => new Reference($config['store']),
         ]);
 
