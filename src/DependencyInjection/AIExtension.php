@@ -270,7 +270,7 @@ final class AIExtension extends Extension
         if (null !== $version) {
             $modelDefinition->setArgument('$name', $version);
         }
-        if (0 !== \count($options)) {
+        if ([] !== $options) {
             $modelDefinition->setArgument('$options', $options);
         }
         $modelDefinition->addTag('symfony_ai.model.language_model');
@@ -288,7 +288,7 @@ final class AIExtension extends Extension
         // TOOL & PROCESSOR
         if ($config['tools']['enabled']) {
             // Create specific toolbox and process if tools are explicitly defined
-            if (0 !== \count($config['tools']['services'])) {
+            if ([] !== $config['tools']['services']) {
                 $memoryFactoryDefinition = new Definition(MemoryToolFactory::class);
                 $container->setDefinition('symfony_ai.toolbox.'.$name.'.memory_factory', $memoryFactoryDefinition);
                 $chainFactoryDefinition = new Definition(ChainFactory::class, [
@@ -478,7 +478,7 @@ final class AIExtension extends Extension
         if (null !== $version) {
             $modelDefinition->setArgument('$name', $version);
         }
-        if (0 !== \count($options)) {
+        if ([] !== $options) {
             $modelDefinition->setArgument('$options', $options);
         }
         $modelDefinition->addTag('symfony_ai.model.embeddings_model');
