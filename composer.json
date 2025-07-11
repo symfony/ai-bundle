@@ -39,10 +39,5 @@
         "psr-4": {
             "Symfony\\AI\\AIBundle\\Tests\\": "tests/"
         }
-    },
-    "repositories": [
-        {"type": "path", "url": "../agent"},
-        {"type": "path", "url": "../platform"},
-        {"type": "path", "url": "../store"}
-    ]
+    }
 }
