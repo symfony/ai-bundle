@@ -27,19 +27,12 @@ use Symfony\AI\Agent\Toolbox\ToolFactory\ReflectionToolFactory;
 use Symfony\AI\AIBundle\Profiler\DataCollector;
 use Symfony\AI\AIBundle\Profiler\TraceablePlatform;
 use Symfony\AI\AIBundle\Profiler\TraceableToolbox;
-use Symfony\AI\Platform\Bridge\Anthropic\Claude;
 use Symfony\AI\Platform\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFactory;
 use Symfony\AI\Platform\Bridge\Azure\OpenAI\PlatformFactory as AzureOpenAIPlatformFactory;
-use Symfony\AI\Platform\Bridge\Google\Gemini;
 use Symfony\AI\Platform\Bridge\Google\PlatformFactory as GooglePlatformFactory;
-use Symfony\AI\Platform\Bridge\Meta\Llama;
-use Symfony\AI\Platform\Bridge\Mistral\Mistral;
 use Symfony\AI\Platform\Bridge\Mistral\PlatformFactory as MistralPlatformFactory;
-use Symfony\AI\Platform\Bridge\OpenAI\Embeddings;
-use Symfony\AI\Platform\Bridge\OpenAI\GPT;
 use Symfony\AI\Platform\Bridge\OpenAI\PlatformFactory as OpenAIPlatformFactory;
 use Symfony\AI\Platform\Bridge\OpenRouter\PlatformFactory as OpenRouterPlatformFactory;
-use Symfony\AI\Platform\Bridge\Voyage\Voyage;
 use Symfony\AI\Platform\Model;
 use Symfony\AI\Platform\ModelClientInterface;
 use Symfony\AI\Platform\Platform;
@@ -261,20 +254,15 @@ final class AIBundle extends AbstractBundle
     private function processAgentConfig(string $name, array $config, ContainerBuilder $container): void
     {
         // MODEL
-        ['name' => $modelName, 'version' => $version, 'options' => $options] = $config['model'];
+        ['class' => $modelClass, 'name' => $modelName, 'options' => $options] = $config['model'];
 
-        $modelClass = match (strtolower((string) $modelName)) {
-            'gpt' => GPT::class,
-            'claude' => Claude::class,
-            'llama' => Llama::class,
-            'gemini' => Gemini::class,
-            'mistral' => Mistral::class,
-            'openrouter' => Model::class,
-            default => throw new \InvalidArgumentException(\sprintf('Model "%s" is not supported.', $modelName)),
-        };
+        if (!is_a($modelClass, Model::class, true)) {
+            throw new \InvalidArgumentException(\sprintf('"%s" class is not extending Symfony\AI\Platform\Model.', $modelClass));
+        }
+
         $modelDefinition = new Definition($modelClass);
-        if (null !== $version) {
-            $modelDefinition->setArgument('$name', $version);
+        if (null !== $modelName) {
+            $modelDefinition->setArgument('$name', $modelName);
         }
         if ([] !== $options) {
             $modelDefinition->setArgument('$options', $options);
@@ -473,20 +461,20 @@ final class AIBundle extends AbstractBundle
      */
     private function processIndexerConfig(int|string $name, array $config, ContainerBuilder $container): void
     {
-        ['name' => $modelName, 'version' => $version, 'options' => $options] = $config['model'];
+        ['class' => $modelClass, 'name' => $modelName, 'options' => $options] = $config['model'];
 
-        $modelClass = match (strtolower((string) $modelName)) {
-            'embeddings' => Embeddings::class,
-            'voyage' => Voyage::class,
-            default => throw new \InvalidArgumentException(\sprintf('Model "%s" is not supported.', $modelName)),
-        };
-        $modelDefinition = (new Definition($modelClass));
-        if (null !== $version) {
-            $modelDefinition->setArgument('$name', $version);
+        if (!is_a($modelClass, Model::class, true)) {
+            throw new \InvalidArgumentException(\sprintf('"%s" class is not extending Symfony\AI\Platform\Model.', $modelClass));
+        }
+
+        $modelDefinition = (new Definition((string) $modelClass));
+        if (null !== $modelName) {
+            $modelDefinition->setArgument('$name', $modelName);
         }
         if ([] !== $options) {
             $modelDefinition->setArgument('$options', $options);
         }
+
         $modelDefinition->addTag('symfony_ai.model.embeddings_model');
         $container->setDefinition('symfony_ai.indexer.'.$name.'.model', $modelDefinition);
 
