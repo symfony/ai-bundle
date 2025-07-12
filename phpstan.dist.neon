@@ -2,3 +2,12 @@ parameters:
     level: 6
     paths:
         - src/
+    ignoreErrors:
+        -
+            message: '#\\AuthorizationCheckerInterface::isGranted\(\) invoked with 3 parameters, 1-2 required#'
+            path: src/*
+            reportUnmatched: false # only needed for Symfony <= 7.4 versions
+        -
+            message: '#method_exists\(\) with Symfony\\Component\\Security\\Core\\Exception\\AccessDeniedException and ''setAccessDecision'' will always evaluate to true#'
+            path: src/*
+            reportUnmatched: false # only needed for Symfony < 7.3 versions
