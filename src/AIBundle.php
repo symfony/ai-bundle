@@ -32,6 +32,7 @@ use Symfony\AI\AIBundle\Security\Attribute\IsGrantedTool;
 use Symfony\AI\Platform\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFactory;
 use Symfony\AI\Platform\Bridge\Azure\OpenAI\PlatformFactory as AzureOpenAIPlatformFactory;
 use Symfony\AI\Platform\Bridge\Google\PlatformFactory as GooglePlatformFactory;
+use Symfony\AI\Platform\Bridge\LMStudio\PlatformFactory as LMStudioPlatformFactory;
 use Symfony\AI\Platform\Bridge\Mistral\PlatformFactory as MistralPlatformFactory;
 use Symfony\AI\Platform\Bridge\OpenAI\PlatformFactory as OpenAIPlatformFactory;
 use Symfony\AI\Platform\Bridge\OpenRouter\PlatformFactory as OpenRouterPlatformFactory;
@@ -250,6 +251,21 @@ final class AIBundle extends AbstractBundle
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments(['$apiKey' => $platform['api_key']])
                 ->addTag('ai.platform');
+
+            $container->setDefinition($platformId, $definition);
+
+            return;
+        }
+
+        if ('lmstudio' === $type) {
+            $platformId = 'symfony_ai.platform.lmstudio';
+            $definition = (new Definition(Platform::class))
+            ->setFactory(LMStudioPlatformFactory::class.'::create')
+                ->setAutowired(true)
+                ->setLazy(true)
+                ->addTag('proxy', ['interface' => PlatformInterface::class])
+                ->setArguments(['$hostUrl' => $platform['host_url']])
+                ->addTag('symfony_ai.platform');
 
             $container->setDefinition($platformId, $definition);
 

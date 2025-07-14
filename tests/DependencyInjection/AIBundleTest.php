@@ -72,6 +72,9 @@ class AIBundleTest extends TestCase
                     'openrouter' => [
                         'api_key' => 'openrouter_key_full',
                     ],
+                    'lmstudio' => [
+                        'host_url' => 'http://127.0.0.1:1234',
+                    ],
                 ],
                 'agent' => [
                     'my_chat_agent' => [
