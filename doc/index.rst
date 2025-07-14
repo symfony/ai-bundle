@@ -180,6 +180,27 @@ To inject only specific tools, list them in the configuration:
                 tools:
                     - 'Symfony\AI\Agent\Toolbox\Tool\SimilaritySearch'
 
+To restrict the access to a tool, you can use the ``IsGrantedTool`` attribute, which
+works similar to ``IsGranted`` attribute in `symfony/security-http`. For this to work,
+make sure you have `symfony/security-core` installed in your project.
+
+::
+
+    use Symfony\AI\Agent\Attribute\IsGrantedTool;
+
+    #[IsGrantedTool('ROLE_ADMIN')]
+    #[AsTool('company_name', 'Provides the name of your company')]
+    final class CompanyName
+    {
+        public function __invoke(): string
+        {
+            return 'ACME Corp.';
+        }
+    }
+The attribute ``IsGrantedTool`` can be added on class- or method-level - even multiple
+times. If multiple attributes apply to one tool call, a logical AND is used and all access
+decisions have to grant access.
+
 Profiler
 --------
 
