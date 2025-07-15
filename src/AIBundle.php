@@ -27,6 +27,7 @@ use Symfony\AI\Agent\Toolbox\ToolFactory\ReflectionToolFactory;
 use Symfony\AI\AIBundle\Profiler\DataCollector;
 use Symfony\AI\AIBundle\Profiler\TraceablePlatform;
 use Symfony\AI\AIBundle\Profiler\TraceableToolbox;
+use Symfony\AI\AIBundle\Security\Attribute\IsGrantedTool;
 use Symfony\AI\Platform\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFactory;
 use Symfony\AI\Platform\Bridge\Azure\OpenAI\PlatformFactory as AzureOpenAIPlatformFactory;
 use Symfony\AI\Platform\Bridge\Google\PlatformFactory as GooglePlatformFactory;
@@ -53,6 +54,7 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
+use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
 
 use function Symfony\Component\String\u;
 
@@ -130,6 +132,14 @@ final class AIBundle extends AbstractBundle
             ->addTag('symfony_ai.platform.model_client');
         $builder->registerForAutoconfiguration(ResponseConverterInterface::class)
             ->addTag('symfony_ai.platform.response_converter');
+
+        if (!ContainerBuilder::willBeAvailable('symfony/security-core', AuthorizationCheckerInterface::class, ['symfony/ai-bundle'])) {
+            $builder->removeDefinition('symfony_ai.security.is_granted_attribute_listener');
+            $builder->registerAttributeForAutoconfiguration(
+                IsGrantedTool::class,
+                static fn () => throw new \InvalidArgumentException('Using #[IsGrantedTool] attribute requires additional dependencies. Try running "composer install symfony/security-core".'),
+            );
+        }
 
         if (false === $builder->getParameter('kernel.debug')) {
             $builder->removeDefinition(DataCollector::class);
