@@ -24,6 +24,7 @@ use Symfony\AI\Agent\Toolbox\Tool\Agent as AgentTool;
 use Symfony\AI\Agent\Toolbox\ToolFactory\ChainFactory;
 use Symfony\AI\Agent\Toolbox\ToolFactory\MemoryToolFactory;
 use Symfony\AI\Agent\Toolbox\ToolFactory\ReflectionToolFactory;
+use Symfony\AI\AIBundle\Exception\InvalidArgumentException;
 use Symfony\AI\AIBundle\Profiler\DataCollector;
 use Symfony\AI\AIBundle\Profiler\TraceablePlatform;
 use Symfony\AI\AIBundle\Profiler\TraceableToolbox;
@@ -137,7 +138,7 @@ final class AIBundle extends AbstractBundle
             $builder->removeDefinition('symfony_ai.security.is_granted_attribute_listener');
             $builder->registerAttributeForAutoconfiguration(
                 IsGrantedTool::class,
-                static fn () => throw new \InvalidArgumentException('Using #[IsGrantedTool] attribute requires additional dependencies. Try running "composer install symfony/security-core".'),
+                static fn () => throw new InvalidArgumentException('Using #[IsGrantedTool] attribute requires additional dependencies. Try running "composer install symfony/security-core".'),
             );
         }
 
@@ -255,7 +256,7 @@ final class AIBundle extends AbstractBundle
             return;
         }
 
-        throw new \InvalidArgumentException(\sprintf('Platform "%s" is not supported for configuration via bundle at this point.', $type));
+        throw new InvalidArgumentException(\sprintf('Platform "%s" is not supported for configuration via bundle at this point.', $type));
     }
 
     /**
@@ -267,7 +268,7 @@ final class AIBundle extends AbstractBundle
         ['class' => $modelClass, 'name' => $modelName, 'options' => $options] = $config['model'];
 
         if (!is_a($modelClass, Model::class, true)) {
-            throw new \InvalidArgumentException(\sprintf('"%s" class is not extending Symfony\AI\Platform\Model.', $modelClass));
+            throw new InvalidArgumentException(\sprintf('"%s" class is not extending Symfony\AI\Platform\Model.', $modelClass));
         }
 
         $modelDefinition = new Definition($modelClass);
@@ -474,7 +475,7 @@ final class AIBundle extends AbstractBundle
         ['class' => $modelClass, 'name' => $modelName, 'options' => $options] = $config['model'];
 
         if (!is_a($modelClass, Model::class, true)) {
-            throw new \InvalidArgumentException(\sprintf('"%s" class is not extending Symfony\AI\Platform\Model.', $modelClass));
+            throw new InvalidArgumentException(\sprintf('"%s" class is not extending Symfony\AI\Platform\Model.', $modelClass));
         }
 
         $modelDefinition = (new Definition((string) $modelClass));
