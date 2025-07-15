@@ -77,8 +77,8 @@ class AIBundleTest extends TestCase
                     'my_chat_agent' => [
                         'platform' => 'openai_platform_service_id',
                         'model' => [
-                            'name' => 'gpt',
-                            'version' => 'gpt-3.5-turbo',
+                            'class' => 'Symfony\AI\Platform\Bridge\OpenAI\GPT',
+                            'name' => 'gpt-3.5-turbo',
                             'options' => [
                                 'temperature' => 0.7,
                                 'max_tokens' => 150,
@@ -98,7 +98,7 @@ class AIBundleTest extends TestCase
                         'fault_tolerant_toolbox' => false,
                     ],
                     'another_agent' => [
-                        'model' => ['name' => 'claude', 'version' => 'claude-3-opus-20240229'],
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\Anthropic\Claude', 'name' => 'claude-3-opus-20240229'],
                         'system_prompt' => 'Be concise.',
                     ],
                 ],
@@ -137,10 +137,10 @@ class AIBundleTest extends TestCase
                 'indexer' => [
                     'my_text_indexer' => [
                         'store' => 'my_azure_search_store_service_id',
-                        'platform' => 'google_platform_service_id',
+                        'platform' => 'mistral_platform_service_id',
                         'model' => [
-                            'name' => 'embeddings',
-                            'version' => 'text-embedding-004',
+                            'class' => 'Symfony\AI\Platform\Bridge\Mistral\Embeddings',
+                            'name' => 'mistral-embed',
                             'options' => ['dimension' => 768],
                         ],
                     ],

@@ -31,7 +31,8 @@ Configuration
         agent:
             default:
                 model:
-                    name: 'GPT'
+                    class: 'Symfony\AI\Platform\Bridge\OpenAI\GPT'
+                    name: !php/const Symfony\AI\Platform\Bridge\OpenAI\GPT::GPT_4O_MINI
 
 **Advanced Example with Anthropic, Azure, Google and multiple agents**
 
@@ -56,8 +57,8 @@ Configuration
                 platform: 'symfony_ai.platform.azure.gpt_deployment'
                 structured_output: false # Disables support for "output_structure" option, default is true
                 model:
-                    name: 'GPT'
-                    version: 'gpt-4o-mini'
+                    class: 'Symfony\AI\Platform\Bridge\OpenAI\GPT'
+                    name: !php/const Symfony\AI\Platform\Bridge\OpenAI\GPT::GPT_4O_MINI
                 system_prompt: 'You are a helpful assistant that can answer questions.' # The default system prompt of the agent
                 include_tools: true # Include tool definitions at the end of the system prompt
                 tools:
@@ -78,7 +79,8 @@ Configuration
             research:
                 platform: 'symfony_ai.platform.anthropic'
                 model:
-                    name: 'Claude'
+                    class: 'Symfony\AI\Platform\Bridge\Anthropic\Claude'
+                    name: !php/const Symfony\AI\Platform\Bridge\Anthropic\Claude::SONNET_37
                 tools: # If undefined, all tools are injected into the agent, use "tools: false" to disable tools.
                     - 'Symfony\AI\Agent\Toolbox\Tool\Wikipedia'
                 fault_tolerant_toolbox: false # Disables fault tolerant toolbox, default is true
@@ -90,11 +92,11 @@ Configuration
                     collection: 'my_collection'
         indexer:
             default:
-                # platform: 'symfony_ai.platform.anthropic'
+                # platform: 'symfony_ai.platform.mistral'
                 # store: 'symfony_ai.store.chroma_db.default'
                 model:
-                    name: 'Embeddings'
-                    version: 'text-embedding-ada-002'
+                    class: 'Symfony\AI\Platform\Bridge\Mistral\Embeddings'
+                    name: !php/const Symfony\AI\Platform\Bridge\Mistral\Embeddings::MISTRAL_EMBED
 
 Usage
 -----
