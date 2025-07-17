@@ -42,10 +42,10 @@ final class DataCollector extends AbstractDataCollector
      * @param TraceableToolbox[]  $toolboxes
      */
     public function __construct(
-        #[TaggedIterator('symfony_ai.traceable_platform')]
+        #[TaggedIterator('ai.traceable_platform')]
         iterable $platforms,
         private readonly ToolboxInterface $defaultToolBox,
-        #[TaggedIterator('symfony_ai.traceable_toolbox')]
+        #[TaggedIterator('ai.traceable_toolbox')]
         iterable $toolboxes,
     ) {
         $this->platforms = $platforms instanceof \Traversable ? iterator_to_array($platforms) : $platforms;

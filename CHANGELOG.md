@@ -7,8 +7,8 @@ CHANGELOG
  * Add Symfony bundle for integrating Platform, Agent, and Store components
  * Add service configuration:
    - Agent services with configurable platforms and system prompts
-   - Tool registration via `#[AsTool]` attribute and `symfony_ai.tool` tag
-   - Input/Output processor registration via `symfony_ai.agent.input_processor` and `symfony_ai.agent.output_processor` tags
+   - Tool registration via `#[AsTool]` attribute and `ai.tool` tag
+   - Input/Output processor registration via `ai.agent.input_processor` and `ai.agent.output_processor` tags
    - Abstract service definitions for extensibility
  * Add Symfony Profiler integration for monitoring AI interactions
  * Add security integration:

@@ -54,7 +54,7 @@ Configuration
                 api_key: '%env(GOOGLE_API_KEY)%'
         agent:
             rag:
-                platform: 'symfony_ai.platform.azure.gpt_deployment'
+                platform: 'ai.platform.azure.gpt_deployment'
                 structured_output: false # Disables support for "output_structure" option, default is true
                 model:
                     class: 'Symfony\AI\Platform\Bridge\OpenAI\GPT'
@@ -72,12 +72,12 @@ Configuration
                       method: 'foo' # Optional with default value '__invoke'
 
                     # Referencing a agent => agent in agent 🤯
-                    - service: 'symfony_ai.agent.research'
+                    - service: 'ai.agent.research'
                       name: 'wikipedia_research'
                       description: 'Can research on Wikipedia'
                       is_agent: true
             research:
-                platform: 'symfony_ai.platform.anthropic'
+                platform: 'ai.platform.anthropic'
                 model:
                     class: 'Symfony\AI\Platform\Bridge\Anthropic\Claude'
                     name: !php/const Symfony\AI\Platform\Bridge\Anthropic\Claude::SONNET_37
@@ -92,8 +92,8 @@ Configuration
                     collection: 'my_collection'
         indexer:
             default:
-                # platform: 'symfony_ai.platform.mistral'
-                # store: 'symfony_ai.store.chroma_db.default'
+                # platform: 'ai.platform.mistral'
+                # store: 'ai.store.chroma_db.default'
                 model:
                     class: 'Symfony\AI\Platform\Bridge\Mistral\Embeddings'
                     name: !php/const Symfony\AI\Platform\Bridge\Mistral\Embeddings::MISTRAL_EMBED

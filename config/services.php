@@ -34,11 +34,11 @@ return static function (ContainerConfigurator $container): void {
         ->set(ResponseFormatFactory::class)
             ->alias(ResponseFormatFactoryInterface::class, ResponseFormatFactory::class)
         ->set(StructureOutputProcessor::class)
-            ->tag('symfony_ai.agent.input_processor')
-            ->tag('symfony_ai.agent.output_processor')
+            ->tag('ai.agent.input_processor')
+            ->tag('ai.agent.output_processor')
 
         // tools
-        ->set('symfony_ai.toolbox.abstract')
+        ->set('ai.toolbox.abstract')
             ->class(Toolbox::class)
             ->autowire()
             ->abstract()
@@ -47,30 +47,30 @@ return static function (ContainerConfigurator $container): void {
                 '$tools' => abstract_arg('Collection of tools'),
             ])
         ->set(Toolbox::class)
-            ->parent('symfony_ai.toolbox.abstract')
+            ->parent('ai.toolbox.abstract')
             ->args([
-                '$tools' => tagged_iterator('symfony_ai.tool'),
+                '$tools' => tagged_iterator('ai.tool'),
             ])
             ->alias(ToolboxInterface::class, Toolbox::class)
         ->set(ReflectionToolFactory::class)
             ->alias(ToolFactoryInterface::class, ReflectionToolFactory::class)
         ->set(ToolResultConverter::class)
         ->set(ToolCallArgumentResolver::class)
-        ->set('symfony_ai.tool.agent_processor.abstract')
+        ->set('ai.tool.agent_processor.abstract')
             ->class(ToolProcessor::class)
             ->abstract()
             ->args([
                 '$toolbox' => abstract_arg('Toolbox'),
             ])
         ->set(ToolProcessor::class)
-            ->parent('symfony_ai.tool.agent_processor.abstract')
-            ->tag('symfony_ai.agent.input_processor')
-            ->tag('symfony_ai.agent.output_processor')
+            ->parent('ai.tool.agent_processor.abstract')
+            ->tag('ai.agent.input_processor')
+            ->tag('ai.agent.output_processor')
             ->args([
                 '$toolbox' => service(ToolboxInterface::class),
                 '$eventDispatcher' => service('event_dispatcher')->nullOnInvalid(),
             ])
-        ->set('symfony_ai.security.is_granted_attribute_listener', IsGrantedToolAttributeListener::class)
+        ->set('ai.security.is_granted_attribute_listener', IsGrantedToolAttributeListener::class)
             ->tag('kernel.event_listener')
 
         // profiler
@@ -78,6 +78,6 @@ return static function (ContainerConfigurator $container): void {
             ->tag('data_collector')
         ->set(TraceableToolbox::class)
             ->decorate(ToolboxInterface::class)
-            ->tag('symfony_ai.traceable_toolbox')
+            ->tag('ai.traceable_toolbox')
     ;
 };
