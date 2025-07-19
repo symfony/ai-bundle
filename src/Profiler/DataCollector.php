@@ -18,6 +18,7 @@ use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
 use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
 
 /**
  * @author Christopher Hertel <mail@christopher-hertel.de>
@@ -25,7 +26,7 @@ use Symfony\Component\HttpFoundation\Response;
  * @phpstan-import-type PlatformCallData from TraceablePlatform
  * @phpstan-import-type ToolCallData from TraceableToolbox
  */
-final class DataCollector extends AbstractDataCollector
+final class DataCollector extends AbstractDataCollector implements LateDataCollectorInterface
 {
     /**
      * @var TraceablePlatform[]
@@ -53,6 +54,11 @@ final class DataCollector extends AbstractDataCollector
     }
 
     public function collect(Request $request, Response $response, ?\Throwable $exception = null): void
+    {
+        $this->lateCollect();
+    }
+
+    public function lateCollect(): void
     {
         $this->data = [
             'tools' => $this->defaultToolBox->getTools(),
@@ -102,7 +108,14 @@ final class DataCollector extends AbstractDataCollector
     {
         $calls = $platform->calls;
         foreach ($calls as $key => $call) {
-            $call['result'] = $call['result']->await()->getContent();
+            $result = $call['result']->await();
+
+            if (isset($platform->resultCache[$result])) {
+                $call['result'] = $platform->resultCache[$result];
+            } else {
+                $call['result'] = $result->getContent();
+            }
+
             $calls[$key] = $call;
         }
 
