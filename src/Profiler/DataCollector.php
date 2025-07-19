@@ -15,7 +15,6 @@ use Symfony\AI\Agent\Toolbox\ToolboxInterface;
 use Symfony\AI\Platform\Model;
 use Symfony\AI\Platform\Tool\Tool;
 use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
-use Symfony\Component\DependencyInjection\Attribute\TaggedIterator;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -42,10 +41,8 @@ final class DataCollector extends AbstractDataCollector
      * @param TraceableToolbox[]  $toolboxes
      */
     public function __construct(
-        #[TaggedIterator('ai.traceable_platform')]
         iterable $platforms,
         private readonly ToolboxInterface $defaultToolBox,
-        #[TaggedIterator('ai.traceable_toolbox')]
         iterable $toolboxes,
     ) {
         $this->platforms = $platforms instanceof \Traversable ? iterator_to_array($platforms) : $platforms;
