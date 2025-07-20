@@ -72,10 +72,9 @@ Configuration
                       method: 'foo' # Optional with default value '__invoke'
 
                     # Referencing a agent => agent in agent 🤯
-                    - service: 'ai.agent.research'
+                    - agent: 'research'
                       name: 'wikipedia_research'
                       description: 'Can research on Wikipedia'
-                      is_agent: true
             research:
                 platform: 'ai.platform.anthropic'
                 model:

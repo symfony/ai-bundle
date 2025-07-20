@@ -333,10 +333,14 @@ final class AIBundle extends AbstractBundle
 
                 $tools = [];
                 foreach ($config['tools']['services'] as $tool) {
+                    if (isset($tool['agent'])) {
+                        $tool['name'] ??= $tool['agent'];
+                        $tool['service'] = \sprintf('ai.agent.%s', $tool['agent']);
+                    }
                     $reference = new Reference($tool['service']);
                     // We use the memory factory in case method, description and name are set
                     if (isset($tool['name'], $tool['description'])) {
-                        if ($tool['is_agent']) {
+                        if (isset($tool['agent'])) {
                             $agentWrapperDefinition = new Definition(AgentTool::class, [$reference]);
                             $container->setDefinition('ai.toolbox.'.$name.'.agent_wrapper.'.$tool['name'], $agentWrapperDefinition);
                             $reference = new Reference('ai.toolbox.'.$name.'.agent_wrapper.'.$tool['name']);

@@ -13,9 +13,11 @@ namespace Symfony\AI\AIBundle\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\AI\AIBundle\AIBundle;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 #[CoversClass(AIBundle::class)]
@@ -23,16 +25,60 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 class AIBundleTest extends TestCase
 {
     #[DoesNotPerformAssertions]
-    public function testExtensionLoad(): void
+    #[Test]
+    public function extensionLoadDoesNotThrow(): void
+    {
+        $this->buildContainer($this->getFullConfig());
+    }
+
+    #[Test]
+    public function agentsCanBeRegisteredAsTools(): void
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'main_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAI\GPT'],
+                        'tools' => [
+                            ['agent' => 'another_agent', 'description' => 'Agent tool with implicit name'],
+                            ['agent' => 'another_agent', 'name' => 'another_agent_instance', 'description' => 'Agent tool with explicit name'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.toolbox.main_agent.agent_wrapper.another_agent'));
+        $this->assertTrue($container->hasDefinition('ai.toolbox.main_agent.agent_wrapper.another_agent_instance'));
+    }
+
+    #[Test]
+    public function agentsAsToolsCannotDefineService(): void
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'main_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAI\GPT'],
+                        'tools' => [['agent' => 'another_agent', 'service' => 'foo_bar', 'description' => 'Agent with service']],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    private function buildContainer(array $configuration): ContainerBuilder
     {
         $container = new ContainerBuilder();
         $container->setParameter('kernel.debug', true);
         $container->setParameter('kernel.environment', 'dev');
         $container->setParameter('kernel.build_dir', 'public');
-        $extension = (new AIBundle())->getContainerExtension();
 
-        $configs = $this->getFullConfig();
-        $extension->load($configs, $container);
+        $extension = (new AIBundle())->getContainerExtension();
+        $extension->load($configuration, $container);
+
+        return $container;
     }
 
     /**
