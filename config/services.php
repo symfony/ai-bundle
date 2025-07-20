@@ -68,15 +68,15 @@ return static function (ContainerConfigurator $container): void {
         ->set('ai.toolbox.abstract', Toolbox::class)
             ->abstract()
             ->args([
-                service('ai.tool_factory'),
                 abstract_arg('Collection of tools'),
+                service('ai.tool_factory'),
                 service('ai.tool_call_argument_resolver'),
                 service('logger')->ignoreOnInvalid(),
                 service('event_dispatcher')->nullOnInvalid(),
             ])
         ->set('ai.toolbox', Toolbox::class)
             ->parent('ai.toolbox.abstract')
-            ->arg('index_1', tagged_iterator('ai.tool'))
+            ->arg('index_0', tagged_iterator('ai.tool'))
         ->alias(ToolboxInterface::class, 'ai.toolbox')
         ->set('ai.tool_factory.abstract', AbstractToolFactory::class)
             ->abstract()
