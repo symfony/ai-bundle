@@ -347,8 +347,8 @@ final class AIBundle extends AbstractBundle
                 }
 
                 $toolboxDefinition = (new ChildDefinition('ai.toolbox.abstract'))
-                    ->replaceArgument(0, new Reference('ai.toolbox.'.$name.'.chain_factory'))
-                    ->replaceArgument(1, $tools);
+                    ->replaceArgument(0, $tools)
+                    ->replaceArgument(1, new Reference('ai.toolbox.'.$name.'.chain_factory'));
                 $container->setDefinition('ai.toolbox.'.$name, $toolboxDefinition);
 
                 if ($config['fault_tolerant_toolbox']) {
