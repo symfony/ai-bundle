@@ -16,16 +16,12 @@ use Symfony\AI\Agent\AgentInterface;
 use Symfony\AI\Agent\InputProcessor\SystemPromptInputProcessor;
 use Symfony\AI\Agent\InputProcessorInterface;
 use Symfony\AI\Agent\OutputProcessorInterface;
-use Symfony\AI\Agent\StructuredOutput\AgentProcessor as StructureOutputProcessor;
-use Symfony\AI\Agent\Toolbox\AgentProcessor as ToolProcessor;
 use Symfony\AI\Agent\Toolbox\Attribute\AsTool;
 use Symfony\AI\Agent\Toolbox\FaultTolerantToolbox;
 use Symfony\AI\Agent\Toolbox\Tool\Agent as AgentTool;
 use Symfony\AI\Agent\Toolbox\ToolFactory\ChainFactory;
 use Symfony\AI\Agent\Toolbox\ToolFactory\MemoryToolFactory;
-use Symfony\AI\Agent\Toolbox\ToolFactory\ReflectionToolFactory;
 use Symfony\AI\AIBundle\Exception\InvalidArgumentException;
-use Symfony\AI\AIBundle\Profiler\DataCollector;
 use Symfony\AI\AIBundle\Profiler\TraceablePlatform;
 use Symfony\AI\AIBundle\Profiler\TraceableToolbox;
 use Symfony\AI\AIBundle\Security\Attribute\IsGrantedTool;
@@ -52,6 +48,7 @@ use Symfony\AI\Store\VectorStoreInterface;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
@@ -88,7 +85,7 @@ final class AIBundle extends AbstractBundle
             foreach ($platforms as $platform) {
                 $traceablePlatformDefinition = (new Definition(TraceablePlatform::class))
                     ->setDecoratedService($platform)
-                    ->setAutowired(true)
+                    ->setArguments([new Reference('.inner')])
                     ->addTag('ai.traceable_platform');
                 $suffix = u($platform)->afterLast('.')->toString();
                 $builder->setDefinition('ai.traceable_platform.'.$suffix, $traceablePlatformDefinition);
@@ -144,8 +141,8 @@ final class AIBundle extends AbstractBundle
         }
 
         if (false === $builder->getParameter('kernel.debug')) {
-            $builder->removeDefinition(DataCollector::class);
-            $builder->removeDefinition(TraceableToolbox::class);
+            $builder->removeDefinition('ai.data_collector');
+            $builder->removeDefinition('ai.traceable_toolbox');
         }
     }
 
@@ -158,16 +155,17 @@ final class AIBundle extends AbstractBundle
             $platformId = 'ai.platform.anthropic';
             $definition = (new Definition(Platform::class))
                 ->setFactory(AnthropicPlatformFactory::class.'::create')
-                ->setAutowired(true)
                 ->setLazy(true)
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
-                    '$apiKey' => $platform['api_key'],
+                    0 => $platform['api_key'],
+                    2 => new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    3 => new Reference('ai.platform.contract.anthropic'),
                 ])
                 ->addTag('ai.platform');
 
             if (isset($platform['version'])) {
-                $definition->replaceArgument('$version', $platform['version']);
+                $definition->setArgument(1, $platform['version']);
             }
 
             $container->setDefinition($platformId, $definition);
@@ -180,14 +178,15 @@ final class AIBundle extends AbstractBundle
                 $platformId = 'ai.platform.azure.'.$name;
                 $definition = (new Definition(Platform::class))
                     ->setFactory(AzureOpenAIPlatformFactory::class.'::create')
-                    ->setAutowired(true)
                     ->setLazy(true)
                     ->addTag('proxy', ['interface' => PlatformInterface::class])
                     ->setArguments([
-                        '$baseUrl' => $config['base_url'],
-                        '$deployment' => $config['deployment'],
-                        '$apiVersion' => $config['api_version'],
-                        '$apiKey' => $config['api_key'],
+                        $config['base_url'],
+                        $config['deployment'],
+                        $config['api_version'],
+                        $config['api_key'],
+                        new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                        new Reference('ai.platform.contract.default'),
                     ])
                     ->addTag('ai.platform');
 
@@ -201,10 +200,13 @@ final class AIBundle extends AbstractBundle
             $platformId = 'ai.platform.google';
             $definition = (new Definition(Platform::class))
                 ->setFactory(GooglePlatformFactory::class.'::create')
-                ->setAutowired(true)
                 ->setLazy(true)
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
-                ->setArguments(['$apiKey' => $platform['api_key']])
+                ->setArguments([
+                    $platform['api_key'],
+                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference('ai.platform.contract.google'),
+                ])
                 ->addTag('ai.platform');
 
             $container->setDefinition($platformId, $definition);
@@ -216,10 +218,13 @@ final class AIBundle extends AbstractBundle
             $platformId = 'ai.platform.openai';
             $definition = (new Definition(Platform::class))
                 ->setFactory(OpenAIPlatformFactory::class.'::create')
-                ->setAutowired(true)
                 ->setLazy(true)
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
-                ->setArguments(['$apiKey' => $platform['api_key']])
+                ->setArguments([
+                    $platform['api_key'],
+                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference('ai.platform.contract.openai'),
+                ])
                 ->addTag('ai.platform');
 
             $container->setDefinition($platformId, $definition);
@@ -231,10 +236,13 @@ final class AIBundle extends AbstractBundle
             $platformId = 'ai.platform.openrouter';
             $definition = (new Definition(Platform::class))
                 ->setFactory(OpenRouterPlatformFactory::class.'::create')
-                ->setAutowired(true)
                 ->setLazy(true)
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
-                ->setArguments(['$apiKey' => $platform['api_key']])
+                ->setArguments([
+                    $platform['api_key'],
+                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference('ai.platform.contract.default'),
+                ])
                 ->addTag('ai.platform');
 
             $container->setDefinition($platformId, $definition);
@@ -246,10 +254,13 @@ final class AIBundle extends AbstractBundle
             $platformId = 'ai.platform.mistral';
             $definition = (new Definition(Platform::class))
                 ->setFactory(MistralPlatformFactory::class.'::create')
-                ->setAutowired(true)
                 ->setLazy(true)
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
-                ->setArguments(['$apiKey' => $platform['api_key']])
+                ->setArguments([
+                    $platform['api_key'],
+                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference('ai.platform.contract.default'),
+                ])
                 ->addTag('ai.platform');
 
             $container->setDefinition($platformId, $definition);
@@ -261,10 +272,13 @@ final class AIBundle extends AbstractBundle
             $platformId = 'symfony_ai.platform.lmstudio';
             $definition = (new Definition(Platform::class))
             ->setFactory(LMStudioPlatformFactory::class.'::create')
-                ->setAutowired(true)
                 ->setLazy(true)
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
-                ->setArguments(['$hostUrl' => $platform['host_url']])
+                ->setArguments([
+                    $platform['host_url'],
+                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference('ai.platform.contract.default'),
+                ])
                 ->addTag('symfony_ai.platform');
 
             $container->setDefinition($platformId, $definition);
@@ -289,19 +303,18 @@ final class AIBundle extends AbstractBundle
 
         $modelDefinition = new Definition($modelClass);
         if (null !== $modelName) {
-            $modelDefinition->setArgument('$name', $modelName);
+            $modelDefinition->setArgument(0, $modelName);
         }
         if ([] !== $options) {
-            $modelDefinition->setArgument('$options', $options);
+            $modelDefinition->setArgument(1, $options);
         }
         $modelDefinition->addTag('ai.model.language_model');
         $container->setDefinition('ai.agent.'.$name.'.model', $modelDefinition);
 
         // AGENT
         $agentDefinition = (new Definition(Agent::class))
-            ->setAutowired(true)
-            ->setArgument('$platform', new Reference($config['platform']))
-            ->setArgument('$model', new Reference('ai.agent.'.$name.'.model'));
+            ->setArgument(0, new Reference($config['platform']))
+            ->setArgument(1, new Reference('ai.agent.'.$name.'.model'));
 
         $inputProcessors = [];
         $outputProcessors = [];
@@ -310,10 +323,11 @@ final class AIBundle extends AbstractBundle
         if ($config['tools']['enabled']) {
             // Create specific toolbox and process if tools are explicitly defined
             if ([] !== $config['tools']['services']) {
-                $memoryFactoryDefinition = new Definition(MemoryToolFactory::class);
+                $memoryFactoryDefinition = new ChildDefinition('ai.tool_factory.abstract');
+                $memoryFactoryDefinition->setClass(MemoryToolFactory::class);
                 $container->setDefinition('ai.toolbox.'.$name.'.memory_factory', $memoryFactoryDefinition);
                 $chainFactoryDefinition = new Definition(ChainFactory::class, [
-                    '$factories' => [new Reference('ai.toolbox.'.$name.'.memory_factory'), new Reference(ReflectionToolFactory::class)],
+                    [new Reference('ai.toolbox.'.$name.'.memory_factory'), new Reference('ai.tool_factory')],
                 ]);
                 $container->setDefinition('ai.toolbox.'.$name.'.chain_factory', $chainFactoryDefinition);
 
@@ -323,7 +337,7 @@ final class AIBundle extends AbstractBundle
                     // We use the memory factory in case method, description and name are set
                     if (isset($tool['name'], $tool['description'])) {
                         if ($tool['is_agent']) {
-                            $agentWrapperDefinition = new Definition(AgentTool::class, ['$agent' => $reference]);
+                            $agentWrapperDefinition = new Definition(AgentTool::class, [$reference]);
                             $container->setDefinition('ai.toolbox.'.$name.'.agent_wrapper.'.$tool['name'], $agentWrapperDefinition);
                             $reference = new Reference('ai.toolbox.'.$name.'.agent_wrapper.'.$tool['name']);
                         }
@@ -333,14 +347,14 @@ final class AIBundle extends AbstractBundle
                 }
 
                 $toolboxDefinition = (new ChildDefinition('ai.toolbox.abstract'))
-                    ->replaceArgument('$toolFactory', new Reference('ai.toolbox.'.$name.'.chain_factory'))
-                    ->replaceArgument('$tools', $tools);
+                    ->replaceArgument(0, new Reference('ai.toolbox.'.$name.'.chain_factory'))
+                    ->replaceArgument(1, $tools);
                 $container->setDefinition('ai.toolbox.'.$name, $toolboxDefinition);
 
                 if ($config['fault_tolerant_toolbox']) {
                     $faultTolerantToolboxDefinition = (new Definition('ai.fault_tolerant_toolbox.'.$name))
                         ->setClass(FaultTolerantToolbox::class)
-                        ->setAutowired(true)
+                        ->setArguments([new Reference('.inner')])
                         ->setDecoratedService('ai.toolbox.'.$name);
                     $container->setDefinition('ai.fault_tolerant_toolbox.'.$name, $faultTolerantToolboxDefinition);
                 }
@@ -348,46 +362,46 @@ final class AIBundle extends AbstractBundle
                 if ($container->getParameter('kernel.debug')) {
                     $traceableToolboxDefinition = (new Definition('ai.traceable_toolbox.'.$name))
                         ->setClass(TraceableToolbox::class)
-                        ->setAutowired(true)
+                        ->setArguments([new Reference('.inner')])
                         ->setDecoratedService('ai.toolbox.'.$name)
                         ->addTag('ai.traceable_toolbox');
                     $container->setDefinition('ai.traceable_toolbox.'.$name, $traceableToolboxDefinition);
                 }
 
                 $toolProcessorDefinition = (new ChildDefinition('ai.tool.agent_processor.abstract'))
-                    ->replaceArgument('$toolbox', new Reference('ai.toolbox.'.$name));
+                    ->replaceArgument(0, new Reference('ai.toolbox.'.$name));
                 $container->setDefinition('ai.tool.agent_processor.'.$name, $toolProcessorDefinition);
 
                 $inputProcessors[] = new Reference('ai.tool.agent_processor.'.$name);
                 $outputProcessors[] = new Reference('ai.tool.agent_processor.'.$name);
             } else {
-                $inputProcessors[] = new Reference(ToolProcessor::class);
-                $outputProcessors[] = new Reference(ToolProcessor::class);
+                $inputProcessors[] = new Reference('ai.tool.agent_processor');
+                $outputProcessors[] = new Reference('ai.tool.agent_processor');
             }
         }
 
         // STRUCTURED OUTPUT
         if ($config['structured_output']) {
-            $inputProcessors[] = new Reference(StructureOutputProcessor::class);
-            $outputProcessors[] = new Reference(StructureOutputProcessor::class);
+            $inputProcessors[] = new Reference('ai.agent.structured_output_processor');
+            $outputProcessors[] = new Reference('ai.agent.structured_output_processor');
         }
 
         // SYSTEM PROMPT
         if (\is_string($config['system_prompt'])) {
-            $systemPromptInputProcessorDefinition = new Definition(SystemPromptInputProcessor::class);
-            $systemPromptInputProcessorDefinition
-                ->setAutowired(true)
-                ->setArguments([
-                    '$systemPrompt' => $config['system_prompt'],
-                    '$toolbox' => $config['include_tools'] ? new Reference('ai.toolbox.'.$name) : null,
-                ]);
+            $systemPromptInputProcessorDefinition = new Definition(SystemPromptInputProcessor::class, [
+                $config['system_prompt'],
+                $config['include_tools'] ? new Reference('ai.toolbox.'.$name) : null,
+                new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
+            ]);
 
             $inputProcessors[] = $systemPromptInputProcessorDefinition;
         }
 
         $agentDefinition
-            ->setArgument('$inputProcessors', $inputProcessors)
-            ->setArgument('$outputProcessors', $outputProcessors);
+            ->setArgument(2, $inputProcessors)
+            ->setArgument(3, $outputProcessors)
+            ->setArgument(4, new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE))
+        ;
 
         $container->setDefinition('ai.agent.'.$name, $agentDefinition);
     }
@@ -400,19 +414,19 @@ final class AIBundle extends AbstractBundle
         if ('azure_search' === $type) {
             foreach ($stores as $name => $store) {
                 $arguments = [
-                    '$endpointUrl' => $store['endpoint'],
-                    '$apiKey' => $store['api_key'],
-                    '$indexName' => $store['index_name'],
-                    '$apiVersion' => $store['api_version'],
+                    new Reference('http_client'),
+                    $store['endpoint'],
+                    $store['api_key'],
+                    $store['index_name'],
+                    $store['api_version'],
                 ];
 
                 if (\array_key_exists('vector_field', $store)) {
-                    $arguments['$vectorFieldName'] = $store['vector_field'];
+                    $arguments[5] = $store['vector_field'];
                 }
 
                 $definition = new Definition(AzureSearchStore::class);
                 $definition
-                    ->setAutowired(true)
                     ->addTag('ai.store')
                     ->setArguments($arguments);
 
@@ -424,8 +438,10 @@ final class AIBundle extends AbstractBundle
             foreach ($stores as $name => $store) {
                 $definition = new Definition(ChromaDBStore::class);
                 $definition
-                    ->setAutowired(true)
-                    ->setArgument('$collectionName', $store['collection'])
+                    ->setArguments([
+                        new Reference($store['client']),
+                        $store['collection'],
+                    ])
                     ->addTag('ai.store');
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
@@ -435,22 +451,22 @@ final class AIBundle extends AbstractBundle
         if ('mongodb' === $type) {
             foreach ($stores as $name => $store) {
                 $arguments = [
-                    '$databaseName' => $store['database'],
-                    '$collectionName' => $store['collection'],
-                    '$indexName' => $store['index_name'],
+                    new Reference($store['client']),
+                    $store['database'],
+                    $store['collection'],
+                    $store['index_name'],
                 ];
 
                 if (\array_key_exists('vector_field', $store)) {
-                    $arguments['$vectorFieldName'] = $store['vector_field'];
+                    $arguments[4] = $store['vector_field'];
                 }
 
                 if (\array_key_exists('bulk_write', $store)) {
-                    $arguments['$bulkWrite'] = $store['bulk_write'];
+                    $arguments[5] = $store['bulk_write'];
                 }
 
                 $definition = new Definition(MongoDBStore::class);
                 $definition
-                    ->setAutowired(true)
                     ->addTag('ai.store')
                     ->setArguments($arguments);
 
@@ -461,20 +477,20 @@ final class AIBundle extends AbstractBundle
         if ('pinecone' === $type) {
             foreach ($stores as $name => $store) {
                 $arguments = [
-                    '$namespace' => $store['namespace'],
+                    new Reference($store['client']),
+                    $store['namespace'],
                 ];
 
                 if (\array_key_exists('filter', $store)) {
-                    $arguments['$filter'] = $store['filter'];
+                    $arguments[2] = $store['filter'];
                 }
 
                 if (\array_key_exists('top_k', $store)) {
-                    $arguments['$topK'] = $store['top_k'];
+                    $arguments[3] = $store['top_k'];
                 }
 
                 $definition = new Definition(PineconeStore::class);
                 $definition
-                    ->setAutowired(true)
                     ->addTag('ai.store')
                     ->setArguments($arguments);
 
@@ -496,24 +512,25 @@ final class AIBundle extends AbstractBundle
 
         $modelDefinition = (new Definition((string) $modelClass));
         if (null !== $modelName) {
-            $modelDefinition->setArgument('$name', $modelName);
+            $modelDefinition->setArgument(0, $modelName);
         }
         if ([] !== $options) {
-            $modelDefinition->setArgument('$options', $options);
+            $modelDefinition->setArgument(1, $options);
         }
 
         $modelDefinition->addTag('ai.model.embeddings_model');
         $container->setDefinition('ai.indexer.'.$name.'.model', $modelDefinition);
 
         $vectorizerDefinition = new Definition(Vectorizer::class, [
-            '$platform' => new Reference($config['platform']),
-            '$model' => new Reference('ai.indexer.'.$name.'.model'),
+            new Reference($config['platform']),
+            new Reference('ai.indexer.'.$name.'.model'),
         ]);
         $container->setDefinition('ai.indexer.'.$name.'.vectorizer', $vectorizerDefinition);
 
         $definition = new Definition(Indexer::class, [
-            '$vectorizer' => new Reference('ai.indexer.'.$name.'.vectorizer'),
-            '$store' => new Reference($config['store']),
+            new Reference('ai.indexer.'.$name.'.vectorizer'),
+            new Reference($config['store']),
+            new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
         ]);
 
         $container->setDefinition('ai.indexer.'.$name, $definition);
