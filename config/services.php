@@ -92,6 +92,7 @@ return static function (ContainerConfigurator $container): void {
         ->set('ai.tool_call_argument_resolver', ToolCallArgumentResolver::class)
             ->args([
                 service('serializer'),
+                service('type_info.resolver')->nullOnInvalid(),
             ])
         ->set('ai.tool.agent_processor.abstract', ToolProcessor::class)
             ->abstract()
