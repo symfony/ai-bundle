@@ -12,6 +12,7 @@
 namespace Symfony\AI\AIBundle\Tests\Profiler;
 
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\AI\Agent\Toolbox\ToolboxInterface;
@@ -32,7 +33,8 @@ use Symfony\AI\Platform\Result\TextResult;
 #[UsesClass(ResultPromise::class)]
 class DataCollectorTest extends TestCase
 {
-    public function testCollectsDataForNonStreamingResponse()
+    #[Test]
+    public function collectsDataForNonStreamingResponse()
     {
         $platform = $this->createMock(PlatformInterface::class);
         $traceablePlatform = new TraceablePlatform($platform);
@@ -51,7 +53,8 @@ class DataCollectorTest extends TestCase
         $this->assertSame('Assistant response', $dataCollector->getPlatformCalls()[0]['result']);
     }
 
-    public function testCollectsDataForStreamingResponse()
+    #[Test]
+    public function collectsDataForStreamingResponse()
     {
         $platform = $this->createMock(PlatformInterface::class);
         $traceablePlatform = new TraceablePlatform($platform);
