@@ -106,8 +106,8 @@ class AIBundleTest extends TestCase
                             'api_version' => '2024-02-15-preview',
                         ],
                     ],
-                    'google' => [
-                        'api_key' => 'google_key_full',
+                    'gemini' => [
+                        'api_key' => 'gemini_key_full',
                     ],
                     'openai' => [
                         'api_key' => 'openai_key_full',
