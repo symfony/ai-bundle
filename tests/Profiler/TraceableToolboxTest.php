@@ -34,7 +34,7 @@ final class TraceableToolboxTest extends TestCase
 
         $map = $traceableToolbox->getTools();
 
-        self::assertSame(['tool' => $metadata], $map);
+        $this->assertSame(['tool' => $metadata], $map);
     }
 
     #[Test]
@@ -47,10 +47,10 @@ final class TraceableToolboxTest extends TestCase
 
         $result = $traceableToolbox->execute($toolCall);
 
-        self::assertSame('tool_result', $result);
-        self::assertCount(1, $traceableToolbox->calls);
-        self::assertSame($toolCall, $traceableToolbox->calls[0]['call']);
-        self::assertSame('tool_result', $traceableToolbox->calls[0]['result']);
+        $this->assertSame('tool_result', $result);
+        $this->assertCount(1, $traceableToolbox->calls);
+        $this->assertSame($toolCall, $traceableToolbox->calls[0]['call']);
+        $this->assertSame('tool_result', $traceableToolbox->calls[0]['result']);
     }
 
     /**
