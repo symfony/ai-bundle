@@ -25,7 +25,7 @@ use Symfony\AI\AIBundle\Profiler\DataCollector;
 use Symfony\AI\AIBundle\Profiler\TraceableToolbox;
 use Symfony\AI\AIBundle\Security\EventListener\IsGrantedToolAttributeListener;
 use Symfony\AI\Platform\Bridge\Anthropic\Contract\AnthropicContract;
-use Symfony\AI\Platform\Bridge\Google\Contract\GoogleContract;
+use Symfony\AI\Platform\Bridge\Gemini\Contract\GeminiContract;
 use Symfony\AI\Platform\Bridge\OpenAI\Whisper\AudioNormalizer;
 use Symfony\AI\Platform\Contract;
 use Symfony\AI\Platform\Contract\JsonSchema\DescriptionParser;
@@ -43,7 +43,7 @@ return static function (ContainerConfigurator $container): void {
         ->set('ai.platform.contract.anthropic', Contract::class)
             ->factory([AnthropicContract::class, 'create'])
         ->set('ai.platform.contract.google', Contract::class)
-            ->factory([GoogleContract::class, 'create'])
+            ->factory([GeminiContract::class, 'create'])
         // structured output
         ->set('ai.agent.response_format_factory', ResponseFormatFactory::class)
             ->args([

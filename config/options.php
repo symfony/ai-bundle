@@ -40,7 +40,7 @@ return static function (DefinitionConfigurator $configurator): void {
                             ->end()
                         ->end()
                     ->end()
-                    ->arrayNode('google')
+                    ->arrayNode('gemini')
                         ->children()
                             ->scalarNode('api_key')->isRequired()->end()
                         ->end()
