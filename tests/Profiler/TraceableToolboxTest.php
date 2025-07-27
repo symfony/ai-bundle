@@ -13,7 +13,6 @@ namespace Symfony\AI\AIBundle\Tests\Profiler;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\Small;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 use Symfony\AI\Agent\Toolbox\ToolboxInterface;
 use Symfony\AI\AIBundle\Profiler\TraceableToolbox;
@@ -25,8 +24,7 @@ use Symfony\AI\Platform\Tool\Tool;
 #[Small]
 final class TraceableToolboxTest extends TestCase
 {
-    #[Test]
-    public function getMap(): void
+    public function testGetMap(): void
     {
         $metadata = new Tool(new ExecutionReference('Foo\Bar'), 'bar', 'description', null);
         $toolbox = $this->createToolbox(['tool' => $metadata]);
@@ -37,8 +35,7 @@ final class TraceableToolboxTest extends TestCase
         $this->assertSame(['tool' => $metadata], $map);
     }
 
-    #[Test]
-    public function execute(): void
+    public function testExecute(): void
     {
         $metadata = new Tool(new ExecutionReference('Foo\Bar'), 'bar', 'description', null);
         $toolbox = $this->createToolbox(['tool' => $metadata]);

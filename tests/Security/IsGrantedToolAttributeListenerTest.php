@@ -13,7 +13,6 @@ namespace Symfony\AI\AIBundle\Tests\Security;
 
 use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -50,11 +49,10 @@ class IsGrantedToolAttributeListenerTest extends TestCase
         $this->dispatcher->addListener(ToolCallArgumentsResolved::class, new IsGrantedToolAttributeListener($this->authChecker));
     }
 
-    #[Test]
     #[TestWith([new ToolWithIsGrantedOnMethod(), new Tool(new ExecutionReference(ToolWithIsGrantedOnMethod::class, 'simple'), 'simple', '')])]
     #[TestWith([new ToolWithIsGrantedOnMethod(), new Tool(new ExecutionReference(ToolWithIsGrantedOnMethod::class, 'expressionAsSubject'), 'expressionAsSubject', '')])]
     #[TestWith([new ToolWithIsGrantedOnClass(), new Tool(new ExecutionReference(ToolWithIsGrantedOnClass::class, '__invoke'), 'ToolWithIsGrantedOnClass', '')])]
-    public function itWillThrowWhenNotGranted(object $tool, Tool $metadata): void
+    public function testItWillThrowWhenNotGranted(object $tool, Tool $metadata): void
     {
         $this->authChecker->expects($this->once())->method('isGranted')->willReturn(false);
 
@@ -63,26 +61,23 @@ class IsGrantedToolAttributeListenerTest extends TestCase
         $this->dispatcher->dispatch(new ToolCallArgumentsResolved($tool, $metadata, []));
     }
 
-    #[Test]
     #[TestWith([new ToolWithIsGrantedOnMethod(), new Tool(new ExecutionReference(ToolWithIsGrantedOnMethod::class, 'simple'), '', '')], 'method')]
-    public function itWillNotThrowWhenGranted(object $tool, Tool $metadata): void
+    public function testItWillNotThrowWhenGranted(object $tool, Tool $metadata): void
     {
         $this->authChecker->expects($this->once())->method('isGranted')->with('ROLE_USER')->willReturn(true);
         $this->dispatcher->dispatch(new ToolCallArgumentsResolved($tool, $metadata, []));
     }
 
-    #[Test]
     #[TestWith([new ToolWithIsGrantedOnMethod(), new Tool(new ExecutionReference(ToolWithIsGrantedOnMethod::class, 'argumentAsSubject'), '', '')], 'method')]
     #[TestWith([new ToolWithIsGrantedOnClass(), new Tool(new ExecutionReference(ToolWithIsGrantedOnClass::class, '__invoke'), '', '')], 'class')]
-    public function itWillProvideArgumentAsSubject(object $tool, Tool $metadata): void
+    public function testItWillProvideArgumentAsSubject(object $tool, Tool $metadata): void
     {
         $this->authChecker->expects($this->once())->method('isGranted')->with('test:permission', 44)->willReturn(true);
         $this->dispatcher->dispatch(new ToolCallArgumentsResolved($tool, $metadata, ['itemId' => 44]));
     }
 
-    #[Test]
     #[TestWith([new ToolWithIsGrantedOnMethod(), new Tool(new ExecutionReference(ToolWithIsGrantedOnMethod::class, 'expressionAsSubject'), '', '')], 'method')]
-    public function itWillEvaluateSubjectExpression(object $tool, Tool $metadata): void
+    public function testItWillEvaluateSubjectExpression(object $tool, Tool $metadata): void
     {
         $this->authChecker->expects($this->once())->method('isGranted')->with('test:permission', 44)->willReturn(true);
         $this->dispatcher->dispatch(new ToolCallArgumentsResolved($tool, $metadata, ['itemId' => 44]));

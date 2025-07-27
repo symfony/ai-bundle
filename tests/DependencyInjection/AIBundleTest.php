@@ -13,7 +13,6 @@ namespace Symfony\AI\AIBundle\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
-use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\AI\AIBundle\AIBundle;
@@ -25,14 +24,12 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 class AIBundleTest extends TestCase
 {
     #[DoesNotPerformAssertions]
-    #[Test]
-    public function extensionLoadDoesNotThrow(): void
+    public function testExtensionLoadDoesNotThrow(): void
     {
         $this->buildContainer($this->getFullConfig());
     }
 
-    #[Test]
-    public function agentsCanBeRegisteredAsTools(): void
+    public function testAgentsCanBeRegisteredAsTools(): void
     {
         $container = $this->buildContainer([
             'ai' => [
@@ -52,8 +49,7 @@ class AIBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.toolbox.main_agent.agent_wrapper.another_agent_instance'));
     }
 
-    #[Test]
-    public function agentsAsToolsCannotDefineService(): void
+    public function testAgentsAsToolsCannotDefineService(): void
     {
         $this->expectException(InvalidConfigurationException::class);
         $this->buildContainer([
