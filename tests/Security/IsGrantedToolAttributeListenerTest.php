@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\AI\AIBundle\Tests\Security;
+namespace Symfony\AI\AiBundle\Tests\Security;
 
 use PHPUnit\Framework\Attributes\Before;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -18,9 +18,9 @@ use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Symfony\AI\Agent\Toolbox\Event\ToolCallArgumentsResolved;
-use Symfony\AI\AIBundle\Security\EventListener\IsGrantedToolAttributeListener;
-use Symfony\AI\AIBundle\Tests\Fixture\Tool\ToolWithIsGrantedOnClass;
-use Symfony\AI\AIBundle\Tests\Fixture\Tool\ToolWithIsGrantedOnMethod;
+use Symfony\AI\AiBundle\Security\EventListener\IsGrantedToolAttributeListener;
+use Symfony\AI\AiBundle\Tests\Fixture\Tool\ToolWithIsGrantedOnClass;
+use Symfony\AI\AiBundle\Tests\Fixture\Tool\ToolWithIsGrantedOnMethod;
 use Symfony\AI\Platform\Tool\ExecutionReference;
 use Symfony\AI\Platform\Tool\Tool;
 use Symfony\Component\EventDispatcher\EventDispatcher;

@@ -9,14 +9,14 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\AI\AIBundle\Tests\Profiler;
+namespace Symfony\AI\AiBundle\Tests\Profiler;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\AI\Agent\Toolbox\ToolboxInterface;
-use Symfony\AI\AIBundle\Profiler\DataCollector;
-use Symfony\AI\AIBundle\Profiler\TraceablePlatform;
+use Symfony\AI\AiBundle\Profiler\DataCollector;
+use Symfony\AI\AiBundle\Profiler\TraceablePlatform;
 use Symfony\AI\Platform\Message\Content\Text;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;

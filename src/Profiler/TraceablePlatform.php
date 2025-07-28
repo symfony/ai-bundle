@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\AI\AIBundle\Profiler;
+namespace Symfony\AI\AiBundle\Profiler;
 
 use Symfony\AI\Platform\Message\Content\File;
 use Symfony\AI\Platform\Model;

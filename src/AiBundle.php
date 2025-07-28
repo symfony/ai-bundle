@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\AI\AIBundle;
+namespace Symfony\AI\AiBundle;
 
 use Symfony\AI\Agent\Agent;
 use Symfony\AI\Agent\AgentInterface;
@@ -21,10 +21,10 @@ use Symfony\AI\Agent\Toolbox\FaultTolerantToolbox;
 use Symfony\AI\Agent\Toolbox\Tool\Agent as AgentTool;
 use Symfony\AI\Agent\Toolbox\ToolFactory\ChainFactory;
 use Symfony\AI\Agent\Toolbox\ToolFactory\MemoryToolFactory;
-use Symfony\AI\AIBundle\Exception\InvalidArgumentException;
-use Symfony\AI\AIBundle\Profiler\TraceablePlatform;
-use Symfony\AI\AIBundle\Profiler\TraceableToolbox;
-use Symfony\AI\AIBundle\Security\Attribute\IsGrantedTool;
+use Symfony\AI\AiBundle\Exception\InvalidArgumentException;
+use Symfony\AI\AiBundle\Profiler\TraceablePlatform;
+use Symfony\AI\AiBundle\Profiler\TraceableToolbox;
+use Symfony\AI\AiBundle\Security\Attribute\IsGrantedTool;
 use Symfony\AI\Platform\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFactory;
 use Symfony\AI\Platform\Bridge\Azure\OpenAI\PlatformFactory as AzureOpenAIPlatformFactory;
 use Symfony\AI\Platform\Bridge\Gemini\PlatformFactory as GeminiPlatformFactory;
@@ -60,7 +60,7 @@ use function Symfony\Component\String\u;
 /**
  * @author Christopher Hertel <mail@christopher-hertel.de>
  */
-final class AIBundle extends AbstractBundle
+final class AiBundle extends AbstractBundle
 {
     public function configure(DefinitionConfigurator $definition): void
     {

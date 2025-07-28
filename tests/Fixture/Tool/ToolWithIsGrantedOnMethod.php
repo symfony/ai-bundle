@@ -9,9 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\AI\AIBundle\Tests\Fixture\Tool;
+namespace Symfony\AI\AiBundle\Tests\Fixture\Tool;
 
-use Symfony\AI\AIBundle\Security\Attribute\IsGrantedTool;
+use Symfony\AI\AiBundle\Security\Attribute\IsGrantedTool;
 use Symfony\Component\ExpressionLanguage\Expression;
 
 final class ToolWithIsGrantedOnMethod

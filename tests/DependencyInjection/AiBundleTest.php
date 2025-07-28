@@ -9,19 +9,19 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\AI\AIBundle\Tests\DependencyInjection;
+namespace Symfony\AI\AiBundle\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
-use Symfony\AI\AIBundle\AIBundle;
+use Symfony\AI\AiBundle\AiBundle;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
-#[CoversClass(AIBundle::class)]
+#[CoversClass(AiBundle::class)]
 #[UsesClass(ContainerBuilder::class)]
-class AIBundleTest extends TestCase
+class AiBundleTest extends TestCase
 {
     #[DoesNotPerformAssertions]
     public function testExtensionLoadDoesNotThrow()
@@ -71,7 +71,7 @@ class AIBundleTest extends TestCase
         $container->setParameter('kernel.environment', 'dev');
         $container->setParameter('kernel.build_dir', 'public');
 
-        $extension = (new AIBundle())->getContainerExtension();
+        $extension = (new AiBundle())->getContainerExtension();
         $extension->load($configuration, $container);
 
         return $container;

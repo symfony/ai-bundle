@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\AI\AIBundle\Security\Attribute;
+namespace Symfony\AI\AiBundle\Security\Attribute;
 
 use Symfony\AI\Platform\Tool\Tool;
 use Symfony\Component\ExpressionLanguage\Expression;

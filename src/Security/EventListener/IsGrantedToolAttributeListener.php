@@ -9,10 +9,10 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\AI\AIBundle\Security\EventListener;
+namespace Symfony\AI\AiBundle\Security\EventListener;
 
 use Symfony\AI\Agent\Toolbox\Event\ToolCallArgumentsResolved;
-use Symfony\AI\AIBundle\Security\Attribute\IsGrantedTool;
+use Symfony\AI\AiBundle\Security\Attribute\IsGrantedTool;
 use Symfony\Component\ExpressionLanguage\Expression;
 use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 use Symfony\Component\Security\Core\Authorization\AccessDecision;

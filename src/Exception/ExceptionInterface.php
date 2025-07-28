@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Symfony\AI\AIBundle\Exception;
+namespace Symfony\AI\AiBundle\Exception;
 
 /**
  * @author Christopher Hertel <mail@christopher-hertel.de>
