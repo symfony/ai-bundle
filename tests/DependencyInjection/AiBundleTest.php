@@ -35,7 +35,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'main_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\GPT'],
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
                         'tools' => [
                             ['agent' => 'another_agent', 'description' => 'Agent tool with implicit name'],
                             ['agent' => 'another_agent', 'name' => 'another_agent_instance', 'description' => 'Agent tool with explicit name'],
@@ -56,7 +56,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'main_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\GPT'],
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
                         'tools' => [['agent' => 'another_agent', 'service' => 'foo_bar', 'description' => 'Agent with service']],
                     ],
                 ],
@@ -122,7 +122,7 @@ class AiBundleTest extends TestCase
                     'my_chat_agent' => [
                         'platform' => 'openai_platform_service_id',
                         'model' => [
-                            'class' => 'Symfony\AI\Platform\Bridge\OpenAi\GPT',
+                            'class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt',
                             'name' => 'gpt-3.5-turbo',
                             'options' => [
                                 'temperature' => 0.7,

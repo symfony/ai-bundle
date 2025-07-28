@@ -31,8 +31,8 @@ Configuration
         agent:
             default:
                 model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\GPT'
-                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\GPT::GPT_4O_MINI
+                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
+                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
 
 **Advanced Example with Anthropic, Azure, Gemini and multiple agents**
 
@@ -57,8 +57,8 @@ Configuration
                 platform: 'ai.platform.azure.gpt_deployment'
                 structured_output: false # Disables support for "output_structure" option, default is true
                 model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\GPT'
-                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\GPT::GPT_4O_MINI
+                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
+                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
                 system_prompt: 'You are a helpful assistant that can answer questions.' # The default system prompt of the agent
                 include_tools: true # Include tool definitions at the end of the system prompt
                 tools:
