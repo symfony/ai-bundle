@@ -26,11 +26,11 @@ use Symfony\AI\AiBundle\Profiler\TraceablePlatform;
 use Symfony\AI\AiBundle\Profiler\TraceableToolbox;
 use Symfony\AI\AiBundle\Security\Attribute\IsGrantedTool;
 use Symfony\AI\Platform\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFactory;
-use Symfony\AI\Platform\Bridge\Azure\OpenAI\PlatformFactory as AzureOpenAIPlatformFactory;
+use Symfony\AI\Platform\Bridge\Azure\OpenAi\PlatformFactory as AzureOpenAiPlatformFactory;
 use Symfony\AI\Platform\Bridge\Gemini\PlatformFactory as GeminiPlatformFactory;
 use Symfony\AI\Platform\Bridge\LMStudio\PlatformFactory as LMStudioPlatformFactory;
 use Symfony\AI\Platform\Bridge\Mistral\PlatformFactory as MistralPlatformFactory;
-use Symfony\AI\Platform\Bridge\OpenAI\PlatformFactory as OpenAIPlatformFactory;
+use Symfony\AI\Platform\Bridge\OpenAi\PlatformFactory as OpenAiPlatformFactory;
 use Symfony\AI\Platform\Bridge\OpenRouter\PlatformFactory as OpenRouterPlatformFactory;
 use Symfony\AI\Platform\Model;
 use Symfony\AI\Platform\ModelClientInterface;
@@ -177,7 +177,7 @@ final class AiBundle extends AbstractBundle
             foreach ($platform as $name => $config) {
                 $platformId = 'ai.platform.azure.'.$name;
                 $definition = (new Definition(Platform::class))
-                    ->setFactory(AzureOpenAIPlatformFactory::class.'::create')
+                    ->setFactory(AzureOpenAiPlatformFactory::class.'::create')
                     ->setLazy(true)
                     ->addTag('proxy', ['interface' => PlatformInterface::class])
                     ->setArguments([
@@ -217,7 +217,7 @@ final class AiBundle extends AbstractBundle
         if ('openai' === $type) {
             $platformId = 'ai.platform.openai';
             $definition = (new Definition(Platform::class))
-                ->setFactory(OpenAIPlatformFactory::class.'::create')
+                ->setFactory(OpenAiPlatformFactory::class.'::create')
                 ->setLazy(true)
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
