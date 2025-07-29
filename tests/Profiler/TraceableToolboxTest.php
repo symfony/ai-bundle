@@ -24,7 +24,7 @@ use Symfony\AI\Platform\Tool\Tool;
 #[Small]
 final class TraceableToolboxTest extends TestCase
 {
-    public function testGetMap(): void
+    public function testGetMap()
     {
         $metadata = new Tool(new ExecutionReference('Foo\Bar'), 'bar', 'description', null);
         $toolbox = $this->createToolbox(['tool' => $metadata]);
@@ -35,7 +35,7 @@ final class TraceableToolboxTest extends TestCase
         $this->assertSame(['tool' => $metadata], $map);
     }
 
-    public function testExecute(): void
+    public function testExecute()
     {
         $metadata = new Tool(new ExecutionReference('Foo\Bar'), 'bar', 'description', null);
         $toolbox = $this->createToolbox(['tool' => $metadata]);

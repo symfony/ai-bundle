@@ -24,12 +24,12 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 class AIBundleTest extends TestCase
 {
     #[DoesNotPerformAssertions]
-    public function testExtensionLoadDoesNotThrow(): void
+    public function testExtensionLoadDoesNotThrow()
     {
         $this->buildContainer($this->getFullConfig());
     }
 
-    public function testAgentsCanBeRegisteredAsTools(): void
+    public function testAgentsCanBeRegisteredAsTools()
     {
         $container = $this->buildContainer([
             'ai' => [
@@ -49,7 +49,7 @@ class AIBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.toolbox.main_agent.agent_wrapper.another_agent_instance'));
     }
 
-    public function testAgentsAsToolsCannotDefineService(): void
+    public function testAgentsAsToolsCannotDefineService()
     {
         $this->expectException(InvalidConfigurationException::class);
         $this->buildContainer([
