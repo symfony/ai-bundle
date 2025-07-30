@@ -38,7 +38,7 @@ use Symfony\AI\Platform\Platform;
 use Symfony\AI\Platform\PlatformInterface;
 use Symfony\AI\Platform\ResultConverterInterface;
 use Symfony\AI\Store\Bridge\Azure\SearchStore as AzureSearchStore;
-use Symfony\AI\Store\Bridge\ChromaDB\Store as ChromaDBStore;
+use Symfony\AI\Store\Bridge\ChromaDb\Store as ChromaDbStore;
 use Symfony\AI\Store\Bridge\MongoDB\Store as MongoDBStore;
 use Symfony\AI\Store\Bridge\Pinecone\Store as PineconeStore;
 use Symfony\AI\Store\Document\Vectorizer;
@@ -440,7 +440,7 @@ final class AiBundle extends AbstractBundle
 
         if ('chroma_db' === $type) {
             foreach ($stores as $name => $store) {
-                $definition = new Definition(ChromaDBStore::class);
+                $definition = new Definition(ChromaDbStore::class);
                 $definition
                     ->setArguments([
                         new Reference($store['client']),
