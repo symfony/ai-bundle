@@ -39,7 +39,7 @@ use Symfony\AI\Platform\PlatformInterface;
 use Symfony\AI\Platform\ResultConverterInterface;
 use Symfony\AI\Store\Bridge\Azure\SearchStore as AzureSearchStore;
 use Symfony\AI\Store\Bridge\ChromaDb\Store as ChromaDbStore;
-use Symfony\AI\Store\Bridge\MongoDB\Store as MongoDBStore;
+use Symfony\AI\Store\Bridge\MongoDb\Store as MongoDbStore;
 use Symfony\AI\Store\Bridge\Pinecone\Store as PineconeStore;
 use Symfony\AI\Store\Document\Vectorizer;
 use Symfony\AI\Store\Indexer;
@@ -469,7 +469,7 @@ final class AiBundle extends AbstractBundle
                     $arguments[5] = $store['bulk_write'];
                 }
 
-                $definition = new Definition(MongoDBStore::class);
+                $definition = new Definition(MongoDbStore::class);
                 $definition
                     ->addTag('ai.store')
                     ->setArguments($arguments);
