@@ -186,7 +186,7 @@ final class AiBundle extends AbstractBundle
                         $config['api_version'],
                         $config['api_key'],
                         new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
-                        new Reference('ai.platform.contract.default'),
+                        new Reference('ai.platform.contract.openai'),
                     ])
                     ->addTag('ai.platform');
 
