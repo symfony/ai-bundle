@@ -69,6 +69,7 @@ use Symfony\AI\Store\Bridge\MongoDb\Store as MongoDbStore;
 use Symfony\AI\Store\Bridge\Neo4j\Store as Neo4jStore;
 use Symfony\AI\Store\Bridge\Pinecone\Store as PineconeStore;
 use Symfony\AI\Store\Bridge\Qdrant\Store as QdrantStore;
+use Symfony\AI\Store\Bridge\Redis\Store as RedisStore;
 use Symfony\AI\Store\Bridge\SurrealDb\Store as SurrealDbStore;
 use Symfony\AI\Store\Bridge\Typesense\Store as TypesenseStore;
 use Symfony\AI\Store\Bridge\Weaviate\Store as WeaviateStore;
@@ -1072,6 +1073,30 @@ final class AiBundle extends AbstractBundle
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
                 $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
                 $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
+            }
+        }
+
+        if ('redis' === $type) {
+            foreach ($stores as $name => $store) {
+                if (isset($store['client'])) {
+                    $redisClient = new Reference($store['client']);
+                } else {
+                    $redisClient = new Definition(\Redis::class);
+                    $redisClient->setArguments([$store['connection_parameters']]);
+                }
+
+                $definition = new Definition(RedisStore::class);
+                $definition
+                    ->addTag('ai.store')
+                    ->setArguments([
+                        $redisClient,
+                        $store['index_name'],
+                        $store['key_prefix'],
+                        $store['distance'],
+                    ])
+                ;
+
+                $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
             }
         }
 
