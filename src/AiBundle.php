@@ -356,11 +356,9 @@ final class AiBundle extends AbstractBundle
                 $container->setDefinition('ai.toolbox.'.$name, $toolboxDefinition);
 
                 if ($config['fault_tolerant_toolbox']) {
-                    $faultTolerantToolboxDefinition = (new Definition('ai.fault_tolerant_toolbox.'.$name))
-                        ->setClass(FaultTolerantToolbox::class)
+                    $container->setDefinition('ai.fault_tolerant_toolbox.'.$name, new Definition(FaultTolerantToolbox::class))
                         ->setArguments([new Reference('.inner')])
                         ->setDecoratedService('ai.toolbox.'.$name);
-                    $container->setDefinition('ai.fault_tolerant_toolbox.'.$name, $faultTolerantToolboxDefinition);
                 }
 
                 if ($container->getParameter('kernel.debug')) {
@@ -379,6 +377,12 @@ final class AiBundle extends AbstractBundle
                 $inputProcessors[] = new Reference('ai.tool.agent_processor.'.$name);
                 $outputProcessors[] = new Reference('ai.tool.agent_processor.'.$name);
             } else {
+                if ($config['fault_tolerant_toolbox'] && !$container->hasDefinition('ai.fault_tolerant_toolbox')) {
+                    $container->setDefinition('ai.fault_tolerant_toolbox', new Definition(FaultTolerantToolbox::class))
+                        ->setArguments([new Reference('.inner')])
+                        ->setDecoratedService('ai.toolbox');
+                }
+
                 $inputProcessors[] = new Reference('ai.tool.agent_processor');
                 $outputProcessors[] = new Reference('ai.tool.agent_processor');
             }

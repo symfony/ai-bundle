@@ -13,6 +13,7 @@ namespace Symfony\AI\AiBundle\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\AI\AiBundle\AiBundle;
@@ -27,6 +28,46 @@ class AiBundleTest extends TestCase
     public function testExtensionLoadDoesNotThrow()
     {
         $this->buildContainer($this->getFullConfig());
+    }
+
+    #[TestWith([true], 'enabled')]
+    #[TestWith([false], 'disabled')]
+    public function testFaultTolerantAgentSpecificToolbox(bool $enabled)
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'my_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'tools' => [
+                            ['service' => 'some_service', 'description' => 'Some tool'],
+                        ],
+                        'fault_tolerant_toolbox' => $enabled,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertSame($enabled, $container->hasDefinition('ai.fault_tolerant_toolbox.my_agent'));
+    }
+
+    #[TestWith([true], 'enabled')]
+    #[TestWith([false], 'disabled')]
+    public function testFaultTolerantDefaultToolbox(bool $enabled)
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'my_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'tools' => true,
+                        'fault_tolerant_toolbox' => $enabled,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertSame($enabled, $container->hasDefinition('ai.fault_tolerant_toolbox'));
     }
 
     public function testAgentsCanBeRegisteredAsTools()
