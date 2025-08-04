@@ -201,6 +201,11 @@ class AiBundleTest extends TestCase
                             'vector_field' => 'contentVector',
                         ],
                     ],
+                    'cache' => [
+                        'my_cache_store' => [
+                            'service' => 'cache.system',
+                        ],
+                    ],
                     'chroma_db' => [
                         'my_chroma_store' => [
                             'collection' => 'my_collection',

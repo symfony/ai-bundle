@@ -48,6 +48,7 @@ use Symfony\AI\Store\Bridge\Pinecone\Store as PineconeStore;
 use Symfony\AI\Store\Bridge\Qdrant\Store as QdrantStore;
 use Symfony\AI\Store\Bridge\SurrealDb\Store as SurrealDbStore;
 use Symfony\AI\Store\Bridge\Typesense\Store as TypesenseStore;
+use Symfony\AI\Store\CacheStore;
 use Symfony\AI\Store\Document\Vectorizer;
 use Symfony\AI\Store\Indexer;
 use Symfony\AI\Store\InMemoryStore;
@@ -463,6 +464,21 @@ final class AiBundle extends AbstractBundle
                 }
 
                 $definition = new Definition(AzureSearchStore::class);
+                $definition
+                    ->addTag('ai.store')
+                    ->setArguments($arguments);
+
+                $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+            }
+        }
+
+        if ('cache' === $type) {
+            foreach ($stores as $name => $store) {
+                $arguments = [
+                    new Reference($store['service']),
+                ];
+
+                $definition = new Definition(CacheStore::class);
                 $definition
                     ->addTag('ai.store')
                     ->setArguments($arguments);
