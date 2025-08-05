@@ -86,7 +86,7 @@ Configuration
                     - 'Symfony\AI\Agent\Toolbox\Tool\Wikipedia'
                 fault_tolerant_toolbox: false # Disables fault tolerant toolbox, default is true
         store:
-            # also azure_search, mongodb and pinecone are supported as store type
+            # also azure_search, meilisearch, memory, mongodb, pinecone, qdrant and surrealdb are supported as store type
             chroma_db:
                 # multiple collections possible per type
                 default:

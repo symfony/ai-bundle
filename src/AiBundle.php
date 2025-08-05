@@ -40,10 +40,15 @@ use Symfony\AI\Platform\PlatformInterface;
 use Symfony\AI\Platform\ResultConverterInterface;
 use Symfony\AI\Store\Bridge\Azure\SearchStore as AzureSearchStore;
 use Symfony\AI\Store\Bridge\ChromaDb\Store as ChromaDbStore;
+use Symfony\AI\Store\Bridge\Meilisearch\Store as MeilisearchStore;
 use Symfony\AI\Store\Bridge\MongoDb\Store as MongoDbStore;
+use Symfony\AI\Store\Bridge\Neo4j\Store as Neo4jStore;
 use Symfony\AI\Store\Bridge\Pinecone\Store as PineconeStore;
+use Symfony\AI\Store\Bridge\Qdrant\Store as QdrantStore;
+use Symfony\AI\Store\Bridge\SurrealDb\Store as SurrealDbStore;
 use Symfony\AI\Store\Document\Vectorizer;
 use Symfony\AI\Store\Indexer;
+use Symfony\AI\Store\InMemoryStore;
 use Symfony\AI\Store\StoreInterface;
 use Symfony\AI\Store\VectorStoreInterface;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -476,6 +481,50 @@ final class AiBundle extends AbstractBundle
             }
         }
 
+        if ('meilisearch' === $type) {
+            foreach ($stores as $name => $store) {
+                $arguments = [
+                    new Reference('http_client'),
+                    $store['api_key'],
+                    $store['index_name'],
+                ];
+
+                if (\array_key_exists('embedder', $store)) {
+                    $arguments[3] = $store['embedder'];
+                }
+
+                if (\array_key_exists('vector_field', $store)) {
+                    $arguments[4] = $store['vector_field'];
+                }
+
+                if (\array_key_exists('dimensions', $store)) {
+                    $arguments[5] = $store['dimensions'];
+                }
+
+                $definition = new Definition(MeilisearchStore::class);
+                $definition
+                    ->addTag('ai.store')
+                    ->setArguments($arguments);
+
+                $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+            }
+        }
+
+        if ('memory' === $type) {
+            foreach ($stores as $name => $store) {
+                $arguments = [
+                    $store['distance'],
+                ];
+
+                $definition = new Definition(InMemoryStore::class);
+                $definition
+                    ->addTag('ai.store')
+                    ->setArguments($arguments);
+
+                $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+            }
+        }
+
         if ('mongodb' === $type) {
             foreach ($stores as $name => $store) {
                 $arguments = [
@@ -502,6 +551,43 @@ final class AiBundle extends AbstractBundle
             }
         }
 
+        if ('neo4j' === $type) {
+            foreach ($stores as $name => $store) {
+                $arguments = [
+                    new Reference('http_client'),
+                    $store['endpoint'],
+                    $store['username'],
+                    $store['password'],
+                    $store['database'],
+                    $store['vector_index_name'],
+                    $store['node_name'],
+                ];
+
+                if (\array_key_exists('vector_field', $store)) {
+                    $arguments[7] = $store['vector_field'];
+                }
+
+                if (\array_key_exists('dimensions', $store)) {
+                    $arguments[8] = $store['dimensions'];
+                }
+
+                if (\array_key_exists('distance', $store)) {
+                    $arguments[9] = $store['distance'];
+                }
+
+                if (\array_key_exists('quantization', $store)) {
+                    $arguments[10] = $store['quantization'];
+                }
+
+                $definition = new Definition(Neo4jStore::class);
+                $definition
+                    ->addTag('ai.store')
+                    ->setArguments($arguments);
+
+                $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+            }
+        }
+
         if ('pinecone' === $type) {
             foreach ($stores as $name => $store) {
                 $arguments = [
@@ -518,6 +604,72 @@ final class AiBundle extends AbstractBundle
                 }
 
                 $definition = new Definition(PineconeStore::class);
+                $definition
+                    ->addTag('ai.store')
+                    ->setArguments($arguments);
+
+                $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+            }
+        }
+
+        if ('qdrant' === $type) {
+            foreach ($stores as $name => $store) {
+                $arguments = [
+                    new Reference('http_client'),
+                    $store['endpoint'],
+                    $store['api_key'],
+                    $store['collection_name'],
+                ];
+
+                if (\array_key_exists('dimensions', $store)) {
+                    $arguments[4] = $store['dimensions'];
+                }
+
+                if (\array_key_exists('distance', $store)) {
+                    $arguments[5] = $store['distance'];
+                }
+
+                $definition = new Definition(QdrantStore::class);
+                $definition
+                    ->addTag('ai.store')
+                    ->setArguments($arguments);
+
+                $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+            }
+        }
+
+        if ('surreal_db' === $type) {
+            foreach ($stores as $name => $store) {
+                $arguments = [
+                    new Reference('http_client'),
+                    $store['endpoint'],
+                    $store['username'],
+                    $store['password'],
+                    $store['namespace'],
+                    $store['database'],
+                ];
+
+                if (\array_key_exists('table', $store)) {
+                    $arguments[6] = $store['table'];
+                }
+
+                if (\array_key_exists('vector_field', $store)) {
+                    $arguments[7] = $store['vector_field'];
+                }
+
+                if (\array_key_exists('strategy', $store)) {
+                    $arguments[8] = $store['strategy'];
+                }
+
+                if (\array_key_exists('dimensions', $store)) {
+                    $arguments[9] = $store['dimensions'];
+                }
+
+                if (\array_key_exists('namespaced_user', $store)) {
+                    $arguments[10] = $store['namespaced_user'];
+                }
+
+                $definition = new Definition(SurrealDbStore::class);
                 $definition
                     ->addTag('ai.store')
                     ->setArguments($arguments);

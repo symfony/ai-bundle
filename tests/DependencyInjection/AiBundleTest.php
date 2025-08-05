@@ -206,6 +206,20 @@ class AiBundleTest extends TestCase
                             'collection' => 'my_collection',
                         ],
                     ],
+                    'meilisearch' => [
+                        'my_meilisearch_store' => [
+                            'api_key' => 'foo',
+                            'index_name' => 'test',
+                            'embedder' => 'default',
+                            'vector_field' => '_vectors',
+                            'dimensions' => 768,
+                        ],
+                    ],
+                    'memory' => [
+                        'my_memory_store' => [
+                            'distance' => 'cosine',
+                        ],
+                    ],
                     'mongodb' => [
                         'my_mongo_store' => [
                             'database' => 'my_db',
@@ -215,11 +229,48 @@ class AiBundleTest extends TestCase
                             'bulk_write' => true,
                         ],
                     ],
+                    'neo4j' => [
+                        'my_neo4j_store' => [
+                            'endpoint' => 'http://127.0.0.1:8000',
+                            'username' => 'test',
+                            'password' => 'test',
+                            'database' => 'foo',
+                            'vector_index_name' => 'test',
+                            'node_name' => 'foo',
+                            'vector_field' => '_vectors',
+                            'dimensions' => 768,
+                            'distance' => 'cosine',
+                            'quantization' => true,
+                        ],
+                    ],
                     'pinecone' => [
                         'my_pinecone_store' => [
                             'namespace' => 'my_namespace',
                             'filter' => ['category' => 'books'],
                             'top_k' => 10,
+                        ],
+                    ],
+                    'qdrant' => [
+                        'my_qdrant_store' => [
+                            'endpoint' => 'http://127.0.0.1:8000',
+                            'api_key' => 'test',
+                            'collection_name' => 'foo',
+                            'dimensions' => 768,
+                            'distance' => 'Cosine',
+                        ],
+                    ],
+                    'surreal_db' => [
+                        'my_surreal_db_store' => [
+                            'endpoint' => 'http://127.0.0.1:8000',
+                            'username' => 'test',
+                            'password' => 'test',
+                            'namespace' => 'foo',
+                            'database' => 'bar',
+                            'table' => 'bar',
+                            'vector_field' => '_vectors',
+                            'strategy' => 'cosine',
+                            'dimensions' => 768,
+                            'namespaced_user' => true,
                         ],
                     ],
                 ],
