@@ -274,6 +274,15 @@ class AiBundleTest extends TestCase
                             'namespaced_user' => true,
                         ],
                     ],
+                    'typesense' => [
+                        'my_typesense_store' => [
+                            'endpoint' => 'http://localhost:8108',
+                            'api_key' => 'foo',
+                            'collection' => 'my_collection',
+                            'vector_field' => 'vector',
+                            'dimensions' => 768,
+                        ],
+                    ],
                 ],
                 'indexer' => [
                     'my_text_indexer' => [
