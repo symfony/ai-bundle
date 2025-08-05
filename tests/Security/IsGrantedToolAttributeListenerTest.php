@@ -56,8 +56,8 @@ class IsGrantedToolAttributeListenerTest extends TestCase
     {
         $this->authChecker->expects($this->once())->method('isGranted')->willReturn(false);
 
-        self::expectException(AccessDeniedException::class);
-        self::expectExceptionMessage(\sprintf('No access to %s tool.', $metadata->name));
+        $this->expectException(AccessDeniedException::class);
+        $this->expectExceptionMessage(\sprintf('No access to %s tool.', $metadata->name));
         $this->dispatcher->dispatch(new ToolCallArgumentsResolved($tool, $metadata, []));
     }
 
