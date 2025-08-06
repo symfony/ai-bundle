@@ -176,6 +176,7 @@ return static function (DefinitionConfigurator $configurator): void {
                         ->useAttributeAsKey('name')
                         ->arrayPrototype()
                             ->children()
+                                ->scalarNode('endpoint')->cannotBeEmpty()->end()
                                 ->scalarNode('api_key')->cannotBeEmpty()->end()
                                 ->scalarNode('index_name')->cannotBeEmpty()->end()
                                 ->scalarNode('embedder')->end()

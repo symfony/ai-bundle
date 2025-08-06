@@ -485,20 +485,21 @@ final class AiBundle extends AbstractBundle
             foreach ($stores as $name => $store) {
                 $arguments = [
                     new Reference('http_client'),
+                    $store['endpoint'],
                     $store['api_key'],
                     $store['index_name'],
                 ];
 
                 if (\array_key_exists('embedder', $store)) {
-                    $arguments[3] = $store['embedder'];
+                    $arguments[4] = $store['embedder'];
                 }
 
                 if (\array_key_exists('vector_field', $store)) {
-                    $arguments[4] = $store['vector_field'];
+                    $arguments[5] = $store['vector_field'];
                 }
 
                 if (\array_key_exists('dimensions', $store)) {
-                    $arguments[5] = $store['dimensions'];
+                    $arguments[6] = $store['dimensions'];
                 }
 
                 $definition = new Definition(MeilisearchStore::class);

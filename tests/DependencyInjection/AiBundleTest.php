@@ -208,6 +208,7 @@ class AiBundleTest extends TestCase
                     ],
                     'meilisearch' => [
                         'my_meilisearch_store' => [
+                            'endpoint' => 'http://127.0.0.1:7700',
                             'api_key' => 'foo',
                             'index_name' => 'test',
                             'embedder' => 'default',
