@@ -30,6 +30,7 @@ use Symfony\AI\Platform\Bridge\Azure\OpenAi\PlatformFactory as AzureOpenAiPlatfo
 use Symfony\AI\Platform\Bridge\Gemini\PlatformFactory as GeminiPlatformFactory;
 use Symfony\AI\Platform\Bridge\LmStudio\PlatformFactory as LmStudioPlatformFactory;
 use Symfony\AI\Platform\Bridge\Mistral\PlatformFactory as MistralPlatformFactory;
+use Symfony\AI\Platform\Bridge\Ollama\PlatformFactory as OllamaPlatformFactory;
 use Symfony\AI\Platform\Bridge\OpenAi\PlatformFactory as OpenAiPlatformFactory;
 use Symfony\AI\Platform\Bridge\OpenRouter\PlatformFactory as OpenRouterPlatformFactory;
 use Symfony\AI\Platform\Model;
@@ -271,7 +272,7 @@ final class AiBundle extends AbstractBundle
         if ('lmstudio' === $type) {
             $platformId = 'symfony_ai.platform.lmstudio';
             $definition = (new Definition(Platform::class))
-            ->setFactory(LmStudioPlatformFactory::class.'::create')
+                ->setFactory(LmStudioPlatformFactory::class.'::create')
                 ->setLazy(true)
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
@@ -280,6 +281,25 @@ final class AiBundle extends AbstractBundle
                     new Reference('ai.platform.contract.default'),
                 ])
                 ->addTag('symfony_ai.platform');
+
+            $container->setDefinition($platformId, $definition);
+
+            return;
+        }
+
+        if ('ollama' === $type) {
+            $platformId = 'ai.platform.ollama';
+            $definition = (new Definition(Platform::class))
+                ->setFactory(MistralPlatformFactory::class.'::create')
+                ->setFactory(OllamaPlatformFactory::class.'::create')
+                ->setLazy(true)
+                ->addTag('proxy', ['interface' => PlatformInterface::class])
+                ->setArguments([
+                    0 => $platform['host_url'],
+                    2 => new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    3 => new Reference('ai.platform.contract.ollama'),
+                ])
+                ->addTag('ai.platform');
 
             $container->setDefinition($platformId, $definition);
 

@@ -52,6 +52,8 @@ Configuration
                     api_version: '%env(AZURE_GPT_VERSION)%'
             gemini:
                 api_key: '%env(GEMINI_API_KEY)%'
+            ollama:
+                host_url: '%env(OLLAMA_HOST_URL)%'
         agent:
             rag:
                 platform: 'ai.platform.azure.gpt_deployment'

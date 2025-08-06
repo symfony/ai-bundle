@@ -26,6 +26,7 @@ use Symfony\AI\AiBundle\Profiler\TraceableToolbox;
 use Symfony\AI\AiBundle\Security\EventListener\IsGrantedToolAttributeListener;
 use Symfony\AI\Platform\Bridge\Anthropic\Contract\AnthropicContract;
 use Symfony\AI\Platform\Bridge\Gemini\Contract\GeminiContract;
+use Symfony\AI\Platform\Bridge\Ollama\Contract\OllamaContract;
 use Symfony\AI\Platform\Bridge\OpenAi\Whisper\AudioNormalizer;
 use Symfony\AI\Platform\Contract;
 use Symfony\AI\Platform\Contract\JsonSchema\DescriptionParser;
@@ -44,6 +45,8 @@ return static function (ContainerConfigurator $container): void {
             ->factory([AnthropicContract::class, 'create'])
         ->set('ai.platform.contract.google', Contract::class)
             ->factory([GeminiContract::class, 'create'])
+        ->set('ai.platform.contract.ollama', Contract::class)
+            ->factory([OllamaContract::class, 'create'])
         // structured output
         ->set('ai.agent.response_format_factory', ResponseFormatFactory::class)
             ->args([
