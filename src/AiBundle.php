@@ -300,9 +300,9 @@ final class AiBundle extends AbstractBundle
                 ->setLazy(true)
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
-                    0 => $platform['host_url'],
-                    2 => new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
-                    3 => new Reference('ai.platform.contract.ollama'),
+                    $platform['host_url'],
+                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference('ai.platform.contract.ollama'),
                 ])
                 ->addTag('ai.platform');
 
