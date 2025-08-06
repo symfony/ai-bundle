@@ -256,7 +256,7 @@ return static function (DefinitionConfigurator $configurator): void {
                     ->arrayNode('surreal_db')
                         ->normalizeKeys(false)
                         ->useAttributeAsKey('name')
-                            ->arrayPrototype()
+                        ->arrayPrototype()
                             ->children()
                                 ->scalarNode('endpoint')->cannotBeEmpty()->end()
                                 ->scalarNode('username')->cannotBeEmpty()->end()
