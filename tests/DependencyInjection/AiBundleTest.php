@@ -206,6 +206,13 @@ class AiBundleTest extends TestCase
                             'collection' => 'my_collection',
                         ],
                     ],
+                    'clickhouse' => [
+                        'my_clickhouse_store' => [
+                            'dsn' => 'http://foo:bar@1.2.3.4:9999',
+                            'database' => 'my_db',
+                            'table' => 'my_table',
+                        ],
+                    ],
                     'meilisearch' => [
                         'my_meilisearch_store' => [
                             'endpoint' => 'http://127.0.0.1:7700',

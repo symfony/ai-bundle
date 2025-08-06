@@ -40,6 +40,7 @@ use Symfony\AI\Platform\PlatformInterface;
 use Symfony\AI\Platform\ResultConverterInterface;
 use Symfony\AI\Store\Bridge\Azure\SearchStore as AzureSearchStore;
 use Symfony\AI\Store\Bridge\ChromaDb\Store as ChromaDbStore;
+use Symfony\AI\Store\Bridge\ClickHouse\Store as ClickHouseStore;
 use Symfony\AI\Store\Bridge\Meilisearch\Store as MeilisearchStore;
 use Symfony\AI\Store\Bridge\MongoDb\Store as MongoDbStore;
 use Symfony\AI\Store\Bridge\Neo4j\Store as Neo4jStore;
@@ -59,8 +60,10 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 use function Symfony\Component\String\u;
 
@@ -477,6 +480,32 @@ final class AiBundle extends AbstractBundle
                         $store['collection'],
                     ])
                     ->addTag('ai.store');
+
+                $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+            }
+        }
+
+        if ('clickhouse' === $type) {
+            foreach ($stores as $name => $store) {
+                if (isset($store['http_client'])) {
+                    $httpClient = new Reference($store['http_client']);
+                } else {
+                    $httpClient = new Definition(HttpClientInterface::class);
+                    $httpClient
+                        ->setFactory([HttpClient::class, 'createForBaseUri'])
+                        ->setArguments([$store['dsn']])
+                    ;
+                }
+
+                $definition = new Definition(ClickHouseStore::class);
+                $definition
+                    ->setArguments([
+                        $httpClient,
+                        $store['database'],
+                        $store['table'],
+                    ])
+                    ->addTag('ai.store')
+                ;
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
             }
