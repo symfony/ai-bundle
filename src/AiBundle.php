@@ -46,6 +46,7 @@ use Symfony\AI\Store\Bridge\Neo4j\Store as Neo4jStore;
 use Symfony\AI\Store\Bridge\Pinecone\Store as PineconeStore;
 use Symfony\AI\Store\Bridge\Qdrant\Store as QdrantStore;
 use Symfony\AI\Store\Bridge\SurrealDb\Store as SurrealDbStore;
+use Symfony\AI\Store\Bridge\Typesense\Store as TypesenseStore;
 use Symfony\AI\Store\Document\Vectorizer;
 use Symfony\AI\Store\Indexer;
 use Symfony\AI\Store\InMemoryStore;
@@ -671,6 +672,32 @@ final class AiBundle extends AbstractBundle
                 }
 
                 $definition = new Definition(SurrealDbStore::class);
+                $definition
+                    ->addTag('ai.store')
+                    ->setArguments($arguments);
+
+                $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+            }
+        }
+
+        if ('typesense' === $type) {
+            foreach ($stores as $name => $store) {
+                $arguments = [
+                    new Reference('http_client'),
+                    $store['endpoint'],
+                    $store['api_key'],
+                    $store['collection'],
+                ];
+
+                if (\array_key_exists('vector_field', $store)) {
+                    $arguments[4] = $store['vector_field'];
+                }
+
+                if (\array_key_exists('dimensions', $store)) {
+                    $arguments[5] = $store['dimensions'];
+                }
+
+                $definition = new Definition(TypesenseStore::class);
                 $definition
                     ->addTag('ai.store')
                     ->setArguments($arguments);
