@@ -27,13 +27,13 @@ use Symfony\AI\AiBundle\Profiler\TraceableToolbox;
 use Symfony\AI\AiBundle\Security\Attribute\IsGrantedTool;
 use Symfony\AI\Platform\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFactory;
 use Symfony\AI\Platform\Bridge\Azure\OpenAi\PlatformFactory as AzureOpenAiPlatformFactory;
+use Symfony\AI\Platform\Bridge\Cerebras\PlatformFactory as CerebrasPlatformFactory;
 use Symfony\AI\Platform\Bridge\Gemini\PlatformFactory as GeminiPlatformFactory;
 use Symfony\AI\Platform\Bridge\LmStudio\PlatformFactory as LmStudioPlatformFactory;
 use Symfony\AI\Platform\Bridge\Mistral\PlatformFactory as MistralPlatformFactory;
 use Symfony\AI\Platform\Bridge\Ollama\PlatformFactory as OllamaPlatformFactory;
 use Symfony\AI\Platform\Bridge\OpenAi\PlatformFactory as OpenAiPlatformFactory;
 use Symfony\AI\Platform\Bridge\OpenRouter\PlatformFactory as OpenRouterPlatformFactory;
-use Symfony\AI\Platform\Bridge\Cerebras\PlatformFactory as CerebrasPlatformFactory;
 use Symfony\AI\Platform\Model;
 use Symfony\AI\Platform\ModelClientInterface;
 use Symfony\AI\Platform\Platform;
@@ -56,6 +56,7 @@ use Symfony\AI\Store\InMemoryStore;
 use Symfony\AI\Store\StoreInterface;
 use Symfony\AI\Store\VectorStoreInterface;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
+use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -106,9 +107,6 @@ final class AiBundle extends AbstractBundle
 
         foreach ($config['agent'] as $agentName => $agent) {
             $this->processAgentConfig($agentName, $agent, $builder);
-        }
-        if (1 === \count($config['agent']) && isset($agentName)) {
-            $builder->setAlias(AgentInterface::class, 'ai.agent.'.$agentName);
         }
 
         foreach ($config['store'] ?? [] as $type => $store) {
@@ -460,6 +458,7 @@ final class AiBundle extends AbstractBundle
         ;
 
         $container->setDefinition('ai.agent.'.$name, $agentDefinition);
+        $container->registerAliasForArgument('ai.agent.'.$name, AgentInterface::class, (new Target($name.'Agent'))->getParsedName());
     }
 
     /**

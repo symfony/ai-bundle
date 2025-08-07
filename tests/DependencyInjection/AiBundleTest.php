@@ -30,6 +30,21 @@ class AiBundleTest extends TestCase
         $this->buildContainer($this->getFullConfig());
     }
 
+    public function testInjectionAgentAliasIsRegistered()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'my_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasAlias('Symfony\AI\Agent\AgentInterface $myAgentAgent'));
+    }
+
     #[TestWith([true], 'enabled')]
     #[TestWith([false], 'disabled')]
     public function testFaultTolerantAgentSpecificToolbox(bool $enabled)
