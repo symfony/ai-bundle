@@ -33,6 +33,7 @@ use Symfony\AI\Platform\Bridge\Mistral\PlatformFactory as MistralPlatformFactory
 use Symfony\AI\Platform\Bridge\Ollama\PlatformFactory as OllamaPlatformFactory;
 use Symfony\AI\Platform\Bridge\OpenAi\PlatformFactory as OpenAiPlatformFactory;
 use Symfony\AI\Platform\Bridge\OpenRouter\PlatformFactory as OpenRouterPlatformFactory;
+use Symfony\AI\Platform\Bridge\Cerebras\PlatformFactory as CerebrasPlatformFactory;
 use Symfony\AI\Platform\Model;
 use Symfony\AI\Platform\ModelClientInterface;
 use Symfony\AI\Platform\Platform;
@@ -308,6 +309,23 @@ final class AiBundle extends AbstractBundle
                     $platform['host_url'],
                     new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.contract.ollama'),
+                ])
+                ->addTag('ai.platform');
+
+            $container->setDefinition($platformId, $definition);
+
+            return;
+        }
+
+        if ('cerebras' === $type && isset($platform['api_key'])) {
+            $platformId = 'ai.platform.cerebras';
+            $definition = (new Definition(Platform::class))
+                ->setFactory(CerebrasPlatformFactory::class.'::create')
+                ->setLazy(true)
+                ->addTag('proxy', ['interface' => PlatformInterface::class])
+                ->setArguments([
+                    $platform['api_key'],
+                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
                 ])
                 ->addTag('ai.platform');
 
