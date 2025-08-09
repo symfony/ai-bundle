@@ -48,7 +48,7 @@
     <ol>
         {% for toolCall in toolCalls %}
             <li>
-                <strong>{{ toolCall.name }}({{ toolCall.arguments|map((value, key) => "#{key}: #{value}")|join(', ') }})</strong>
+                <strong>{{ toolCall.name }}({{ toolCall.arguments|map((value, key) => "#{key}: #{value|json_encode}")|join(', ') }})</strong>
                 <i>(ID: {{ toolCall.id }})</i>
             </li>
         {% endfor %}
