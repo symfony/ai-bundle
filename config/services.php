@@ -126,7 +126,7 @@ return static function (ContainerConfigurator $container): void {
             ])
             ->tag('data_collector')
         ->set('ai.traceable_toolbox', TraceableToolbox::class)
-            ->decorate('ai.toolbox')
+            ->decorate('ai.toolbox', priority: -1)
             ->args([
                 service('.inner'),
             ])
