@@ -41,14 +41,6 @@ class IsGrantedToolAttributeListenerTest extends TestCase
     private EventDispatcherInterface $dispatcher;
     private AuthorizationCheckerInterface&MockObject $authChecker;
 
-    #[Before]
-    protected function setupTool(): void
-    {
-        $this->dispatcher = new EventDispatcher();
-        $this->authChecker = $this->createMock(AuthorizationCheckerInterface::class);
-        $this->dispatcher->addListener(ToolCallArgumentsResolved::class, new IsGrantedToolAttributeListener($this->authChecker));
-    }
-
     #[TestWith([new ToolWithIsGrantedOnMethod(), new Tool(new ExecutionReference(ToolWithIsGrantedOnMethod::class, 'simple'), 'simple', '')])]
     #[TestWith([new ToolWithIsGrantedOnMethod(), new Tool(new ExecutionReference(ToolWithIsGrantedOnMethod::class, 'expressionAsSubject'), 'expressionAsSubject', '')])]
     #[TestWith([new ToolWithIsGrantedOnClass(), new Tool(new ExecutionReference(ToolWithIsGrantedOnClass::class, '__invoke'), 'ToolWithIsGrantedOnClass', '')])]
@@ -81,5 +73,13 @@ class IsGrantedToolAttributeListenerTest extends TestCase
     {
         $this->authChecker->expects($this->once())->method('isGranted')->with('test:permission', 44)->willReturn(true);
         $this->dispatcher->dispatch(new ToolCallArgumentsResolved($tool, $metadata, ['itemId' => 44]));
+    }
+
+    #[Before]
+    protected function setupTool(): void
+    {
+        $this->dispatcher = new EventDispatcher();
+        $this->authChecker = $this->createMock(AuthorizationCheckerInterface::class);
+        $this->dispatcher->addListener(ToolCallArgumentsResolved::class, new IsGrantedToolAttributeListener($this->authChecker));
     }
 }
