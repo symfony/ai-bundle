@@ -528,6 +528,13 @@ class AiBundleTest extends TestCase
                             'dimensions' => 768,
                         ],
                     ],
+                    'weaviate' => [
+                        'my_weaviate_store' => [
+                            'endpoint' => 'http://localhost:8080',
+                            'api_key' => 'bar',
+                            'collection' => 'my_weaviate_collection',
+                        ],
+                    ],
                 ],
                 'indexer' => [
                     'my_text_indexer' => [
