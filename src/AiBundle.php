@@ -54,7 +54,6 @@ use Symfony\AI\Store\Document\Vectorizer;
 use Symfony\AI\Store\Indexer;
 use Symfony\AI\Store\InMemoryStore;
 use Symfony\AI\Store\StoreInterface;
-use Symfony\AI\Store\VectorStoreInterface;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\Attribute\Target;
 use Symfony\Component\DependencyInjection\ChildDefinition;
@@ -114,7 +113,6 @@ final class AiBundle extends AbstractBundle
         }
         $stores = array_keys($builder->findTaggedServiceIds('ai.store'));
         if (1 === \count($stores)) {
-            $builder->setAlias(VectorStoreInterface::class, reset($stores));
             $builder->setAlias(StoreInterface::class, reset($stores));
         }
 
