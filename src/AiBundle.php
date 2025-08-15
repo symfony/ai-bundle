@@ -44,6 +44,8 @@ use Symfony\AI\Store\Bridge\Azure\SearchStore as AzureSearchStore;
 use Symfony\AI\Store\Bridge\ChromaDb\Store as ChromaDbStore;
 use Symfony\AI\Store\Bridge\ClickHouse\Store as ClickHouseStore;
 use Symfony\AI\Store\Bridge\Local\CacheStore;
+use Symfony\AI\Store\Bridge\Local\DistanceCalculator;
+use Symfony\AI\Store\Bridge\Local\DistanceStrategy;
 use Symfony\AI\Store\Bridge\Local\InMemoryStore;
 use Symfony\AI\Store\Bridge\Meilisearch\Store as MeilisearchStore;
 use Symfony\AI\Store\Bridge\MongoDb\Store as MongoDbStore;
@@ -511,7 +513,23 @@ final class AiBundle extends AbstractBundle
             foreach ($stores as $name => $store) {
                 $arguments = [
                     new Reference($store['service']),
+                    new Definition(DistanceCalculator::class),
                 ];
+
+                if (\array_key_exists('cache_key', $store) && null !== $store['cache_key']) {
+                    $arguments[2] = $store['cache_key'];
+                }
+
+                if (\array_key_exists('strategy', $store) && null !== $store['strategy']) {
+                    if (!$container->hasDefinition('ai.store.distance_calculator.'.$name)) {
+                        $distanceCalculatorDefinition = new Definition(DistanceCalculator::class);
+                        $distanceCalculatorDefinition->setArgument(0, DistanceStrategy::from($store['strategy']));
+
+                        $container->setDefinition('ai.store.distance_calculator.'.$name, $distanceCalculatorDefinition);
+                    }
+
+                    $arguments[1] = new Reference('ai.store.distance_calculator.'.$name);
+                }
 
                 $definition = new Definition(CacheStore::class);
                 $definition
@@ -594,9 +612,18 @@ final class AiBundle extends AbstractBundle
 
         if ('memory' === $type) {
             foreach ($stores as $name => $store) {
-                $arguments = [
-                    $store['distance'],
-                ];
+                $arguments = [];
+
+                if (\array_key_exists('strategy', $store) && null !== $store['strategy']) {
+                    if (!$container->hasDefinition('ai.store.distance_calculator.'.$name)) {
+                        $distanceCalculatorDefinition = new Definition(DistanceCalculator::class);
+                        $distanceCalculatorDefinition->setArgument(0, DistanceStrategy::from($store['strategy']));
+
+                        $container->setDefinition('ai.store.distance_calculator.'.$name, $distanceCalculatorDefinition);
+                    }
+
+                    $arguments[0] = new Reference('ai.store.distance_calculator.'.$name);
+                }
 
                 $definition = new Definition(InMemoryStore::class);
                 $definition
