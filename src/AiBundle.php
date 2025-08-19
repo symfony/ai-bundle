@@ -514,6 +514,27 @@ final class AiBundle extends AbstractBundle
             $outputProcessors[] = new Reference('ai.agent.structured_output_processor');
         }
 
+        // TOKEN USAGE TRACKING
+        if ($config['track_token_usage'] ?? true) {
+            $platformServiceId = $config['platform'];
+
+            if ($container->hasAlias($platformServiceId)) {
+                $platformServiceId = (string) $container->getAlias($platformServiceId);
+            }
+
+            if (str_starts_with($platformServiceId, 'ai.platform.')) {
+                $platform = u($platformServiceId)->after('ai.platform.')->toString();
+
+                if (str_contains($platform, 'azure')) {
+                    $platform = 'azure';
+                }
+
+                if ($container->hasDefinition('ai.platform.token_usage_processor.'.$platform)) {
+                    $outputProcessors[] = new Reference('ai.platform.token_usage_processor.'.$platform);
+                }
+            }
+        }
+
         // SYSTEM PROMPT
         if (\is_string($config['system_prompt'])) {
             $systemPromptInputProcessorDefinition = new Definition(SystemPromptInputProcessor::class, [
