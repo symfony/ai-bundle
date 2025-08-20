@@ -135,9 +135,16 @@ final class AiBundle extends AbstractBundle
         foreach ($config['store'] ?? [] as $type => $store) {
             $this->processStoreConfig($type, $store, $builder);
         }
+
         $stores = array_keys($builder->findTaggedServiceIds('ai.store'));
+
         if (1 === \count($stores)) {
             $builder->setAlias(StoreInterface::class, reset($stores));
+        }
+
+        if ([] === $stores) {
+            $builder->removeDefinition('ai.command.setup_store');
+            $builder->removeDefinition('ai.command.drop_store');
         }
 
         foreach ($config['indexer'] as $indexerName => $indexer) {
@@ -620,6 +627,7 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, (new Target($name.'Store'))->getParsedName());
             }
         }
 
@@ -651,6 +659,7 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, (new Target($name.'Store'))->getParsedName());
             }
         }
 
@@ -665,6 +674,7 @@ final class AiBundle extends AbstractBundle
                     ->addTag('ai.store');
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, (new Target($name.'Store'))->getParsedName());
             }
         }
 
@@ -691,6 +701,7 @@ final class AiBundle extends AbstractBundle
                 ;
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, (new Target($name.'Store'))->getParsedName());
             }
         }
 
@@ -751,6 +762,7 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, (new Target($name.'Store'))->getParsedName());
             }
         }
 
@@ -775,6 +787,7 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, (new Target($name.'Store'))->getParsedName());
             }
         }
 
@@ -806,6 +819,7 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, (new Target($name.'Store'))->getParsedName());
             }
         }
 
@@ -832,6 +846,7 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, (new Target($name.'Store'))->getParsedName());
             }
         }
 
@@ -869,6 +884,7 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, (new Target($name.'Store'))->getParsedName());
             }
         }
 
@@ -893,6 +909,7 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, (new Target($name.'Store'))->getParsedName());
             }
         }
 
@@ -919,6 +936,7 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, (new Target($name.'Store'))->getParsedName());
             }
         }
 
@@ -959,6 +977,7 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, (new Target($name.'Store'))->getParsedName());
             }
         }
 
@@ -985,6 +1004,7 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, (new Target($name.'Store'))->getParsedName());
             }
         }
 
