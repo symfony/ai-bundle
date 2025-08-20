@@ -93,14 +93,14 @@ use function Symfony\Component\String\u;
  */
 final class AiBundle extends AbstractBundle
 {
-    public function build(ContainerBuilder $container)
+    public function build(ContainerBuilder $container): void
     {
         parent::build($container);
 
         $container->addCompilerPass(new ProcessorCompilerPass());
     }
 
-    public function configure(DefinitionConfigurator $definition): void
+    public function configure(DefinitionConfigurator $definition): void // @phpstan-ignore-line generics.notSubtype
     {
         $definition->import('../config/options.php');
     }
