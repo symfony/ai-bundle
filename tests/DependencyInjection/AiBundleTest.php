@@ -49,6 +49,21 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasAlias('Symfony\AI\Agent\AgentInterface $myAgentAgent'));
     }
 
+    public function testAgentHasTag()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'my_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertArrayHasKey('ai.agent.my_agent', $container->findTaggedServiceIds('ai.agent'));
+    }
+
     #[TestWith([true], 'enabled')]
     #[TestWith([false], 'disabled')]
     public function testFaultTolerantAgentSpecificToolbox(bool $enabled)

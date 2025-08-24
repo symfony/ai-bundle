@@ -380,6 +380,7 @@ final class AiBundle extends AbstractBundle
 
         // AGENT
         $agentDefinition = (new Definition(Agent::class))
+            ->addTag('ai.agent')
             ->setArgument(0, new Reference($config['platform']))
             ->setArgument(1, new Reference('ai.agent.'.$name.'.model'));
 
