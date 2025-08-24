@@ -26,6 +26,7 @@ use Symfony\AI\AiBundle\Profiler\TraceableToolbox;
 use Symfony\AI\AiBundle\Security\EventListener\IsGrantedToolAttributeListener;
 use Symfony\AI\Platform\Bridge\Anthropic\Contract\AnthropicContract;
 use Symfony\AI\Platform\Bridge\Gemini\Contract\GeminiContract;
+use Symfony\AI\Platform\Bridge\Gemini\TokenOutputProcessor as GeminiTokenOutputProcessor;
 use Symfony\AI\Platform\Bridge\Mistral\TokenOutputProcessor as MistralTokenOutputProcessor;
 use Symfony\AI\Platform\Bridge\Ollama\Contract\OllamaContract;
 use Symfony\AI\Platform\Bridge\OpenAi\Contract\OpenAiContract;
@@ -137,6 +138,7 @@ return static function (ContainerConfigurator $container): void {
 
         // token usage processors
         ->set('ai.platform.token_usage_processor.mistral', MistralTokenOutputProcessor::class)
+        ->set('ai.platform.token_usage_processor.gemini', GeminiTokenOutputProcessor::class)
         ->set('ai.platform.token_usage_processor.openai', OpenAiTokenOutputProcessor::class)
         ->set('ai.platform.token_usage_processor.vertexai', VertexAiTokenOutputProcessor::class)
     ;
