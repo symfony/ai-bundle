@@ -78,7 +78,7 @@ return static function (DefinitionConfigurator $configurator): void {
                     ->end()
                     ->arrayNode('cerebras')
                         ->children()
-                        ->scalarNode('api_key')->isRequired()->end()
+                            ->scalarNode('api_key')->isRequired()->end()
                         ->end()
                     ->end()
                 ->end()
