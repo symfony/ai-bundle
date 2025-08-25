@@ -73,7 +73,7 @@ return static function (DefinitionConfigurator $configurator): void {
                     ->end()
                     ->arrayNode('ollama')
                         ->children()
-                        ->scalarNode('host_url')->defaultValue('http://127.0.0.1:11434')->end()
+                            ->scalarNode('host_url')->defaultValue('http://127.0.0.1:11434')->end()
                         ->end()
                     ->end()
                 ->end()
