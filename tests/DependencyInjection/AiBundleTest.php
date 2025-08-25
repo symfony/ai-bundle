@@ -323,6 +323,9 @@ class AiBundleTest extends TestCase
                     'ollama' => [
                         'host_url' => 'http://127.0.0.1:11434',
                     ],
+                    'cerebras' => [
+                        'api_key' => 'cerebras_key_full',
+                    ],
                 ],
                 'agent' => [
                     'my_chat_agent' => [
