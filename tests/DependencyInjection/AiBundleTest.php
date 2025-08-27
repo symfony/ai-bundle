@@ -326,6 +326,9 @@ class AiBundleTest extends TestCase
                     'cerebras' => [
                         'api_key' => 'cerebras_key_full',
                     ],
+                    'voyage' => [
+                        'api_key' => 'voyage_key_full',
+                    ],
                 ],
                 'agent' => [
                     'my_chat_agent' => [
