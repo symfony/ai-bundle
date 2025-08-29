@@ -112,6 +112,9 @@ final class AiBundle extends AbstractBundle
         foreach ($config['agent'] as $agentName => $agent) {
             $this->processAgentConfig($agentName, $agent, $builder);
         }
+        if (1 === \count($config['agent']) && isset($agentName)) {
+            $builder->setAlias(AgentInterface::class, 'ai.agent.'.$agentName);
+        }
 
         foreach ($config['store'] ?? [] as $type => $store) {
             $this->processStoreConfig($type, $store, $builder);

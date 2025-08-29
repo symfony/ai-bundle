@@ -46,6 +46,7 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
+        $this->assertTrue($container->hasAlias('Symfony\AI\Agent\AgentInterface'));
         $this->assertTrue($container->hasAlias('Symfony\AI\Agent\AgentInterface $myAgentAgent'));
     }
 
