@@ -169,6 +169,8 @@ To use existing tools, you can register them as a service:
         Symfony\AI\Agent\Toolbox\Tool\Firecrawl:
           $endpoint: '%env(FIRECRAWL_ENDPOINT)%'
           $apiKey: '%env(FIRECRAWL_API_KEY)%'
+        Symfony\AI\Agent\Toolbox\Tool\Brave:
+          $apiKey: '%env(BRAVE_API_KEY)%'
 
 Custom tools can be registered by using the ``#[AsTool]`` attribute::
 
