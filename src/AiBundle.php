@@ -50,6 +50,7 @@ use Symfony\AI\Platform\ResultConverterInterface;
 use Symfony\AI\Store\Bridge\Azure\SearchStore as AzureSearchStore;
 use Symfony\AI\Store\Bridge\ChromaDb\Store as ChromaDbStore;
 use Symfony\AI\Store\Bridge\ClickHouse\Store as ClickHouseStore;
+use Symfony\AI\Store\Bridge\Cloudflare\Store as CloudflareStore;
 use Symfony\AI\Store\Bridge\Local\CacheStore;
 use Symfony\AI\Store\Bridge\Local\DistanceCalculator;
 use Symfony\AI\Store\Bridge\Local\DistanceStrategy;
@@ -680,6 +681,36 @@ final class AiBundle extends AbstractBundle
                     ])
                     ->addTag('ai.store')
                 ;
+
+                $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+            }
+        }
+
+        if ('cloudflare' === $type) {
+            foreach ($stores as $name => $store) {
+                $arguments = [
+                    new Reference('http_client'),
+                    $store['account_id'],
+                    $store['api_key'],
+                    $store['index_name'],
+                ];
+
+                if (\array_key_exists('dimensions', $store)) {
+                    $arguments[4] = $store['dimensions'];
+                }
+
+                if (\array_key_exists('metric', $store)) {
+                    $arguments[5] = $store['metric'];
+                }
+
+                if (\array_key_exists('endpoint', $store)) {
+                    $arguments[6] = $store['endpoint'];
+                }
+
+                $definition = new Definition(CloudflareStore::class);
+                $definition
+                    ->addTag('ai.store')
+                    ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
             }
