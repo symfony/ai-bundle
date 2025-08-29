@@ -174,15 +174,11 @@ final class AiBundle extends AbstractBundle
                 ->setLazy(true)
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
-                    0 => $platform['api_key'],
-                    2 => new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
-                    3 => new Reference('ai.platform.contract.anthropic'),
+                    $platform['api_key'],
+                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference('ai.platform.contract.anthropic'),
                 ])
                 ->addTag('ai.platform');
-
-            if (isset($platform['version'])) {
-                $definition->setArgument(1, $platform['version']);
-            }
 
             $container->setDefinition($platformId, $definition);
 
