@@ -67,6 +67,7 @@ use Symfony\AI\Platform\Bridge\Perplexity\PlatformFactory as PerplexityPlatformF
 use Symfony\AI\Platform\Bridge\Scaleway\PlatformFactory as ScalewayPlatformFactory;
 use Symfony\AI\Platform\Bridge\VertexAi\PlatformFactory as VertexAiPlatformFactory;
 use Symfony\AI\Platform\Bridge\Voyage\PlatformFactory as VoyagePlatformFactory;
+use Symfony\AI\Platform\CachedPlatform;
 use Symfony\AI\Platform\Capability;
 use Symfony\AI\Platform\Exception\RuntimeException;
 use Symfony\AI\Platform\Message\Content\File;
@@ -369,6 +370,24 @@ final class AiBundle extends AbstractBundle
                     ->addTag('ai.platform', ['name' => 'azure.'.$name]);
 
                 $container->setDefinition($platformId, $definition);
+            }
+
+            return;
+        }
+
+        if ('cache' === $type) {
+            foreach ($platform as $name => $cachedPlatformConfig) {
+                $definition = (new Definition(CachedPlatform::class))
+                    ->setLazy(true)
+                    ->setArguments([
+                        new Reference($cachedPlatformConfig['platform']),
+                        new Reference($cachedPlatformConfig['service'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                        $cachedPlatformConfig['cache_key'] ?? $name,
+                    ])
+                    ->addTag('proxy', ['interface' => PlatformInterface::class])
+                    ->addTag('ai.platform', ['name' => 'cache'.$name]);
+
+                $container->setDefinition('ai.platform.cache.'.$name, $definition);
             }
 
             return;
