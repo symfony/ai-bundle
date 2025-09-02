@@ -459,7 +459,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'platform' => [
                     'openai' => [
-                        'api_key' => 'test_key',
+                        'api_key' => 'sk-test_key',
                     ],
                 ],
                 'agent' => [
@@ -487,6 +487,71 @@ class AiBundleTest extends TestCase
         }
 
         $this->assertTrue($foundTag, 'Token usage processor should have output tag with full agent ID');
+    }
+
+    public function testOpenAiPlatformWithDefaultRegion()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'openai' => [
+                        'api_key' => 'sk-test-key',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.platform.openai'));
+
+        $definition = $container->getDefinition('ai.platform.openai');
+        $arguments = $definition->getArguments();
+
+        $this->assertCount(4, $arguments);
+        $this->assertSame('sk-test-key', $arguments[0]);
+        $this->assertNull($arguments[3]); // region should be null by default
+    }
+
+    #[TestWith(['EU'])]
+    #[TestWith(['US'])]
+    #[TestWith([null])]
+    public function testOpenAiPlatformWithRegion(?string $region)
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'openai' => [
+                        'api_key' => 'sk-test-key',
+                        'region' => $region,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.platform.openai'));
+
+        $definition = $container->getDefinition('ai.platform.openai');
+        $arguments = $definition->getArguments();
+
+        $this->assertCount(4, $arguments);
+        $this->assertSame('sk-test-key', $arguments[0]);
+        $this->assertSame($region, $arguments[3]);
+    }
+
+    public function testOpenAiPlatformWithInvalidRegion()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('The region must be either "EU" (https://eu.api.openai.com), "US" (https://us.api.openai.com) or null (https://api.openai.com)');
+
+        $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'openai' => [
+                        'api_key' => 'sk-test-key',
+                        'region' => 'INVALID',
+                    ],
+                ],
+            ],
+        ]);
     }
 
     private function buildContainer(array $configuration): ContainerBuilder
