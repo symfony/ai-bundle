@@ -316,6 +316,7 @@ final class AiBundle extends AbstractBundle
                     $platform['api_key'],
                     new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.contract.openai'),
+                    $platform['region'] ?? null,
                 ])
                 ->addTag('ai.platform');
 
