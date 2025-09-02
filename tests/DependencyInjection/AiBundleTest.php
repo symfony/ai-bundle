@@ -264,6 +264,45 @@ class AiBundleTest extends TestCase
         $this->assertSame('ai.store.distance_calculator.my_memory_store_with_custom_strategy', (string) $definition->getArgument(0));
     }
 
+    public function testConfigurationWithUseAttributeAsKeyWorksWithoutNormalizeKeys()
+    {
+        // Test that configurations using useAttributeAsKey work correctly
+        // after removing redundant normalizeKeys(false) calls
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'azure' => [
+                        'Test_Instance-123' => [ // Mixed case and special chars in key
+                            'api_key' => 'test_key',
+                            'base_url' => 'https://test.openai.azure.com/',
+                            'deployment' => 'gpt-35-turbo',
+                            'api_version' => '2024-02-15-preview',
+                        ],
+                    ],
+                ],
+                'agent' => [
+                    'My-Agent_Name.v2' => [ // Mixed case and special chars in key
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                    ],
+                ],
+                'store' => [
+                    'mongodb' => [
+                        'Production_DB-v3' => [ // Mixed case and special chars in key
+                            'database' => 'test_db',
+                            'collection' => 'test_collection',
+                            'index_name' => 'test_index',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        // Verify that the services are created with the exact key names
+        $this->assertTrue($container->hasDefinition('ai.platform.azure.Test_Instance-123'));
+        $this->assertTrue($container->hasDefinition('ai.agent.My-Agent_Name.v2'));
+        $this->assertTrue($container->hasDefinition('ai.store.mongodb.Production_DB-v3'));
+    }
+
     private function buildContainer(array $configuration): ContainerBuilder
     {
         $container = new ContainerBuilder();
