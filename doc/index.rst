@@ -164,7 +164,7 @@ the ``#[AsOutputProcessor]`` attributes::
     use Symfony\AI\Agent\OutputProcessorInterface;
 
     #[AsInputProcessor(priority: 99)] // This applies to every agent
-    #[AsOutputProcessor(agent: 'my_agent_id')] // The output processor will only be registered for 'my_agent_id'
+    #[AsOutputProcessor(agent: 'ai.agent.my_agent_name')] // The output processor will only be registered for 'ai.agent.my_agent_name'
     final readonly class MyService implements InputProcessorInterface, OutputProcessorInterface
     {
         public function processInput(Input $input): void

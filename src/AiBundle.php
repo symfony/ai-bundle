@@ -456,6 +456,7 @@ final class AiBundle extends AbstractBundle
         $container->setDefinition('ai.agent.'.$name.'.model', $modelDefinition);
 
         // AGENT
+        $agentId = 'ai.agent.'.$name;
         $agentDefinition = (new Definition(Agent::class))
             ->addTag('ai.agent', ['name' => $name])
             ->setArgument(0, new Reference($config['platform']))
@@ -516,8 +517,8 @@ final class AiBundle extends AbstractBundle
                     ->replaceArgument(0, new Reference('ai.toolbox.'.$name));
 
                 $container->setDefinition('ai.tool.agent_processor.'.$name, $toolProcessorDefinition)
-                    ->addTag('ai.agent.input_processor', ['agent' => $name, 'priority' => -10])
-                    ->addTag('ai.agent.output_processor', ['agent' => $name, 'priority' => -10]);
+                    ->addTag('ai.agent.input_processor', ['agent' => $agentId, 'priority' => -10])
+                    ->addTag('ai.agent.output_processor', ['agent' => $agentId, 'priority' => -10]);
             } else {
                 if ($config['fault_tolerant_toolbox'] && !$container->hasDefinition('ai.fault_tolerant_toolbox')) {
                     $container->setDefinition('ai.fault_tolerant_toolbox', new Definition(FaultTolerantToolbox::class))
@@ -526,16 +527,16 @@ final class AiBundle extends AbstractBundle
                 }
 
                 $container->getDefinition('ai.tool.agent_processor')
-                    ->addTag('ai.agent.input_processor', ['agent' => $name, 'priority' => -10])
-                    ->addTag('ai.agent.output_processor', ['agent' => $name, 'priority' => -10]);
+                    ->addTag('ai.agent.input_processor', ['agent' => $agentId, 'priority' => -10])
+                    ->addTag('ai.agent.output_processor', ['agent' => $agentId, 'priority' => -10]);
             }
         }
 
         // STRUCTURED OUTPUT
         if ($config['structured_output']) {
             $container->getDefinition('ai.agent.structured_output_processor')
-                ->addTag('ai.agent.input_processor', ['agent' => $name, 'priority' => -20])
-                ->addTag('ai.agent.output_processor', ['agent' => $name, 'priority' => -20]);
+                ->addTag('ai.agent.input_processor', ['agent' => $agentId, 'priority' => -20])
+                ->addTag('ai.agent.output_processor', ['agent' => $agentId, 'priority' => -20]);
         }
 
         // TOKEN USAGE TRACKING
@@ -555,7 +556,7 @@ final class AiBundle extends AbstractBundle
 
                 if ($container->hasDefinition('ai.platform.token_usage_processor.'.$platform)) {
                     $container->getDefinition('ai.platform.token_usage_processor.'.$platform)
-                        ->addTag('ai.agent.output_processor', ['agent' => $name, 'priority' => -30]);
+                        ->addTag('ai.agent.output_processor', ['agent' => $agentId, 'priority' => -30]);
                 }
             }
         }
@@ -568,7 +569,7 @@ final class AiBundle extends AbstractBundle
                     $config['include_tools'] ? new Reference('ai.toolbox.'.$name) : null,
                     new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
                 ])
-                ->addTag('ai.agent.input_processor', ['agent' => $name, 'priority' => -30]);
+                ->addTag('ai.agent.input_processor', ['agent' => $agentId, 'priority' => -30]);
 
             $container->setDefinition('ai.agent.'.$name.'.system_prompt_processor', $systemPromptInputProcessorDefinition);
         }
@@ -579,8 +580,8 @@ final class AiBundle extends AbstractBundle
             ->setArgument(4, new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE))
         ;
 
-        $container->setDefinition('ai.agent.'.$name, $agentDefinition);
-        $container->registerAliasForArgument('ai.agent.'.$name, AgentInterface::class, (new Target($name.'Agent'))->getParsedName());
+        $container->setDefinition($agentId, $agentDefinition);
+        $container->registerAliasForArgument($agentId, AgentInterface::class, (new Target($name.'Agent'))->getParsedName());
     }
 
     /**
