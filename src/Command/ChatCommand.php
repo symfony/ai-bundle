@@ -36,9 +36,6 @@ use Symfony\Component\DependencyInjection\ServiceLocator;
 )]
 final class ChatCommand extends Command
 {
-    private AgentInterface $agent;
-    private string $agentName;
-
     /**
      * @param ServiceLocator<AgentInterface> $agents
      */
@@ -58,7 +55,7 @@ final class ChatCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addArgument('agent', InputArgument::OPTIONAL, 'The name of the agent to chat with')
+            ->addArgument('agent', InputArgument::REQUIRED, 'The name of the agent to chat with')
             ->setHelp(
                 <<<'HELP'
                 The <info>%command.name%</info> command allows you to chat with different agents.
@@ -70,7 +67,7 @@ final class ChatCommand extends Command
                   <info>%command.full_name% wikipedia</info>
 
                 If no agent is specified, you'll be prompted to select one interactively.
-                
+
                 The chat session is interactive. Type your messages and press Enter to send.
                 Type 'exit' or 'quit' to end the conversation.
                 HELP
@@ -79,11 +76,6 @@ final class ChatCommand extends Command
 
     protected function interact(InputInterface $input, OutputInterface $output): void
     {
-        // Skip interaction in non-interactive mode
-        if (!$input->isInteractive()) {
-            return;
-        }
-
         $agentArg = $input->getArgument('agent');
 
         // If agent is already provided and valid, nothing to do
@@ -111,11 +103,6 @@ final class ChatCommand extends Command
         $input->setArgument('agent', $selectedAgent);
     }
 
-    protected function initialize(InputInterface $input, OutputInterface $output): void
-    {
-        // Initialization will be done in execute() after interact() has run
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         // Initialize agent (moved from initialize() to execute() so it runs after interact())
@@ -126,29 +113,24 @@ final class ChatCommand extends Command
         }
 
         $agentArg = $input->getArgument('agent');
-        $this->agentName = \is_string($agentArg) ? $agentArg : '';
-
-        // In non-interactive mode, agent is required
-        if (!$this->agentName && !$input->isInteractive()) {
-            throw new InvalidArgumentException(\sprintf('Agent name is required. Available agents: "%s"', implode(', ', $availableAgents)));
-        }
+        $agentName = \is_string($agentArg) ? $agentArg : '';
 
         // Validate that the agent exists if one was provided
-        if ($this->agentName && !$this->agents->has($this->agentName)) {
-            throw new InvalidArgumentException(\sprintf('Agent "%s" not found. Available agents: "%s"', $this->agentName, implode(', ', $availableAgents)));
+        if ($agentName && !$this->agents->has($agentName)) {
+            throw new InvalidArgumentException(\sprintf('Agent "%s" not found. Available agents: "%s"', $agentName, implode(', ', $availableAgents)));
         }
 
         // If we still don't have an agent name at this point, something went wrong
-        if (!$this->agentName) {
+        if (!$agentName) {
             throw new InvalidArgumentException(\sprintf('Agent name is required. Available agents: "%s"', implode(', ', $availableAgents)));
         }
 
-        $this->agent = $this->agents->get($this->agentName);
+        $agent = $this->agents->get($agentName);
 
         // Now start the chat
         $io = new SymfonyStyle($input, $output);
 
-        $io->title(\sprintf('Chat with %s Agent', $this->agentName));
+        $io->title(\sprintf('Chat with %s Agent', $agentName));
         $io->info('Type your message and press Enter. Type "exit" or "quit" to end the conversation.');
         $io->newLine();
 
@@ -170,7 +152,7 @@ final class ChatCommand extends Command
             $messages->add(Message::ofUser($userInput));
 
             try {
-                $result = $this->agent->call($messages);
+                $result = $agent->call($messages);
 
                 // Display system prompt after first successful call
                 if (!$systemPromptDisplayed && null !== ($systemMessage = $messages->getSystemMessage())) {
