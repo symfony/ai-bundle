@@ -12,6 +12,7 @@
 namespace Symfony\AI\AiBundle;
 
 use Google\Auth\ApplicationDefaultCredentials;
+use Google\Auth\FetchAuthTokenInterface;
 use Symfony\AI\Agent\Agent;
 use Symfony\AI\Agent\AgentInterface;
 use Symfony\AI\Agent\Attribute\AsInputProcessor;
@@ -73,7 +74,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\HttpClient\EventSourceHttpClient;
 use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 use Symfony\Component\Security\Core\Authorization\AuthorizationCheckerInterface;
@@ -279,13 +279,21 @@ final class AiBundle extends AbstractBundle
                 throw new RuntimeException('For using the Vertex AI platform, google/auth package is required. Try running "composer require google/auth".');
             }
 
-            $credentials = ApplicationDefaultCredentials::getCredentials([
-                'https://www.googleapis.com/auth/cloud-platform',
-            ]);
+            $credentials = (new Definition(FetchAuthTokenInterface::class))
+                ->setFactory([ApplicationDefaultCredentials::class, 'getCredentials'])
+                ->setArguments([
+                    'https://www.googleapis.com/auth/cloud-platform',
+                ])
+            ;
 
-            $httpClient = new EventSourceHttpClient(HttpClient::create([
-                'auth_bearer' => $credentials?->fetchAuthToken()['access_token'] ?? null,
-            ]));
+            $credentialsObject = new Definition(\ArrayObject::class, [(new Definition('array'))->setFactory([$credentials, 'fetchAuthToken'])]);
+
+            $httpClient = (new Definition(HttpClientInterface::class))
+                ->setFactory([HttpClient::class, 'create'])
+                ->setArgument(0, [
+                    'auth_bearer' => (new Definition('string', ['access_token']))->setFactory([$credentialsObject, 'offsetGet']),
+                ])
+            ;
 
             $platformId = 'ai.platform.vertexai';
             $definition = (new Definition(Platform::class))
