@@ -62,6 +62,7 @@ use Symfony\AI\Store\Bridge\Pinecone\Store as PineconeStore;
 use Symfony\AI\Store\Bridge\Qdrant\Store as QdrantStore;
 use Symfony\AI\Store\Bridge\SurrealDb\Store as SurrealDbStore;
 use Symfony\AI\Store\Bridge\Typesense\Store as TypesenseStore;
+use Symfony\AI\Store\Bridge\Weaviate\Store as WeaviateStore;
 use Symfony\AI\Store\Document\Vectorizer;
 use Symfony\AI\Store\Indexer;
 use Symfony\AI\Store\StoreInterface;
@@ -939,6 +940,24 @@ final class AiBundle extends AbstractBundle
                 }
 
                 $definition = new Definition(TypesenseStore::class);
+                $definition
+                    ->addTag('ai.store')
+                    ->setArguments($arguments);
+
+                $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+            }
+        }
+
+        if ('weaviate' === $type) {
+            foreach ($stores as $name => $store) {
+                $arguments = [
+                    new Reference('http_client'),
+                    $store['endpoint'],
+                    $store['api_key'],
+                    $store['collection'],
+                ];
+
+                $definition = new Definition(WeaviateStore::class);
                 $definition
                     ->addTag('ai.store')
                     ->setArguments($arguments);
