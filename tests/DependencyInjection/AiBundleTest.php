@@ -13,6 +13,7 @@ namespace Symfony\AI\AiBundle\Tests\DependencyInjection;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
+use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
@@ -301,6 +302,191 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.platform.azure.Test_Instance-123'));
         $this->assertTrue($container->hasDefinition('ai.agent.My-Agent_Name.v2'));
         $this->assertTrue($container->hasDefinition('ai.store.mongodb.Production_DB-v3'));
+    }
+
+    /**
+     * Tests that processor tags use the full agent ID (ai.agent.my_agent) instead of just the agent name (my_agent).
+     * This regression test prevents issues where processors would not be correctly associated with their agents.
+     */
+    #[TestDox('Processor tags use the full agent ID instead of just the agent name')]
+    public function testProcessorTagsUseFullAgentId()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'tools' => [
+                            ['service' => 'some_tool', 'description' => 'Test tool'],
+                        ],
+                        'structured_output' => true,
+                        'system_prompt' => 'You are a test assistant.',
+                    ],
+                ],
+            ],
+        ]);
+
+        $agentId = 'ai.agent.test_agent';
+
+        // Test tool processor tags
+        $toolProcessorDefinition = $container->getDefinition('ai.tool.agent_processor.test_agent');
+        $toolProcessorTags = $toolProcessorDefinition->getTag('ai.agent.input_processor');
+        $this->assertNotEmpty($toolProcessorTags, 'Tool processor should have input processor tags');
+        $this->assertSame($agentId, $toolProcessorTags[0]['agent'], 'Tool input processor tag should use full agent ID');
+
+        $outputTags = $toolProcessorDefinition->getTag('ai.agent.output_processor');
+        $this->assertNotEmpty($outputTags, 'Tool processor should have output processor tags');
+        $this->assertSame($agentId, $outputTags[0]['agent'], 'Tool output processor tag should use full agent ID');
+
+        // Test structured output processor tags
+        $structuredOutputTags = $container->getDefinition('ai.agent.structured_output_processor')
+            ->getTag('ai.agent.input_processor');
+        $this->assertNotEmpty($structuredOutputTags, 'Structured output processor should have input processor tags');
+
+        // Find the tag for our specific agent
+        $foundAgentTag = false;
+        foreach ($structuredOutputTags as $tag) {
+            if (($tag['agent'] ?? '') === $agentId) {
+                $foundAgentTag = true;
+                break;
+            }
+        }
+        $this->assertTrue($foundAgentTag, 'Structured output processor should have tag with full agent ID');
+
+        // Test system prompt processor tags
+        $systemPromptDefinition = $container->getDefinition('ai.agent.test_agent.system_prompt_processor');
+        $systemPromptTags = $systemPromptDefinition->getTag('ai.agent.input_processor');
+        $this->assertNotEmpty($systemPromptTags, 'System prompt processor should have input processor tags');
+        $this->assertSame($agentId, $systemPromptTags[0]['agent'], 'System prompt processor tag should use full agent ID');
+    }
+
+    #[TestDox('Processors work correctly with multiple agents')]
+    public function testMultipleAgentsWithProcessors()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'first_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'tools' => [
+                            ['service' => 'tool_one', 'description' => 'Tool for first agent'],
+                        ],
+                        'system_prompt' => 'First agent prompt',
+                    ],
+                    'second_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\Anthropic\Claude'],
+                        'tools' => [
+                            ['service' => 'tool_two', 'description' => 'Tool for second agent'],
+                        ],
+                        'system_prompt' => 'Second agent prompt',
+                    ],
+                ],
+            ],
+        ]);
+
+        // Check that each agent has its own properly tagged processors
+        $firstAgentId = 'ai.agent.first_agent';
+        $secondAgentId = 'ai.agent.second_agent';
+
+        // First agent tool processor
+        $firstToolProcessor = $container->getDefinition('ai.tool.agent_processor.first_agent');
+        $firstToolTags = $firstToolProcessor->getTag('ai.agent.input_processor');
+        $this->assertSame($firstAgentId, $firstToolTags[0]['agent']);
+
+        // Second agent tool processor
+        $secondToolProcessor = $container->getDefinition('ai.tool.agent_processor.second_agent');
+        $secondToolTags = $secondToolProcessor->getTag('ai.agent.input_processor');
+        $this->assertSame($secondAgentId, $secondToolTags[0]['agent']);
+
+        // First agent system prompt processor
+        $firstSystemPrompt = $container->getDefinition('ai.agent.first_agent.system_prompt_processor');
+        $firstSystemTags = $firstSystemPrompt->getTag('ai.agent.input_processor');
+        $this->assertSame($firstAgentId, $firstSystemTags[0]['agent']);
+
+        // Second agent system prompt processor
+        $secondSystemPrompt = $container->getDefinition('ai.agent.second_agent.system_prompt_processor');
+        $secondSystemTags = $secondSystemPrompt->getTag('ai.agent.input_processor');
+        $this->assertSame($secondAgentId, $secondSystemTags[0]['agent']);
+    }
+
+    #[TestDox('Processors work correctly when using the default toolbox')]
+    public function testDefaultToolboxProcessorTags()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'agent_with_default_toolbox' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'tools' => true,
+                    ],
+                ],
+            ],
+        ]);
+
+        $agentId = 'ai.agent.agent_with_default_toolbox';
+
+        // When using default toolbox, the ai.tool.agent_processor service gets the tags
+        $defaultToolProcessor = $container->getDefinition('ai.tool.agent_processor');
+        $inputTags = $defaultToolProcessor->getTag('ai.agent.input_processor');
+        $outputTags = $defaultToolProcessor->getTag('ai.agent.output_processor');
+
+        // Find tags for our specific agent
+        $foundInput = false;
+        $foundOutput = false;
+
+        foreach ($inputTags as $tag) {
+            if (($tag['agent'] ?? '') === $agentId) {
+                $foundInput = true;
+                break;
+            }
+        }
+
+        foreach ($outputTags as $tag) {
+            if (($tag['agent'] ?? '') === $agentId) {
+                $foundOutput = true;
+                break;
+            }
+        }
+
+        $this->assertTrue($foundInput, 'Default tool processor should have input tag with full agent ID');
+        $this->assertTrue($foundOutput, 'Default tool processor should have output tag with full agent ID');
+    }
+
+    #[TestDox('Token usage processor tags use the correct agent ID')]
+    public function testTokenUsageProcessorTags()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'openai' => [
+                        'api_key' => 'test_key',
+                    ],
+                ],
+                'agent' => [
+                    'tracked_agent' => [
+                        'platform' => 'ai.platform.openai',
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'track_token_usage' => true,
+                    ],
+                ],
+            ],
+        ]);
+
+        $agentId = 'ai.agent.tracked_agent';
+
+        // Token usage processor must exist for OpenAI platform
+        $tokenUsageProcessor = $container->getDefinition('ai.platform.token_usage_processor.openai');
+        $outputTags = $tokenUsageProcessor->getTag('ai.agent.output_processor');
+
+        $foundTag = false;
+        foreach ($outputTags as $tag) {
+            if (($tag['agent'] ?? '') === $agentId) {
+                $foundTag = true;
+                break;
+            }
+        }
+
+        $this->assertTrue($foundTag, 'Token usage processor should have output tag with full agent ID');
     }
 
     private function buildContainer(array $configuration): ContainerBuilder
