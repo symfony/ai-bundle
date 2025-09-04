@@ -691,6 +691,16 @@ class AiBundleTest extends TestCase
                             'table' => 'my_table',
                         ],
                     ],
+                    'cloudflare' => [
+                        'my_cloudflare_store' => [
+                            'account_id' => 'foo',
+                            'api_key' => 'bar',
+                            'index_name' => 'random',
+                            'dimensions' => 1536,
+                            'metric' => 'cosine',
+                            'endpoint_url' => 'https://api.cloudflare.com/client/v5/accounts',
+                        ],
+                    ],
                     'meilisearch' => [
                         'my_meilisearch_store' => [
                             'endpoint' => 'http://127.0.0.1:7700',
