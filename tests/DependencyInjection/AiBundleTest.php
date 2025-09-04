@@ -620,6 +620,10 @@ class AiBundleTest extends TestCase
                     'voyage' => [
                         'api_key' => 'voyage_key_full',
                     ],
+                    'vertexai' => [
+                        'location' => 'global',
+                        'project_id' => '123',
+                    ],
                 ],
                 'agent' => [
                     'my_chat_agent' => [
