@@ -35,6 +35,43 @@ class AiBundleTest extends TestCase
         $this->buildContainer($this->getFullConfig());
     }
 
+    public function testStoreCommandsArentDefinedWithoutStore()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'my_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertFalse($container->hasDefinition('ai.command.setup_store'));
+        $this->assertFalse($container->hasDefinition('ai.command.drop_store'));
+        $this->assertSame([
+            'ai.command.setup_store' => true,
+            'ai.command.drop_store' => true,
+        ], $container->getRemovedIds());
+    }
+
+    public function testStoreCommandsAreDefined()
+    {
+        $container = $this->buildContainer($this->getFullConfig());
+
+        $this->assertTrue($container->hasDefinition('ai.command.setup_store'));
+
+        $setupStoreCommandDefinition = $container->getDefinition('ai.command.setup_store');
+        $this->assertCount(1, $setupStoreCommandDefinition->getArguments());
+        $this->assertArrayHasKey('console.command', $setupStoreCommandDefinition->getTags());
+
+        $this->assertTrue($container->hasDefinition('ai.command.drop_store'));
+
+        $dropStoreCommandDefinition = $container->getDefinition('ai.command.drop_store');
+        $this->assertCount(1, $dropStoreCommandDefinition->getArguments());
+        $this->assertArrayHasKey('console.command', $dropStoreCommandDefinition->getTags());
+    }
+
     public function testInjectionAgentAliasIsRegistered()
     {
         $container = $this->buildContainer([
