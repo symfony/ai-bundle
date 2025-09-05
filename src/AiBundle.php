@@ -148,6 +148,10 @@ final class AiBundle extends AbstractBundle
             $builder->removeDefinition('ai.command.drop_store');
         }
 
+        foreach ($config['vectorizer'] ?? [] as $vectorizerName => $vectorizer) {
+            $this->processVectorizerConfig($vectorizerName, $vectorizer, $builder);
+        }
+
         foreach ($config['indexer'] as $indexerName => $indexer) {
             $this->processIndexerConfig($indexerName, $indexer, $builder);
         }
@@ -1031,7 +1035,7 @@ final class AiBundle extends AbstractBundle
     /**
      * @param array<string, mixed> $config
      */
-    private function processIndexerConfig(int|string $name, array $config, ContainerBuilder $container): void
+    private function processVectorizerConfig(string $name, array $config, ContainerBuilder $container): void
     {
         ['class' => $modelClass, 'name' => $modelName, 'options' => $options] = $config['model'];
 
@@ -1048,16 +1052,23 @@ final class AiBundle extends AbstractBundle
         }
 
         $modelDefinition->addTag('ai.model.embeddings_model');
-        $container->setDefinition('ai.indexer.'.$name.'.model', $modelDefinition);
+        $container->setDefinition('ai.vectorizer.'.$name.'.model', $modelDefinition);
 
         $vectorizerDefinition = new Definition(Vectorizer::class, [
             new Reference($config['platform']),
-            new Reference('ai.indexer.'.$name.'.model'),
+            new Reference('ai.vectorizer.'.$name.'.model'),
         ]);
-        $container->setDefinition('ai.indexer.'.$name.'.vectorizer', $vectorizerDefinition);
+        $vectorizerDefinition->addTag('ai.vectorizer', ['name' => $name]);
+        $container->setDefinition('ai.vectorizer.'.$name, $vectorizerDefinition);
+    }
 
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function processIndexerConfig(int|string $name, array $config, ContainerBuilder $container): void
+    {
         $definition = new Definition(Indexer::class, [
-            new Reference('ai.indexer.'.$name.'.vectorizer'),
+            new Reference($config['vectorizer']),
             new Reference($config['store']),
             new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
         ]);

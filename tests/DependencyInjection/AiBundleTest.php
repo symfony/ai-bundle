@@ -18,6 +18,8 @@ use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\AI\AiBundle\AiBundle;
+use Symfony\AI\Platform\Bridge\OpenAi\Embeddings;
+use Symfony\AI\Store\Document\Vectorizer;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
@@ -591,6 +593,77 @@ class AiBundleTest extends TestCase
         ]);
     }
 
+    public function testVectorizerConfiguration()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'vectorizer' => [
+                    'my_vectorizer' => [
+                        'platform' => 'my_platform_service_id',
+                        'model' => [
+                            'class' => 'Symfony\AI\Platform\Bridge\OpenAi\Embeddings',
+                            'name' => 'text-embedding-3-small',
+                            'options' => ['dimension' => 512],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.vectorizer.my_vectorizer'));
+        $this->assertTrue($container->hasDefinition('ai.vectorizer.my_vectorizer.model'));
+
+        $vectorizerDefinition = $container->getDefinition('ai.vectorizer.my_vectorizer');
+        $this->assertSame(Vectorizer::class, $vectorizerDefinition->getClass());
+        $this->assertTrue($vectorizerDefinition->hasTag('ai.vectorizer'));
+
+        $modelDefinition = $container->getDefinition('ai.vectorizer.my_vectorizer.model');
+        $this->assertSame(Embeddings::class, $modelDefinition->getClass());
+        $this->assertTrue($modelDefinition->hasTag('ai.model.embeddings_model'));
+    }
+
+    public function testIndexerWithConfiguredVectorizer()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'memory' => [
+                        'my_store' => [],
+                    ],
+                ],
+                'vectorizer' => [
+                    'my_vectorizer' => [
+                        'platform' => 'my_platform_service_id',
+                        'model' => [
+                            'class' => 'Symfony\AI\Platform\Bridge\OpenAi\Embeddings',
+                            'name' => 'text-embedding-3-small',
+                        ],
+                    ],
+                ],
+                'indexer' => [
+                    'my_indexer' => [
+                        'vectorizer' => 'ai.vectorizer.my_vectorizer',
+                        'store' => 'ai.store.memory.my_store',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.indexer.my_indexer'));
+        $this->assertTrue($container->hasDefinition('ai.vectorizer.my_vectorizer'));
+
+        $indexerDefinition = $container->getDefinition('ai.indexer.my_indexer');
+        $arguments = $indexerDefinition->getArguments();
+
+        // First argument should be a reference to the vectorizer
+        $this->assertInstanceOf(Reference::class, $arguments[0]);
+        $this->assertSame('ai.vectorizer.my_vectorizer', (string) $arguments[0]);
+
+        // Should not create model-specific vectorizer when using configured one
+        $this->assertFalse($container->hasDefinition('ai.indexer.my_indexer.vectorizer'));
+        $this->assertFalse($container->hasDefinition('ai.indexer.my_indexer.model'));
+    }
+
     private function buildContainer(array $configuration): ContainerBuilder
     {
         $container = new ContainerBuilder();
@@ -838,15 +911,20 @@ class AiBundleTest extends TestCase
                         ],
                     ],
                 ],
-                'indexer' => [
-                    'my_text_indexer' => [
-                        'store' => 'my_azure_search_store_service_id',
+                'vectorizer' => [
+                    'test_vectorizer' => [
                         'platform' => 'mistral_platform_service_id',
                         'model' => [
                             'class' => 'Symfony\AI\Platform\Bridge\Mistral\Embeddings',
                             'name' => 'mistral-embed',
                             'options' => ['dimension' => 768],
                         ],
+                    ],
+                ],
+                'indexer' => [
+                    'my_text_indexer' => [
+                        'vectorizer' => 'ai.vectorizer.test_vectorizer',
+                        'store' => 'my_azure_search_store_service_id',
                     ],
                 ],
             ],

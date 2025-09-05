@@ -16,6 +16,7 @@ use MongoDB\Client as MongoDbClient;
 use Probots\Pinecone\Client as PineconeClient;
 use Symfony\AI\Platform\Bridge\OpenAi\PlatformFactory;
 use Symfony\AI\Platform\PlatformInterface;
+use Symfony\AI\Store\Document\VectorizerInterface;
 use Symfony\AI\Store\StoreInterface;
 
 return static function (DefinitionConfigurator $configurator): void {
@@ -371,14 +372,10 @@ return static function (DefinitionConfigurator $configurator): void {
                     ->end()
                 ->end()
             ->end()
-            ->arrayNode('indexer')
+            ->arrayNode('vectorizer')
                 ->useAttributeAsKey('name')
                 ->arrayPrototype()
                     ->children()
-                        ->scalarNode('store')
-                            ->info('Service name of store')
-                            ->defaultValue(StoreInterface::class)
-                        ->end()
                         ->scalarNode('platform')
                             ->info('Service name of platform')
                             ->defaultValue(PlatformInterface::class)
@@ -391,6 +388,21 @@ return static function (DefinitionConfigurator $configurator): void {
                                     ->variablePrototype()->end()
                                 ->end()
                             ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
+            ->arrayNode('indexer')
+                ->useAttributeAsKey('name')
+                ->arrayPrototype()
+                    ->children()
+                        ->scalarNode('vectorizer')
+                            ->info('Service name of vectorizer')
+                            ->defaultValue(VectorizerInterface::class)
+                        ->end()
+                        ->scalarNode('store')
+                            ->info('Service name of store')
+                            ->defaultValue(StoreInterface::class)
                         ->end()
                     ->end()
                 ->end()
