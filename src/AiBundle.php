@@ -1057,6 +1057,7 @@ final class AiBundle extends AbstractBundle
         $vectorizerDefinition = new Definition(Vectorizer::class, [
             new Reference($config['platform']),
             new Reference('ai.vectorizer.'.$name.'.model'),
+            new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
         ]);
         $vectorizerDefinition->addTag('ai.vectorizer', ['name' => $name]);
         $container->setDefinition('ai.vectorizer.'.$name, $vectorizerDefinition);

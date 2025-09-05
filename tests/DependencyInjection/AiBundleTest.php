@@ -22,6 +22,7 @@ use Symfony\AI\Platform\Bridge\OpenAi\Embeddings;
 use Symfony\AI\Store\Document\Vectorizer;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -620,6 +621,41 @@ class AiBundleTest extends TestCase
         $modelDefinition = $container->getDefinition('ai.vectorizer.my_vectorizer.model');
         $this->assertSame(Embeddings::class, $modelDefinition->getClass());
         $this->assertTrue($modelDefinition->hasTag('ai.model.embeddings_model'));
+    }
+
+    public function testVectorizerWithLoggerInjection()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'vectorizer' => [
+                    'my_vectorizer' => [
+                        'platform' => 'my_platform_service_id',
+                        'model' => [
+                            'class' => 'Symfony\AI\Platform\Bridge\OpenAi\Embeddings',
+                            'name' => 'text-embedding-3-small',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $vectorizerDefinition = $container->getDefinition('ai.vectorizer.my_vectorizer');
+        $arguments = $vectorizerDefinition->getArguments();
+
+        $this->assertCount(3, $arguments, 'Vectorizer should have 3 arguments: platform, model, and logger');
+
+        // First argument should be platform reference
+        $this->assertInstanceOf(Reference::class, $arguments[0]);
+        $this->assertSame('my_platform_service_id', (string) $arguments[0]);
+
+        // Second argument should be model reference
+        $this->assertInstanceOf(Reference::class, $arguments[1]);
+        $this->assertSame('ai.vectorizer.my_vectorizer.model', (string) $arguments[1]);
+
+        // Third argument should be logger reference with IGNORE_ON_INVALID_REFERENCE
+        $this->assertInstanceOf(Reference::class, $arguments[2]);
+        $this->assertSame('logger', (string) $arguments[2]);
+        $this->assertSame(ContainerInterface::IGNORE_ON_INVALID_REFERENCE, $arguments[2]->getInvalidBehavior());
     }
 
     public function testIndexerWithConfiguredVectorizer()
