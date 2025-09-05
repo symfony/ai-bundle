@@ -113,13 +113,28 @@ Configuration
             memory:
                 ollama:
                     strategy: 'manhattan'
-        indexer:
-            default:
-                # platform: 'ai.platform.mistral'
-                # store: 'ai.store.chroma_db.default'
+        vectorizer:
+            # Reusable vectorizer configurations
+            openai_embeddings:
+                platform: 'ai.platform.openai'
+                model:
+                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Embeddings'
+                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Embeddings::TEXT_EMBEDDING_3_SMALL
+                    options:
+                        dimensions: 512
+            mistral_embeddings:
+                platform: 'ai.platform.mistral'
                 model:
                     class: 'Symfony\AI\Platform\Bridge\Mistral\Embeddings'
                     name: !php/const Symfony\AI\Platform\Bridge\Mistral\Embeddings::MISTRAL_EMBED
+        indexer:
+            default:
+                vectorizer: 'ai.vectorizer.openai_embeddings'
+                store: 'ai.store.chroma_db.default'
+                
+            research:
+                vectorizer: 'ai.vectorizer.mistral_embeddings'
+                store: 'ai.store.memory.research'
 
 Usage
 -----
@@ -318,6 +333,66 @@ To disable token usage tracking for an agent, set the ``track_token_usage`` opti
                 model:
                     class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
                     name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
+
+Vectorizers
+-----------
+
+Vectorizers are components that convert text documents into vector embeddings for storage and retrieval.
+They can be configured once and reused across multiple indexers, providing better maintainability and consistency.
+
+**Configuring Vectorizers**
+
+Vectorizers are defined in the ``vectorizer`` section of your configuration:
+
+.. code-block:: yaml
+
+    ai:
+        vectorizer:
+            openai_small:
+                platform: 'ai.platform.openai'
+                model:
+                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Embeddings'
+                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Embeddings::TEXT_EMBEDDING_3_SMALL
+                    options:
+                        dimensions: 512
+                        
+            openai_large:
+                platform: 'ai.platform.openai'
+                model:
+                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Embeddings'
+                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Embeddings::TEXT_EMBEDDING_3_LARGE
+                    
+            mistral_embed:
+                platform: 'ai.platform.mistral'
+                model:
+                    class: 'Symfony\AI\Platform\Bridge\Mistral\Embeddings'
+                    name: !php/const Symfony\AI\Platform\Bridge\Mistral\Embeddings::MISTRAL_EMBED
+
+**Using Vectorizers in Indexers**
+
+Once configured, vectorizers can be referenced by name in indexer configurations:
+
+.. code-block:: yaml
+
+    ai:
+        indexer:
+            documents:
+                vectorizer: 'ai.vectorizer.openai_small'
+                store: 'ai.store.chroma_db.documents'
+                
+            research:
+                vectorizer: 'ai.vectorizer.openai_large'
+                store: 'ai.store.chroma_db.research'
+                
+            knowledge_base:
+                vectorizer: 'ai.vectorizer.mistral_embed'
+                store: 'ai.store.memory.kb'
+
+**Benefits of Configured Vectorizers**
+
+* **Reusability**: Define once, use in multiple indexers
+* **Consistency**: Ensure all indexers using the same vectorizer have identical embedding configuration  
+* **Maintainability**: Change vectorizer settings in one place
 
 Profiler
 --------
