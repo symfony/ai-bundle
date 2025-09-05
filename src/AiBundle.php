@@ -67,6 +67,7 @@ use Symfony\AI\Store\Bridge\Typesense\Store as TypesenseStore;
 use Symfony\AI\Store\Bridge\Weaviate\Store as WeaviateStore;
 use Symfony\AI\Store\Document\Vectorizer;
 use Symfony\AI\Store\Indexer;
+use Symfony\AI\Store\IndexerInterface;
 use Symfony\AI\Store\StoreInterface;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\Attribute\Target;
@@ -144,7 +145,7 @@ final class AiBundle extends AbstractBundle
             $this->processIndexerConfig($indexerName, $indexer, $builder);
         }
         if (1 === \count($config['indexer']) && isset($indexerName)) {
-            $builder->setAlias(Indexer::class, 'ai.indexer.'.$indexerName);
+            $builder->setAlias(IndexerInterface::class, 'ai.indexer.'.$indexerName);
         }
 
         $builder->registerAttributeForAutoconfiguration(AsTool::class, static function (ChildDefinition $definition, AsTool $attribute): void {
