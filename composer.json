@@ -1,8 +1,8 @@
 {
     "name": "symfony/ai-bundle",
-    "type": "symfony-bundle",
     "description": "Integration bundle for Symfony AI components",
     "license": "MIT",
+    "type": "symfony-bundle",
     "authors": [
         {
             "name": "Christopher Hertel",
@@ -31,9 +31,6 @@
         "symfony/expression-language": "^6.4 || ^7.0",
         "symfony/security-core": "^6.4 || ^7.0"
     },
-    "config": {
-        "sort-packages": true
-    },
     "autoload": {
         "psr-4": {
             "Symfony\\AI\\AiBundle\\": "src/"
@@ -44,5 +41,8 @@
             "Symfony\\AI\\AiBundle\\Tests\\": "tests/",
             "Symfony\\AI\\PHPStan\\": "../../.phpstan/"
         }
+    },
+    "config": {
+        "sort-packages": true
     }
 }
