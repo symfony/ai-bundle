@@ -373,6 +373,7 @@ return static function (DefinitionConfigurator $configurator): void {
                 ->end()
             ->end()
             ->arrayNode('vectorizer')
+                ->info('Vectorizers for converting strings to Vector objects and transforming TextDocument arrays to VectorDocument arrays')
                 ->useAttributeAsKey('name')
                 ->arrayPrototype()
                     ->children()
