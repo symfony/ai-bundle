@@ -1068,11 +1068,20 @@ final class AiBundle extends AbstractBundle
      */
     private function processIndexerConfig(int|string $name, array $config, ContainerBuilder $container): void
     {
+        $transformers = [];
+        foreach ($config['transformers'] ?? [] as $transformer) {
+            $transformers[] = new Reference($transformer);
+        }
+
         $definition = new Definition(Indexer::class, [
+            new Reference($config['loader']),
             new Reference($config['vectorizer']),
             new Reference($config['store']),
+            $config['source'],
+            $transformers,
             new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
         ]);
+        $definition->addTag('ai.indexer', ['name' => $name]);
 
         $container->setDefinition('ai.indexer.'.$name, $definition);
     }
