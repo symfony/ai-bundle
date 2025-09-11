@@ -600,7 +600,8 @@ final class AiBundle extends AbstractBundle
         $agentDefinition
             ->setArgument(2, []) // placeholder until ProcessorCompilerPass process.
             ->setArgument(3, []) // placeholder until ProcessorCompilerPass process.
-            ->setArgument(4, new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE))
+            ->setArgument(4, $name)
+            ->setArgument(5, new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE))
         ;
 
         $container->setDefinition($agentId, $agentDefinition);

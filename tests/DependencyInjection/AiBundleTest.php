@@ -108,6 +108,33 @@ class AiBundleTest extends TestCase
         $this->assertArrayHasKey('ai.agent.my_agent', $container->findTaggedServiceIds('ai.agent'));
     }
 
+    public function testAgentNameIsSetFromConfigKey()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'my_custom_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.agent.my_custom_agent'));
+
+        $agentDefinition = $container->getDefinition('ai.agent.my_custom_agent');
+        $arguments = $agentDefinition->getArguments();
+
+        // The 5th argument (index 4) should be the config key as agent name
+        $this->assertArrayHasKey(4, $arguments, 'Agent definition should have argument at index 4 for name');
+        $this->assertSame('my_custom_agent', $arguments[4]);
+
+        // Check that the tag uses the config key as name
+        $tags = $agentDefinition->getTag('ai.agent');
+        $this->assertNotEmpty($tags, 'Agent should have ai.agent tag');
+        $this->assertSame('my_custom_agent', $tags[0]['name'], 'Agent tag should use config key as name');
+    }
+
     #[TestWith([true], 'enabled')]
     #[TestWith([false], 'disabled')]
     public function testFaultTolerantAgentSpecificToolbox(bool $enabled)
