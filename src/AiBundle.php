@@ -383,7 +383,7 @@ final class AiBundle extends AbstractBundle
         }
 
         if ('lmstudio' === $type) {
-            $platformId = 'symfony_ai.platform.lmstudio';
+            $platformId = 'ai.platform.lmstudio';
             $definition = (new Definition(Platform::class))
                 ->setFactory(LmStudioPlatformFactory::class.'::create')
                 ->setLazy(true)
@@ -393,7 +393,7 @@ final class AiBundle extends AbstractBundle
                     new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.contract.default'),
                 ])
-                ->addTag('symfony_ai.platform');
+                ->addTag('ai.platform');
 
             $container->setDefinition($platformId, $definition);
 
