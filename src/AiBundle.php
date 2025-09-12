@@ -40,6 +40,7 @@ use Symfony\AI\Platform\Bridge\Mistral\PlatformFactory as MistralPlatformFactory
 use Symfony\AI\Platform\Bridge\Ollama\PlatformFactory as OllamaPlatformFactory;
 use Symfony\AI\Platform\Bridge\OpenAi\PlatformFactory as OpenAiPlatformFactory;
 use Symfony\AI\Platform\Bridge\OpenRouter\PlatformFactory as OpenRouterPlatformFactory;
+use Symfony\AI\Platform\Bridge\Perplexity\PlatformFactory as PerplexityPlatformFactory;
 use Symfony\AI\Platform\Bridge\VertexAi\PlatformFactory as VertexAiPlatformFactory;
 use Symfony\AI\Platform\Bridge\Voyage\PlatformFactory as VoyagePlatformFactory;
 use Symfony\AI\Platform\Exception\RuntimeException;
@@ -419,7 +420,7 @@ final class AiBundle extends AbstractBundle
             return;
         }
 
-        if ('cerebras' === $type && isset($platform['api_key'])) {
+        if ('cerebras' === $type) {
             $platformId = 'ai.platform.cerebras';
             $definition = (new Definition(Platform::class))
                 ->setFactory(CerebrasPlatformFactory::class.'::create')
@@ -436,7 +437,7 @@ final class AiBundle extends AbstractBundle
             return;
         }
 
-        if ('voyage' === $type && isset($platform['api_key'])) {
+        if ('voyage' === $type) {
             $platformId = 'ai.platform.voyage';
             $definition = (new Definition(Platform::class))
                 ->setFactory(VoyagePlatformFactory::class.'::create')
@@ -445,6 +446,24 @@ final class AiBundle extends AbstractBundle
                 ->setArguments([
                     $platform['api_key'],
                     new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                ])
+                ->addTag('ai.platform');
+
+            $container->setDefinition($platformId, $definition);
+
+            return;
+        }
+
+        if ('perplexity' === $type) {
+            $platformId = 'ai.platform.perplexity';
+            $definition = (new Definition(Platform::class))
+                ->setFactory(PerplexityPlatformFactory::class.'::create')
+                ->setLazy(true)
+                ->addTag('proxy', ['interface' => PlatformInterface::class])
+                ->setArguments([
+                    $platform['api_key'],
+                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference('ai.platform.contract.perplexity'),
                 ])
                 ->addTag('ai.platform');
 
