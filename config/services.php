@@ -32,6 +32,9 @@ use Symfony\AI\Platform\Bridge\Mistral\TokenOutputProcessor as MistralTokenOutpu
 use Symfony\AI\Platform\Bridge\Ollama\Contract\OllamaContract;
 use Symfony\AI\Platform\Bridge\OpenAi\Contract\OpenAiContract;
 use Symfony\AI\Platform\Bridge\OpenAi\TokenOutputProcessor as OpenAiTokenOutputProcessor;
+use Symfony\AI\Platform\Bridge\Perplexity\Contract\PerplexityContract;
+use Symfony\AI\Platform\Bridge\Perplexity\SearchResultProcessor as PerplexitySearchResultProcessor;
+use Symfony\AI\Platform\Bridge\Perplexity\TokenOutputProcessor as PerplexityTokenOutputProcessor;
 use Symfony\AI\Platform\Bridge\VertexAi\Contract\GeminiContract as VertexAiGeminiContract;
 use Symfony\AI\Platform\Bridge\VertexAi\TokenOutputProcessor as VertexAiTokenOutputProcessor;
 use Symfony\AI\Platform\Contract;
@@ -55,6 +58,8 @@ return static function (ContainerConfigurator $container): void {
             ->factory([VertexAiGeminiContract::class, 'create'])
         ->set('ai.platform.contract.ollama', Contract::class)
             ->factory([OllamaContract::class, 'create'])
+        ->set('ai.platform.contract.perplexity', Contract::class)
+            ->factory([PerplexityContract::class, 'create'])
         // structured output
         ->set('ai.agent.response_format_factory', ResponseFormatFactory::class)
             ->args([
@@ -140,7 +145,11 @@ return static function (ContainerConfigurator $container): void {
         ->set('ai.platform.token_usage_processor.gemini', GeminiTokenOutputProcessor::class)
         ->set('ai.platform.token_usage_processor.mistral', MistralTokenOutputProcessor::class)
         ->set('ai.platform.token_usage_processor.openai', OpenAiTokenOutputProcessor::class)
+        ->set('ai.platform.token_usage_processor.perplexity', PerplexityTokenOutputProcessor::class)
         ->set('ai.platform.token_usage_processor.vertexai', VertexAiTokenOutputProcessor::class)
+
+        // search result processors
+        ->set('ai.platform.search_result_processor.perplexity', PerplexitySearchResultProcessor::class)
 
         // commands
         ->set('ai.command.chat', ChatCommand::class)
