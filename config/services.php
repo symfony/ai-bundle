@@ -33,6 +33,7 @@ use Symfony\AI\Platform\Bridge\Anthropic\TokenOutputProcessor as AnthropicTokenO
 use Symfony\AI\Platform\Bridge\Azure\Meta\ModelCatalog as AzureMetaModelCatalog;
 use Symfony\AI\Platform\Bridge\Azure\OpenAi\ModelCatalog as AzureOpenAiModelCatalog;
 use Symfony\AI\Platform\Bridge\Cerebras\ModelCatalog as CerebrasModelCatalog;
+use Symfony\AI\Platform\Bridge\DeepSeek\ModelCatalog as DeepSeekModelCatalog;
 use Symfony\AI\Platform\Bridge\DockerModelRunner\ModelCatalog as DockerModelRunnerModelCatalog;
 use Symfony\AI\Platform\Bridge\ElevenLabs\ModelCatalog as ElevenLabsModelCatalog;
 use Symfony\AI\Platform\Bridge\Gemini\Contract\GeminiContract;
@@ -89,6 +90,7 @@ return static function (ContainerConfigurator $container): void {
         ->set('ai.platform.model_catalog.azure.meta', AzureMetaModelCatalog::class)
         ->set('ai.platform.model_catalog.azure.openai', AzureOpenAiModelCatalog::class)
         ->set('ai.platform.model_catalog.cerebras', CerebrasModelCatalog::class)
+        ->set('ai.platform.model_catalog.deepseek', DeepSeekModelCatalog::class)
         ->set('ai.platform.model_catalog.dockermodelrunner', DockerModelRunnerModelCatalog::class)
         ->set('ai.platform.model_catalog.elevenlabs', ElevenLabsModelCatalog::class)
         ->set('ai.platform.model_catalog.gemini', GeminiModelCatalog::class)
