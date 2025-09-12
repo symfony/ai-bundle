@@ -612,6 +612,27 @@ Example: Customer Service Bot
                     product_info: ['features', 'how to', 'tutorial', 'guide', 'documentation']
                 fallback: 'general_support'  # Fallback for general inquiries
 
+Commands
+--------
+
+The AI Bundle provides several console commands for interacting with AI platforms and agents.
+
+``ai:platform:invoke``
+~~~~~~~~~~~~~~~~~~~~~~
+
+The ``ai:platform:invoke`` command allows you to directly invoke any configured AI platform with a message.
+This is useful for testing platform configurations and quick interactions with AI models.
+
+.. code-block:: terminal
+
+    $ php bin/console ai:platform:invoke <platform> <model> "<message>"
+
+    # Using OpenAI
+    $ php bin/console ai:platform:invoke openai gpt-4o-mini "Hello, world!"
+
+    # Using Anthropic
+    $ php bin/console ai:platform:invoke anthropic claude-3-5-sonnet-20241022 "Explain quantum physics"
+
 Usage
 -----
 
