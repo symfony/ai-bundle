@@ -137,8 +137,8 @@ return static function (ContainerConfigurator $container): void {
             ->tag('ai.traceable_toolbox')
 
         // token usage processors
-        ->set('ai.platform.token_usage_processor.mistral', MistralTokenOutputProcessor::class)
         ->set('ai.platform.token_usage_processor.gemini', GeminiTokenOutputProcessor::class)
+        ->set('ai.platform.token_usage_processor.mistral', MistralTokenOutputProcessor::class)
         ->set('ai.platform.token_usage_processor.openai', OpenAiTokenOutputProcessor::class)
         ->set('ai.platform.token_usage_processor.vertexai', VertexAiTokenOutputProcessor::class)
 
