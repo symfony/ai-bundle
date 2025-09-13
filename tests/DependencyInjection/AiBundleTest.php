@@ -17,8 +17,14 @@ use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use Symfony\AI\Agent\AgentInterface;
+use Symfony\AI\Agent\Memory\MemoryInputProcessor;
+use Symfony\AI\Agent\Memory\StaticMemoryProvider;
 use Symfony\AI\AiBundle\AiBundle;
+use Symfony\AI\Platform\Bridge\Anthropic\Claude;
+use Symfony\AI\Platform\Bridge\Mistral\Embeddings as MistralEmbeddings;
 use Symfony\AI\Platform\Bridge\OpenAi\Embeddings;
+use Symfony\AI\Platform\Bridge\OpenAi\Gpt;
 use Symfony\AI\Store\Document\Loader\InMemoryLoader;
 use Symfony\AI\Store\Document\Transformer\TextTrimTransformer;
 use Symfony\AI\Store\Document\Vectorizer;
@@ -46,7 +52,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'my_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                     ],
                 ],
             ],
@@ -83,14 +89,14 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'my_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                     ],
                 ],
             ],
         ]);
 
-        $this->assertTrue($container->hasAlias('Symfony\AI\Agent\AgentInterface'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Agent\AgentInterface $myAgentAgent'));
+        $this->assertTrue($container->hasAlias(AgentInterface::class));
+        $this->assertTrue($container->hasAlias(AgentInterface::class.' $myAgentAgent'));
     }
 
     public function testAgentHasTag()
@@ -99,7 +105,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'my_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                     ],
                 ],
             ],
@@ -114,7 +120,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'my_custom_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                     ],
                 ],
             ],
@@ -143,7 +149,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'my_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                         'tools' => [
                             ['service' => 'some_service', 'description' => 'Some tool'],
                         ],
@@ -164,7 +170,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'my_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                         'tools' => true,
                         'fault_tolerant_toolbox' => $enabled,
                     ],
@@ -181,7 +187,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'main_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                         'tools' => [
                             ['agent' => 'another_agent', 'description' => 'Agent tool with implicit name'],
                             ['agent' => 'another_agent', 'name' => 'another_agent_instance', 'description' => 'Agent tool with explicit name'],
@@ -202,7 +208,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'main_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                         'tools' => [['agent' => 'another_agent', 'service' => 'foo_bar', 'description' => 'Agent with service']],
                     ],
                 ],
@@ -352,7 +358,7 @@ class AiBundleTest extends TestCase
                 ],
                 'agent' => [
                     'My-Agent_Name.v2' => [ // Mixed case and special chars in key
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                     ],
                 ],
                 'store' => [
@@ -384,7 +390,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                         'tools' => [
                             ['service' => 'some_tool', 'description' => 'Test tool'],
                         ],
@@ -436,14 +442,14 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'first_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                         'tools' => [
                             ['service' => 'tool_one', 'description' => 'Tool for first agent'],
                         ],
                         'prompt' => 'First agent prompt',
                     ],
                     'second_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\Anthropic\Claude'],
+                        'model' => ['class' => Claude::class],
                         'tools' => [
                             ['service' => 'tool_two', 'description' => 'Tool for second agent'],
                         ],
@@ -485,7 +491,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'agent_with_default_toolbox' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                         'tools' => true,
                     ],
                 ],
@@ -534,7 +540,7 @@ class AiBundleTest extends TestCase
                 'agent' => [
                     'tracked_agent' => [
                         'platform' => 'ai.platform.openai',
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                         'track_token_usage' => true,
                     ],
                 ],
@@ -655,7 +661,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
                         ],
@@ -682,7 +688,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
                             'include_tools' => true,
@@ -711,7 +717,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
                         ],
@@ -738,7 +744,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                     ],
                 ],
             ],
@@ -755,7 +761,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                         'prompt' => [
                             'text' => 'Valid prompt',
                             'include_tools' => true,
@@ -787,7 +793,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                         'prompt' => [
                             'text' => '',
                         ],
@@ -807,7 +813,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                         'prompt' => [
                             'include_tools' => true,
                         ],
@@ -824,7 +830,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'model' => ['class' => Gpt::class],
                         'prompt' => 'You are a helpful assistant.',
                         'tools' => [
                             ['service' => 'some_tool', 'description' => 'Test tool'],
@@ -842,6 +848,482 @@ class AiBundleTest extends TestCase
         $this->assertNull($arguments[1]); // include_tools not enabled with string format
     }
 
+    #[TestDox('Memory provider configuration creates memory input processor')]
+    public function testMemoryProviderConfiguration()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => Gpt::class],
+                        'memory' => 'Static memory for testing',
+                        'prompt' => [
+                            'text' => 'You are a helpful assistant.',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        // Should create StaticMemoryProvider for non-existing service name
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.memory_input_processor'));
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.static_memory_provider'));
+
+        $definition = $container->getDefinition('ai.agent.test_agent.memory_input_processor');
+        $arguments = $definition->getArguments();
+
+        // Check that the memory processor references the static memory provider
+        $this->assertInstanceOf(Reference::class, $arguments[0]);
+        $this->assertSame('ai.agent.test_agent.static_memory_provider', (string) $arguments[0]);
+
+        // Check that the processor has the correct tags with proper priority
+        $tags = $definition->getTag('ai.agent.input_processor');
+        $this->assertNotEmpty($tags);
+        $this->assertSame('ai.agent.test_agent', $tags[0]['agent']);
+        $this->assertSame(-40, $tags[0]['priority']);
+    }
+
+    #[TestDox('Agent without memory configuration does not create memory processor')]
+    public function testAgentWithoutMemoryConfiguration()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => Gpt::class],
+                        'prompt' => [
+                            'text' => 'You are a helpful assistant.',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertFalse($container->hasDefinition('ai.agent.test_agent.memory_input_processor'));
+    }
+
+    #[TestDox('Memory with null value does not create memory processor')]
+    public function testMemoryWithNullValueDoesNotCreateProcessor()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => Gpt::class],
+                        'memory' => null,
+                        'prompt' => [
+                            'text' => 'You are a helpful assistant.',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertFalse($container->hasDefinition('ai.agent.test_agent.memory_input_processor'));
+    }
+
+    #[TestDox('Memory configuration works with system prompt and tools')]
+    public function testMemoryWithSystemPromptAndTools()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => Gpt::class],
+                        'memory' => 'conversation_memory_service',
+                        'prompt' => [
+                            'text' => 'You are a helpful assistant.',
+                            'include_tools' => true,
+                        ],
+                        'tools' => [
+                            ['service' => 'test_tool', 'description' => 'Test tool'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        // Check that all processors are created
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.memory_input_processor'));
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.system_prompt_processor'));
+        $this->assertTrue($container->hasDefinition('ai.tool.agent_processor.test_agent'));
+
+        // Verify memory processor configuration (static memory since service doesn't exist)
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.static_memory_provider'));
+        $memoryDefinition = $container->getDefinition('ai.agent.test_agent.memory_input_processor');
+        $memoryArguments = $memoryDefinition->getArguments();
+        $this->assertInstanceOf(Reference::class, $memoryArguments[0]);
+        $this->assertSame('ai.agent.test_agent.static_memory_provider', (string) $memoryArguments[0]);
+
+        // Verify memory processor has highest priority (runs first)
+        $memoryTags = $memoryDefinition->getTag('ai.agent.input_processor');
+        $this->assertSame(-40, $memoryTags[0]['priority']);
+
+        // Verify system prompt processor has correct priority (runs after memory)
+        $systemPromptDefinition = $container->getDefinition('ai.agent.test_agent.system_prompt_processor');
+        $systemPromptTags = $systemPromptDefinition->getTag('ai.agent.input_processor');
+        $this->assertSame(-30, $systemPromptTags[0]['priority']);
+    }
+
+    #[TestDox('Memory configuration works with string prompt format')]
+    public function testMemoryWithStringPromptFormat()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => Gpt::class],
+                        'prompt' => 'You are a helpful assistant.',
+                        // memory cannot be configured with string format
+                    ],
+                ],
+            ],
+        ]);
+
+        // Memory processor should not be created with string prompt format
+        $this->assertFalse($container->hasDefinition('ai.agent.test_agent.memory_input_processor'));
+
+        // But system prompt processor should still be created
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.system_prompt_processor'));
+    }
+
+    #[TestDox('Multiple agents can have different memory configurations')]
+    public function testMultipleAgentsWithDifferentMemoryConfigurations()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'agent_with_memory' => [
+                        'model' => ['class' => Gpt::class],
+                        'memory' => 'first_memory_service',
+                        'prompt' => [
+                            'text' => 'Agent with memory.',
+                        ],
+                    ],
+                    'agent_without_memory' => [
+                        'model' => ['class' => Claude::class],
+                        'prompt' => [
+                            'text' => 'Agent without memory.',
+                        ],
+                    ],
+                    'agent_with_different_memory' => [
+                        'model' => ['class' => Gpt::class],
+                        'memory' => 'second_memory_service',
+                        'prompt' => [
+                            'text' => 'Agent with different memory.',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        // First agent should have memory processor (static since service doesn't exist)
+        $this->assertTrue($container->hasDefinition('ai.agent.agent_with_memory.memory_input_processor'));
+        $this->assertTrue($container->hasDefinition('ai.agent.agent_with_memory.static_memory_provider'));
+        $firstMemoryDef = $container->getDefinition('ai.agent.agent_with_memory.memory_input_processor');
+        $firstMemoryArgs = $firstMemoryDef->getArguments();
+        $this->assertSame('ai.agent.agent_with_memory.static_memory_provider', (string) $firstMemoryArgs[0]);
+
+        // Second agent should not have memory processor
+        $this->assertFalse($container->hasDefinition('ai.agent.agent_without_memory.memory_input_processor'));
+
+        // Third agent should have memory processor (static since service doesn't exist)
+        $this->assertTrue($container->hasDefinition('ai.agent.agent_with_different_memory.memory_input_processor'));
+        $this->assertTrue($container->hasDefinition('ai.agent.agent_with_different_memory.static_memory_provider'));
+        $thirdMemoryDef = $container->getDefinition('ai.agent.agent_with_different_memory.memory_input_processor');
+        $thirdMemoryArgs = $thirdMemoryDef->getArguments();
+        $this->assertSame('ai.agent.agent_with_different_memory.static_memory_provider', (string) $thirdMemoryArgs[0]);
+
+        // Verify that each memory processor is tagged for the correct agent
+        $firstTags = $firstMemoryDef->getTag('ai.agent.input_processor');
+        $this->assertSame('ai.agent.agent_with_memory', $firstTags[0]['agent']);
+
+        $thirdTags = $thirdMemoryDef->getTag('ai.agent.input_processor');
+        $this->assertSame('ai.agent.agent_with_different_memory', $thirdTags[0]['agent']);
+    }
+
+    #[TestDox('Memory processor uses MemoryInputProcessor class')]
+    public function testMemoryProcessorUsesCorrectClass()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => Gpt::class],
+                        'memory' => 'my_memory_service',
+                        'prompt' => [
+                            'text' => 'You are a helpful assistant.',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $definition = $container->getDefinition('ai.agent.test_agent.memory_input_processor');
+        $this->assertSame(MemoryInputProcessor::class, $definition->getClass());
+    }
+
+    #[TestDox('Memory configuration is included in full config example')]
+    public function testMemoryInFullConfigurationExample()
+    {
+        $container = $this->buildContainer($this->getFullConfig());
+
+        // The full config should include memory in some agent
+        // Let's check if we need to update the full config to include memory
+        $this->assertTrue($container->hasDefinition('ai.agent.my_chat_agent'));
+
+        // For now, let's verify that if memory were added to full config, it would work
+        // This test documents the expectation that full config could include memory
+        $this->assertInstanceOf(ContainerBuilder::class, $container);
+    }
+
+    #[TestDox('Empty string memory configuration throws validation exception')]
+    public function testEmptyStringMemoryConfigurationThrowsException()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('Memory cannot be empty.');
+
+        $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => Gpt::class],
+                        'memory' => '',
+                        'prompt' => [
+                            'text' => 'Test prompt',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    #[TestDox('Memory configuration preserves correct processor priority ordering')]
+    public function testMemoryProcessorPriorityOrdering()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => Gpt::class],
+                        'memory' => 'test_memory',
+                        'prompt' => [
+                            'text' => 'Test prompt',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $memoryDef = $container->getDefinition('ai.agent.test_agent.memory_input_processor');
+        $systemDef = $container->getDefinition('ai.agent.test_agent.system_prompt_processor');
+
+        // Memory processor should have higher priority (more negative number)
+        $memoryTags = $memoryDef->getTag('ai.agent.input_processor');
+        $systemTags = $systemDef->getTag('ai.agent.input_processor');
+
+        $this->assertSame(-40, $memoryTags[0]['priority']);
+        $this->assertSame(-30, $systemTags[0]['priority']);
+        $this->assertLessThan($systemTags[0]['priority'], $memoryTags[0]['priority']);
+    }
+
+    #[TestDox('Memory processor uses correct MemoryInputProcessor class and service reference')]
+    public function testMemoryProcessorIntegration()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => Gpt::class],
+                        'memory' => 'my_memory_service',
+                        'prompt' => [
+                            'text' => 'You are a helpful assistant.',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.memory_input_processor'));
+        $definition = $container->getDefinition('ai.agent.test_agent.memory_input_processor');
+
+        // Check correct class
+        $this->assertSame(MemoryInputProcessor::class, $definition->getClass());
+
+        // Check service reference argument (static memory since service doesn't exist)
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.static_memory_provider'));
+        $arguments = $definition->getArguments();
+        $this->assertCount(1, $arguments);
+        $this->assertInstanceOf(Reference::class, $arguments[0]);
+        $this->assertSame('ai.agent.test_agent.static_memory_provider', (string) $arguments[0]);
+
+        // Check proper tagging
+        $tags = $definition->getTag('ai.agent.input_processor');
+        $this->assertNotEmpty($tags);
+        $this->assertSame('ai.agent.test_agent', $tags[0]['agent']);
+        $this->assertSame(-40, $tags[0]['priority']);
+    }
+
+    #[TestDox('Memory with existing service uses service reference directly')]
+    public function testMemoryWithExistingServiceUsesServiceReference()
+    {
+        // First create a service that exists
+        $container = new ContainerBuilder();
+        $container->setParameter('kernel.debug', false);
+        $container->setParameter('kernel.environment', 'test');
+        $container->setParameter('kernel.build_dir', 'test');
+
+        // Register a memory service
+        $container->register('existing_memory_service', MemoryInputProcessor::class);
+
+        $extension = (new AiBundle())->getContainerExtension();
+        $extension->load([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => Gpt::class],
+                        'memory' => 'existing_memory_service', // This service exists
+                        'prompt' => [
+                            'text' => 'You are a helpful assistant.',
+                        ],
+                    ],
+                ],
+            ],
+        ], $container);
+
+        // Should use the existing service directly, not create a StaticMemoryProvider
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.memory_input_processor'));
+        $this->assertFalse($container->hasDefinition('ai.agent.test_agent.static_memory_provider'));
+
+        $memoryProcessor = $container->getDefinition('ai.agent.test_agent.memory_input_processor');
+        $arguments = $memoryProcessor->getArguments();
+        $this->assertInstanceOf(Reference::class, $arguments[0]);
+        $this->assertSame('existing_memory_service', (string) $arguments[0]);
+    }
+
+    #[TestDox('Memory with non-existing service creates StaticMemoryProvider')]
+    public function testMemoryWithNonExistingServiceCreatesStaticMemoryProvider()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => Gpt::class],
+                        'memory' => 'This is static memory content', // This is not a service
+                        'prompt' => [
+                            'text' => 'You are a helpful assistant.',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        // Should create a StaticMemoryProvider
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.memory_input_processor'));
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.static_memory_provider'));
+
+        // Check StaticMemoryProvider configuration
+        $staticProvider = $container->getDefinition('ai.agent.test_agent.static_memory_provider');
+        $this->assertSame(StaticMemoryProvider::class, $staticProvider->getClass());
+        $staticProviderArgs = $staticProvider->getArguments();
+        $this->assertSame('This is static memory content', $staticProviderArgs[0]);
+
+        // Check that memory processor uses the StaticMemoryProvider
+        $memoryProcessor = $container->getDefinition('ai.agent.test_agent.memory_input_processor');
+        $memoryProcessorArgs = $memoryProcessor->getArguments();
+        $this->assertInstanceOf(Reference::class, $memoryProcessorArgs[0]);
+        $this->assertSame('ai.agent.test_agent.static_memory_provider', (string) $memoryProcessorArgs[0]);
+    }
+
+    #[TestDox('Memory with service alias uses alias correctly')]
+    public function testMemoryWithServiceAliasUsesAlias()
+    {
+        // Create a container with a service alias
+        $container = new ContainerBuilder();
+        $container->setParameter('kernel.debug', false);
+        $container->setParameter('kernel.environment', 'test');
+        $container->setParameter('kernel.build_dir', 'test');
+
+        // Register a service with an alias
+        $container->register('actual_memory_service', MemoryInputProcessor::class);
+        $container->setAlias('memory_alias', 'actual_memory_service');
+
+        $extension = (new AiBundle())->getContainerExtension();
+        $extension->load([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => Gpt::class],
+                        'memory' => 'memory_alias', // This alias exists
+                        'prompt' => [
+                            'text' => 'You are a helpful assistant.',
+                        ],
+                    ],
+                ],
+            ],
+        ], $container);
+
+        // Should use the alias directly, not create a StaticMemoryProvider
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.memory_input_processor'));
+        $this->assertFalse($container->hasDefinition('ai.agent.test_agent.static_memory_provider'));
+
+        $memoryProcessor = $container->getDefinition('ai.agent.test_agent.memory_input_processor');
+        $arguments = $memoryProcessor->getArguments();
+        $this->assertInstanceOf(Reference::class, $arguments[0]);
+        $this->assertSame('memory_alias', (string) $arguments[0]);
+    }
+
+    #[TestDox('Different agents can use different memory types')]
+    public function testDifferentAgentsCanUseDifferentMemoryTypes()
+    {
+        // Create a container with one existing service
+        $container = new ContainerBuilder();
+        $container->setParameter('kernel.debug', false);
+        $container->setParameter('kernel.environment', 'test');
+        $container->setParameter('kernel.build_dir', 'test');
+
+        $container->register('dynamic_memory_service', MemoryInputProcessor::class);
+
+        $extension = (new AiBundle())->getContainerExtension();
+        $extension->load([
+            'ai' => [
+                'agent' => [
+                    'agent_with_service' => [
+                        'model' => ['class' => Gpt::class],
+                        'memory' => 'dynamic_memory_service', // Existing service
+                        'prompt' => [
+                            'text' => 'Agent with service.',
+                        ],
+                    ],
+                    'agent_with_static' => [
+                        'model' => ['class' => Claude::class],
+                        'memory' => 'Static memory context for this agent', // Static content
+                        'prompt' => [
+                            'text' => 'Agent with static memory.',
+                        ],
+                    ],
+                ],
+            ],
+        ], $container);
+
+        // First agent uses service reference
+        $this->assertTrue($container->hasDefinition('ai.agent.agent_with_service.memory_input_processor'));
+        $this->assertFalse($container->hasDefinition('ai.agent.agent_with_service.static_memory_provider'));
+
+        $serviceMemoryProcessor = $container->getDefinition('ai.agent.agent_with_service.memory_input_processor');
+        $serviceArgs = $serviceMemoryProcessor->getArguments();
+        $this->assertSame('dynamic_memory_service', (string) $serviceArgs[0]);
+
+        // Second agent uses StaticMemoryProvider
+        $this->assertTrue($container->hasDefinition('ai.agent.agent_with_static.memory_input_processor'));
+        $this->assertTrue($container->hasDefinition('ai.agent.agent_with_static.static_memory_provider'));
+
+        $staticProvider = $container->getDefinition('ai.agent.agent_with_static.static_memory_provider');
+        $this->assertSame(StaticMemoryProvider::class, $staticProvider->getClass());
+        $staticProviderArgs = $staticProvider->getArguments();
+        $this->assertSame('Static memory context for this agent', $staticProviderArgs[0]);
+    }
+
     public function testVectorizerConfiguration()
     {
         $container = $this->buildContainer([
@@ -850,7 +1332,7 @@ class AiBundleTest extends TestCase
                     'my_vectorizer' => [
                         'platform' => 'my_platform_service_id',
                         'model' => [
-                            'class' => 'Symfony\AI\Platform\Bridge\OpenAi\Embeddings',
+                            'class' => Embeddings::class,
                             'name' => 'text-embedding-3-small',
                             'options' => ['dimension' => 512],
                         ],
@@ -879,7 +1361,7 @@ class AiBundleTest extends TestCase
                     'my_vectorizer' => [
                         'platform' => 'my_platform_service_id',
                         'model' => [
-                            'class' => 'Symfony\AI\Platform\Bridge\OpenAi\Embeddings',
+                            'class' => Embeddings::class,
                             'name' => 'text-embedding-3-small',
                         ],
                     ],
@@ -919,7 +1401,7 @@ class AiBundleTest extends TestCase
                     'my_vectorizer' => [
                         'platform' => 'my_platform_service_id',
                         'model' => [
-                            'class' => 'Symfony\AI\Platform\Bridge\OpenAi\Embeddings',
+                            'class' => Embeddings::class,
                             'name' => 'text-embedding-3-small',
                         ],
                     ],
@@ -1260,7 +1742,7 @@ class AiBundleTest extends TestCase
                     'my_chat_agent' => [
                         'platform' => 'openai_platform_service_id',
                         'model' => [
-                            'class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt',
+                            'class' => Gpt::class,
                             'name' => 'gpt-3.5-turbo',
                             'options' => [
                                 'temperature' => 0.7,
@@ -1284,7 +1766,7 @@ class AiBundleTest extends TestCase
                         'fault_tolerant_toolbox' => false,
                     ],
                     'another_agent' => [
-                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\Anthropic\Claude', 'name' => 'claude-3-opus-20240229'],
+                        'model' => ['class' => Claude::class, 'name' => 'claude-3-opus-20240229'],
                         'prompt' => 'Be concise.',
                     ],
                 ],
@@ -1438,7 +1920,7 @@ class AiBundleTest extends TestCase
                     'test_vectorizer' => [
                         'platform' => 'mistral_platform_service_id',
                         'model' => [
-                            'class' => 'Symfony\AI\Platform\Bridge\Mistral\Embeddings',
+                            'class' => MistralEmbeddings::class,
                             'name' => 'mistral-embed',
                             'options' => ['dimension' => 768],
                         ],

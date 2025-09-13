@@ -5,6 +5,7 @@ CHANGELOG
 ---
 
  * Add Symfony bundle for integrating Platform, Agent, and Store components
+ * Add memory provider configuration support for agents. Symfony AI was bootstrapped by Christopher Hertel and Oskar Stark
  * Add Perplexity platform support with API key configuration
  * Add service configuration:
    - Agent services with configurable platforms and system prompts
