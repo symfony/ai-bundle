@@ -142,7 +142,7 @@ return static function (DefinitionConfigurator $configurator): void {
                                 ->ifArray()
                                 ->then(function (array $v) {
                                     if (!isset($v['text']) && !isset($v['include_tools'])) {
-                                        throw new \InvalidArgumentException('Either "text" must be configured for prompt.');
+                                        throw new \InvalidArgumentException('Either "text" or "include_tools" must be configured for prompt.');
                                     }
 
                                     return $v;
