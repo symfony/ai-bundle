@@ -71,8 +71,8 @@ Configuration
                 model:
                     class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
                     name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
-                system_prompt: # The system prompt configuration
-                    prompt: 'You are a helpful assistant that can answer questions.' # The prompt text
+                prompt: # The system prompt configuration
+                    text: 'You are a helpful assistant that can answer questions.' # The prompt text
                     include_tools: true # Include tool definitions at the end of the system prompt
                 tools:
                     # Referencing a service with #[AsTool] attribute
@@ -158,7 +158,7 @@ For basic usage, specify the system prompt as a simple string:
                 model:
                     class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
                     name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
-                system_prompt: 'You are a helpful assistant.'
+                prompt: 'You are a helpful assistant.'
 
 **Advanced Configuration**
 
@@ -172,13 +172,13 @@ For more control, such as including tool definitions in the system prompt, use t
                 model:
                     class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
                     name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
-                system_prompt:
-                    prompt: 'You are a helpful assistant that can answer questions.'
+                prompt:
+                    text: 'You are a helpful assistant that can answer questions.'
                     include_tools: true # Include tool definitions at the end of the system prompt
 
 The array format supports these options:
 
-* ``prompt`` (string, required): The system prompt text that will be sent to the AI model
+* ``text`` (string, required): The system prompt text that will be sent to the AI model
 * ``include_tools`` (boolean, optional): When set to ``true``, tool definitions will be appended to the system prompt
 
 

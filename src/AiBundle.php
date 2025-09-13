@@ -604,12 +604,12 @@ final class AiBundle extends AbstractBundle
         }
 
         // SYSTEM PROMPT
-        if (isset($config['system_prompt'])) {
-            $includeTools = isset($config['system_prompt']['include_tools']) && $config['system_prompt']['include_tools'];
+        if (isset($config['prompt'])) {
+            $includeTools = isset($config['prompt']['include_tools']) && $config['prompt']['include_tools'];
 
             $systemPromptInputProcessorDefinition = (new Definition(SystemPromptInputProcessor::class))
                 ->setArguments([
-                    $config['system_prompt']['prompt'],
+                    $config['prompt']['text'],
                     $includeTools ? new Reference('ai.toolbox.'.$name) : null,
                     new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
                 ])
