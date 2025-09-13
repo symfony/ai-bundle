@@ -71,6 +71,7 @@ Configuration
                 model:
                     class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
                     name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
+                memory: 'You have access to conversation history and user preferences' # Optional: static memory or service reference
                 prompt: # The system prompt configuration
                     text: 'You are a helpful assistant that can answer questions.' # The prompt text
                     include_tools: true # Include tool definitions at the end of the system prompt
@@ -181,6 +182,108 @@ The array format supports these options:
 * ``text`` (string, required): The system prompt text that will be sent to the AI model
 * ``include_tools`` (boolean, optional): When set to ``true``, tool definitions will be appended to the system prompt
 
+Memory Provider Configuration
+-----------------------------
+
+Memory providers allow agents to access and utilize conversation history and context from previous interactions. 
+This enables agents to maintain context across conversations and provide more personalized responses.
+
+**Static Memory (Simple)**
+
+The simplest way to add memory is to provide a string that will be used as static context:
+
+.. code-block:: yaml
+
+    ai:
+        agent:
+            my_agent:
+                model:
+                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
+                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
+                memory: 'You have access to user preferences and conversation history'
+                prompt:
+                    text: 'You are a helpful assistant.'
+
+This static memory content is consistently available to the agent across all conversations.
+
+**Dynamic Memory (Advanced)**
+
+For more sophisticated scenarios, you can reference an existing service that implements dynamic memory:
+
+.. code-block:: yaml
+
+    ai:
+        agent:
+            my_agent:
+                model:
+                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
+                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
+                memory: 'my_memory_service'  # References an existing service
+                prompt:
+                    text: 'You are a helpful assistant.'
+
+**Memory as System Prompt**
+
+Memory can work independently or alongside the system prompt:
+
+- **Memory only**: If no prompt is provided, memory becomes the system prompt
+- **Memory + Prompt**: If both are provided, memory is prepended to the prompt
+
+.. code-block:: yaml
+
+    ai:
+        agent:
+            # Agent with memory only (memory becomes system prompt)
+            memory_only_agent:
+                model:
+                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
+                memory: 'You are a helpful assistant with conversation history'
+            
+            # Agent with both memory and prompt (memory prepended to prompt)
+            memory_and_prompt_agent:
+                model:
+                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
+                memory: 'Previous conversation context...'
+                prompt:
+                    text: 'You are a helpful assistant.'
+
+**Custom Memory Provider Requirements**
+
+When using a service reference, the memory service must implement the ``Symfony\AI\Agent\Memory\MemoryProviderInterface``::
+
+    use Symfony\AI\Agent\Input;
+    use Symfony\AI\Agent\Memory\Memory;
+    use Symfony\AI\Agent\Memory\MemoryProviderInterface;
+
+    final class MyMemoryProvider implements MemoryProviderInterface
+    {
+        public function loadMemory(Input $input): array
+        {
+            // Return an array of Memory objects containing relevant conversation history
+            return [
+                new Memory('Previous conversation context...'),
+                new Memory('User preferences: prefers concise answers'),
+            ];
+        }
+    }
+
+**How Memory Works**
+
+The system automatically detects whether to use static or dynamic memory:
+
+**Static Memory Processing:**
+1. When you provide a string that doesn't match any service name
+2. The system creates a ``StaticMemoryProvider`` automatically
+3. Content is formatted as "## Static Memory" with the provided text
+4. This memory is consistently available across all conversations
+
+**Dynamic Memory Processing:**
+1. When the string matches an existing service in the container
+2. The ``MemoryInputProcessor`` uses that service directly
+3. The service's ``loadMemory()`` method is called before processing user input
+4. Dynamic memory content is injected based on the current context
+
+In both cases, memory content is prepended to the system message, allowing the agent to utilize the context effectively.
 
 Usage
 -----

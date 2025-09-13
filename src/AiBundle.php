@@ -19,6 +19,8 @@ use Symfony\AI\Agent\Attribute\AsInputProcessor;
 use Symfony\AI\Agent\Attribute\AsOutputProcessor;
 use Symfony\AI\Agent\InputProcessor\SystemPromptInputProcessor;
 use Symfony\AI\Agent\InputProcessorInterface;
+use Symfony\AI\Agent\Memory\MemoryInputProcessor;
+use Symfony\AI\Agent\Memory\StaticMemoryProvider;
 use Symfony\AI\Agent\OutputProcessorInterface;
 use Symfony\AI\Agent\Toolbox\Attribute\AsTool;
 use Symfony\AI\Agent\Toolbox\FaultTolerantToolbox;
@@ -616,6 +618,31 @@ final class AiBundle extends AbstractBundle
                 ->addTag('ai.agent.input_processor', ['agent' => $agentId, 'priority' => -30]);
 
             $container->setDefinition('ai.agent.'.$name.'.system_prompt_processor', $systemPromptInputProcessorDefinition);
+        }
+
+        // MEMORY PROVIDER
+        if (isset($config['memory'])) {
+            $memoryValue = $config['memory'];
+
+            // Check if the value refers to an existing service
+            if ($container->hasDefinition($memoryValue) || $container->hasAlias($memoryValue)) {
+                // Use existing service as memory provider
+                $memoryProviderReference = new Reference($memoryValue);
+            } else {
+                // Create StaticMemoryProvider with the string as static content
+                $staticMemoryProviderDefinition = (new Definition(StaticMemoryProvider::class))
+                    ->setArguments([$memoryValue]);
+
+                $staticMemoryServiceId = 'ai.agent.'.$name.'.static_memory_provider';
+                $container->setDefinition($staticMemoryServiceId, $staticMemoryProviderDefinition);
+                $memoryProviderReference = new Reference($staticMemoryServiceId);
+            }
+
+            $memoryInputProcessorDefinition = (new Definition(MemoryInputProcessor::class))
+                ->setArguments([$memoryProviderReference])
+                ->addTag('ai.agent.input_processor', ['agent' => $agentId, 'priority' => -40]);
+
+            $container->setDefinition('ai.agent.'.$name.'.memory_input_processor', $memoryInputProcessorDefinition);
         }
 
         $agentDefinition
