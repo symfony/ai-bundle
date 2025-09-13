@@ -389,7 +389,7 @@ class AiBundleTest extends TestCase
                             ['service' => 'some_tool', 'description' => 'Test tool'],
                         ],
                         'structured_output' => true,
-                        'system_prompt' => 'You are a test assistant.',
+                        'prompt' => 'You are a test assistant.',
                     ],
                 ],
             ],
@@ -440,14 +440,14 @@ class AiBundleTest extends TestCase
                         'tools' => [
                             ['service' => 'tool_one', 'description' => 'Tool for first agent'],
                         ],
-                        'system_prompt' => 'First agent prompt',
+                        'prompt' => 'First agent prompt',
                     ],
                     'second_agent' => [
                         'model' => ['class' => 'Symfony\AI\Platform\Bridge\Anthropic\Claude'],
                         'tools' => [
                             ['service' => 'tool_two', 'description' => 'Tool for second agent'],
                         ],
-                        'system_prompt' => 'Second agent prompt',
+                        'prompt' => 'Second agent prompt',
                     ],
                 ],
             ],
@@ -656,8 +656,8 @@ class AiBundleTest extends TestCase
                 'agent' => [
                     'test_agent' => [
                         'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
-                        'system_prompt' => [
-                            'prompt' => 'You are a helpful assistant.',
+                        'prompt' => [
+                            'text' => 'You are a helpful assistant.',
                         ],
                         'tools' => [
                             ['service' => 'some_tool', 'description' => 'Test tool'],
@@ -683,8 +683,8 @@ class AiBundleTest extends TestCase
                 'agent' => [
                     'test_agent' => [
                         'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
-                        'system_prompt' => [
-                            'prompt' => 'You are a helpful assistant.',
+                        'prompt' => [
+                            'text' => 'You are a helpful assistant.',
                             'include_tools' => true,
                         ],
                         'tools' => [
@@ -704,16 +704,16 @@ class AiBundleTest extends TestCase
         $this->assertSame('ai.toolbox.test_agent', (string) $arguments[1]);
     }
 
-    #[TestDox('System prompt with only prompt key defaults include_tools to false')]
-    public function testSystemPromptWithOnlyPromptKey()
+    #[TestDox('System prompt with only text key defaults include_tools to false')]
+    public function testSystemPromptWithOnlyTextKey()
     {
         $container = $this->buildContainer([
             'ai' => [
                 'agent' => [
                     'test_agent' => [
                         'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
-                        'system_prompt' => [
-                            'prompt' => 'You are a helpful assistant.',
+                        'prompt' => [
+                            'text' => 'You are a helpful assistant.',
                         ],
                         'tools' => [
                             ['service' => 'some_tool', 'description' => 'Test tool'],
@@ -756,8 +756,8 @@ class AiBundleTest extends TestCase
                 'agent' => [
                     'test_agent' => [
                         'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
-                        'system_prompt' => [
-                            'prompt' => 'Valid prompt',
+                        'prompt' => [
+                            'text' => 'Valid prompt',
                             'include_tools' => true,
                         ],
                         'tools' => [
@@ -777,19 +777,19 @@ class AiBundleTest extends TestCase
         $this->assertSame('ai.toolbox.test_agent', (string) $arguments[1]);
     }
 
-    #[TestDox('Empty prompt in array structure throws configuration exception')]
-    public function testEmptyPromptInArrayThrowsException()
+    #[TestDox('Empty text in array structure throws configuration exception')]
+    public function testEmptyTextInArrayThrowsException()
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('The "prompt" cannot be empty.');
+        $this->expectExceptionMessage('The "text" cannot be empty.');
 
         $this->buildContainer([
             'ai' => [
                 'agent' => [
                     'test_agent' => [
                         'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
-                        'system_prompt' => [
-                            'prompt' => '',
+                        'prompt' => [
+                            'text' => '',
                         ],
                     ],
                 ],
@@ -797,18 +797,18 @@ class AiBundleTest extends TestCase
         ]);
     }
 
-    #[TestDox('System prompt array without prompt key throws configuration exception')]
-    public function testSystemPromptArrayWithoutPromptKeyThrowsException()
+    #[TestDox('System prompt array without text key throws configuration exception')]
+    public function testSystemPromptArrayWithoutTextKeyThrowsException()
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('The "prompt" cannot be empty.');
+        $this->expectExceptionMessage('The "text" cannot be empty.');
 
         $this->buildContainer([
             'ai' => [
                 'agent' => [
                     'test_agent' => [
                         'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
-                        'system_prompt' => [
+                        'prompt' => [
                             'include_tools' => true,
                         ],
                     ],
@@ -825,7 +825,7 @@ class AiBundleTest extends TestCase
                 'agent' => [
                     'test_agent' => [
                         'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
-                        'system_prompt' => 'You are a helpful assistant.',
+                        'prompt' => 'You are a helpful assistant.',
                         'tools' => [
                             ['service' => 'some_tool', 'description' => 'Test tool'],
                         ],
@@ -1270,8 +1270,8 @@ class AiBundleTest extends TestCase
                         ],
                         'structured_output' => false,
                         'track_token_usage' => true,
-                        'system_prompt' => [
-                            'prompt' => 'You are a helpful assistant.',
+                        'prompt' => [
+                            'text' => 'You are a helpful assistant.',
                             'include_tools' => true,
                         ],
                         'tools' => [
@@ -1285,7 +1285,7 @@ class AiBundleTest extends TestCase
                     ],
                     'another_agent' => [
                         'model' => ['class' => 'Symfony\AI\Platform\Bridge\Anthropic\Claude', 'name' => 'claude-3-opus-20240229'],
-                        'system_prompt' => 'Be concise.',
+                        'prompt' => 'Be concise.',
                     ],
                 ],
                 'store' => [

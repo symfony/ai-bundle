@@ -130,19 +130,19 @@ return static function (DefinitionConfigurator $configurator): void {
                             ->end()
                         ->end()
                         ->booleanNode('structured_output')->defaultTrue()->end()
-                        ->arrayNode('system_prompt')
+                        ->arrayNode('prompt')
                             ->info('The system prompt configuration')
                             ->beforeNormalization()
                                 ->ifString()
                                 ->then(function (string $v) {
-                                    return ['prompt' => $v];
+                                    return ['text' => $v];
                                 })
                             ->end()
                             ->beforeNormalization()
                                 ->ifArray()
                                 ->then(function (array $v) {
-                                    if (!isset($v['prompt']) && !isset($v['include_tools'])) {
-                                        throw new \InvalidArgumentException('Either "prompt" must be configured for system_prompt.');
+                                    if (!isset($v['text']) && !isset($v['include_tools'])) {
+                                        throw new \InvalidArgumentException('Either "text" must be configured for prompt.');
                                     }
 
                                     return $v;
@@ -150,12 +150,12 @@ return static function (DefinitionConfigurator $configurator): void {
                             ->end()
                             ->validate()
                                 ->ifTrue(function ($v) {
-                                    return \is_array($v) && '' === trim($v['prompt'] ?? '');
+                                    return \is_array($v) && '' === trim($v['text'] ?? '');
                                 })
-                                ->thenInvalid('The "prompt" cannot be empty.')
+                                ->thenInvalid('The "text" cannot be empty.')
                             ->end()
                             ->children()
-                                ->scalarNode('prompt')
+                                ->scalarNode('text')
                                     ->info('The system prompt text')
                                 ->end()
                                 ->booleanNode('include_tools')
