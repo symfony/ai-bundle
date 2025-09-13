@@ -648,6 +648,200 @@ class AiBundleTest extends TestCase
         $this->assertSame('ai.platform.contract.perplexity', (string) $arguments[2]);
     }
 
+    #[TestDox('System prompt with array structure works correctly')]
+    public function testSystemPromptWithArrayStructure()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'system_prompt' => [
+                            'prompt' => 'You are a helpful assistant.',
+                        ],
+                        'tools' => [
+                            ['service' => 'some_tool', 'description' => 'Test tool'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.system_prompt_processor'));
+        $definition = $container->getDefinition('ai.agent.test_agent.system_prompt_processor');
+        $arguments = $definition->getArguments();
+
+        $this->assertSame('You are a helpful assistant.', $arguments[0]);
+        $this->assertNull($arguments[1]); // include_tools is false, so null reference
+    }
+
+    #[TestDox('System prompt with include_tools enabled works correctly')]
+    public function testSystemPromptWithIncludeToolsEnabled()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'system_prompt' => [
+                            'prompt' => 'You are a helpful assistant.',
+                            'include_tools' => true,
+                        ],
+                        'tools' => [
+                            ['service' => 'some_tool', 'description' => 'Test tool'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.system_prompt_processor'));
+        $definition = $container->getDefinition('ai.agent.test_agent.system_prompt_processor');
+        $arguments = $definition->getArguments();
+
+        $this->assertSame('You are a helpful assistant.', $arguments[0]);
+        $this->assertInstanceOf(Reference::class, $arguments[1]);
+        $this->assertSame('ai.toolbox.test_agent', (string) $arguments[1]);
+    }
+
+    #[TestDox('System prompt with only prompt key defaults include_tools to false')]
+    public function testSystemPromptWithOnlyPromptKey()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'system_prompt' => [
+                            'prompt' => 'You are a helpful assistant.',
+                        ],
+                        'tools' => [
+                            ['service' => 'some_tool', 'description' => 'Test tool'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.system_prompt_processor'));
+        $definition = $container->getDefinition('ai.agent.test_agent.system_prompt_processor');
+        $arguments = $definition->getArguments();
+
+        $this->assertSame('You are a helpful assistant.', $arguments[0]);
+        $this->assertNull($arguments[1]); // include_tools defaults to false
+    }
+
+    #[TestDox('Agent without system prompt does not create processor')]
+    public function testAgentWithoutSystemPrompt()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertFalse($container->hasDefinition('ai.agent.test_agent.system_prompt_processor'));
+    }
+
+    #[TestDox('Valid system prompt creates processor correctly')]
+    public function testValidSystemPromptCreatesProcessor()
+    {
+        // This test verifies that valid system prompts work correctly with new structure
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'system_prompt' => [
+                            'prompt' => 'Valid prompt',
+                            'include_tools' => true,
+                        ],
+                        'tools' => [
+                            ['service' => 'some_tool', 'description' => 'Test tool'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.system_prompt_processor'));
+        $definition = $container->getDefinition('ai.agent.test_agent.system_prompt_processor');
+        $arguments = $definition->getArguments();
+
+        $this->assertSame('Valid prompt', $arguments[0]);
+        $this->assertInstanceOf(Reference::class, $arguments[1]);
+        $this->assertSame('ai.toolbox.test_agent', (string) $arguments[1]);
+    }
+
+    #[TestDox('Empty prompt in array structure throws configuration exception')]
+    public function testEmptyPromptInArrayThrowsException()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('The "prompt" cannot be empty.');
+
+        $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'system_prompt' => [
+                            'prompt' => '',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    #[TestDox('System prompt array without prompt key throws configuration exception')]
+    public function testSystemPromptArrayWithoutPromptKeyThrowsException()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('The "prompt" cannot be empty.');
+
+        $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'system_prompt' => [
+                            'include_tools' => true,
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    #[TestDox('System prompt with string format works correctly')]
+    public function testSystemPromptWithStringFormat()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'],
+                        'system_prompt' => 'You are a helpful assistant.',
+                        'tools' => [
+                            ['service' => 'some_tool', 'description' => 'Test tool'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.system_prompt_processor'));
+        $definition = $container->getDefinition('ai.agent.test_agent.system_prompt_processor');
+        $arguments = $definition->getArguments();
+
+        $this->assertSame('You are a helpful assistant.', $arguments[0]);
+        $this->assertNull($arguments[1]); // include_tools not enabled with string format
+    }
+
     public function testVectorizerConfiguration()
     {
         $container = $this->buildContainer([
@@ -1076,8 +1270,10 @@ class AiBundleTest extends TestCase
                         ],
                         'structured_output' => false,
                         'track_token_usage' => true,
-                        'system_prompt' => 'You are a helpful assistant.',
-                        'include_tools' => true,
+                        'system_prompt' => [
+                            'prompt' => 'You are a helpful assistant.',
+                            'include_tools' => true,
+                        ],
                         'tools' => [
                             'enabled' => true,
                             'services' => [
