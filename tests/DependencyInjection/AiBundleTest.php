@@ -1098,6 +1098,75 @@ class AiBundleTest extends TestCase
         ]);
     }
 
+    #[TestDox('Memory array configuration without service key throws validation exception')]
+    public function testMemoryArrayConfigurationWithoutServiceKeyThrowsException()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('Memory array configuration must contain a "service" key.');
+
+        $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => Gpt::class],
+                        'memory' => ['invalid' => 'value'],
+                        'prompt' => [
+                            'text' => 'Test prompt',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    #[TestDox('Memory array configuration with empty service throws validation exception')]
+    public function testMemoryArrayConfigurationWithEmptyServiceThrowsException()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('Memory service cannot be empty.');
+
+        $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => Gpt::class],
+                        'memory' => ['service' => ''],
+                        'prompt' => [
+                            'text' => 'Test prompt',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    #[TestDox('Memory service configuration works correctly')]
+    public function testMemoryServiceConfigurationWorksCorrectly()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => ['class' => Gpt::class],
+                        'memory' => ['service' => 'my_custom_memory_service'],
+                        'prompt' => [
+                            'text' => 'Test prompt',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        // Should use the service directly, not create a StaticMemoryProvider
+        $this->assertTrue($container->hasDefinition('ai.agent.test_agent.memory_input_processor'));
+        $this->assertFalse($container->hasDefinition('ai.agent.test_agent.static_memory_provider'));
+
+        $memoryProcessor = $container->getDefinition('ai.agent.test_agent.memory_input_processor');
+        $arguments = $memoryProcessor->getArguments();
+        $this->assertInstanceOf(Reference::class, $arguments[0]);
+        $this->assertSame('my_custom_memory_service', (string) $arguments[0]);
+    }
+
     #[TestDox('Memory configuration preserves correct processor priority ordering')]
     public function testMemoryProcessorPriorityOrdering()
     {
@@ -1182,7 +1251,7 @@ class AiBundleTest extends TestCase
                 'agent' => [
                     'test_agent' => [
                         'model' => ['class' => Gpt::class],
-                        'memory' => 'existing_memory_service', // This service exists
+                        'memory' => ['service' => 'existing_memory_service'], // New array syntax for service
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
                         ],
@@ -1254,7 +1323,7 @@ class AiBundleTest extends TestCase
                 'agent' => [
                     'test_agent' => [
                         'model' => ['class' => Gpt::class],
-                        'memory' => 'memory_alias', // This alias exists
+                        'memory' => ['service' => 'memory_alias'], // Use new array syntax for service alias
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
                         ],
@@ -1290,7 +1359,7 @@ class AiBundleTest extends TestCase
                 'agent' => [
                     'agent_with_service' => [
                         'model' => ['class' => Gpt::class],
-                        'memory' => 'dynamic_memory_service', // Existing service
+                        'memory' => ['service' => 'dynamic_memory_service'], // Use new array syntax for service
                         'prompt' => [
                             'text' => 'Agent with service.',
                         ],
@@ -1312,6 +1381,7 @@ class AiBundleTest extends TestCase
 
         $serviceMemoryProcessor = $container->getDefinition('ai.agent.agent_with_service.memory_input_processor');
         $serviceArgs = $serviceMemoryProcessor->getArguments();
+        $this->assertInstanceOf(Reference::class, $serviceArgs[0]);
         $this->assertSame('dynamic_memory_service', (string) $serviceArgs[0]);
 
         // Second agent uses StaticMemoryProvider
