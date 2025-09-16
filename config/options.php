@@ -187,7 +187,7 @@ return static function (DefinitionConfigurator $configurator): void {
                             ->end()
                             ->validate()
                                 ->ifTrue(function ($v) {
-                                    return \is_array($v) && $v['enabled'] && !interface_exists(TranslatorInterface::class);
+                                    return \is_array($v) && ($v['enabled'] ?? false) && !interface_exists(TranslatorInterface::class);
                                 })
                                 ->thenInvalid('System prompt translation is enabled, but no translator is present. Try running `composer require symfony/translation`.')
                             ->end()
