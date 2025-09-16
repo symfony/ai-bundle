@@ -146,6 +146,32 @@ Configuration
                 vectorizer: 'ai.vectorizer.mistral_embeddings'
                 store: 'ai.store.memory.research'
 
+HTTP Client Configuration
+-------------------------
+
+Each platform can be configured with a custom HTTP client service to handle API requests. 
+This allows you to customize timeouts, proxy settings, SSL configurations, and other HTTP-specific options.
+
+By default, all platforms use the standard Symfony HTTP client service (``http_client``):
+
+.. code-block:: yaml
+
+    ai:
+        platform:
+            openai:
+                api_key: '%env(OPENAI_API_KEY)%'
+                # http_client: 'http_client'  # This is the default
+
+You can specify a custom HTTP client service for any platform:
+
+.. code-block:: yaml
+
+    ai:
+        platform:
+            openai:
+                api_key: '%env(OPENAI_API_KEY)%'
+                http_client: 'app.custom_http_client'
+
 System Prompt Configuration
 ---------------------------
 

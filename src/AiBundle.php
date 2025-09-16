@@ -221,7 +221,7 @@ final class AiBundle extends AbstractBundle
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
                     $platform['api_key'],
-                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.contract.anthropic'),
                 ])
                 ->addTag('ai.platform');
@@ -243,7 +243,7 @@ final class AiBundle extends AbstractBundle
                         $config['deployment'],
                         $config['api_version'],
                         $config['api_key'],
-                        new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                        new Reference($config['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                         new Reference('ai.platform.contract.openai'),
                     ])
                     ->addTag('ai.platform');
@@ -263,7 +263,7 @@ final class AiBundle extends AbstractBundle
                 ->setArguments([
                     $platform['api_key'],
                     $platform['host'],
-                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.contract.default'),
                 ])
                 ->addTag('ai.platform');
@@ -281,7 +281,7 @@ final class AiBundle extends AbstractBundle
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
                     $platform['api_key'],
-                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.contract.google'),
                 ])
                 ->addTag('ai.platform');
@@ -338,7 +338,7 @@ final class AiBundle extends AbstractBundle
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
                     $platform['api_key'],
-                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.contract.openai'),
                     $platform['region'] ?? null,
                 ])
@@ -357,7 +357,7 @@ final class AiBundle extends AbstractBundle
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
                     $platform['api_key'],
-                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.contract.default'),
                 ])
                 ->addTag('ai.platform');
@@ -375,7 +375,7 @@ final class AiBundle extends AbstractBundle
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
                     $platform['api_key'],
-                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.contract.default'),
                 ])
                 ->addTag('ai.platform');
@@ -393,7 +393,7 @@ final class AiBundle extends AbstractBundle
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
                     $platform['host_url'],
-                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.contract.default'),
                 ])
                 ->addTag('ai.platform');
@@ -412,7 +412,7 @@ final class AiBundle extends AbstractBundle
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
                     $platform['host_url'],
-                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.contract.ollama'),
                 ])
                 ->addTag('ai.platform');
@@ -430,7 +430,7 @@ final class AiBundle extends AbstractBundle
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
                     $platform['api_key'],
-                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                 ])
                 ->addTag('ai.platform');
 
@@ -447,7 +447,7 @@ final class AiBundle extends AbstractBundle
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
                     $platform['api_key'],
-                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                 ])
                 ->addTag('ai.platform');
 
@@ -464,7 +464,7 @@ final class AiBundle extends AbstractBundle
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
                     $platform['api_key'],
-                    new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.contract.perplexity'),
                 ])
                 ->addTag('ai.platform');
