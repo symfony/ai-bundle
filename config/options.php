@@ -18,6 +18,7 @@ use Symfony\AI\Platform\Bridge\OpenAi\PlatformFactory;
 use Symfony\AI\Platform\PlatformInterface;
 use Symfony\AI\Store\Document\VectorizerInterface;
 use Symfony\AI\Store\StoreInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 return static function (DefinitionConfigurator $configurator): void {
     $configurator->rootNode()
@@ -184,6 +185,12 @@ return static function (DefinitionConfigurator $configurator): void {
                                 })
                                 ->thenInvalid('The "text" cannot be empty.')
                             ->end()
+                            ->validate()
+                                ->ifTrue(function ($v) {
+                                    return \is_array($v) && $v['enabled'] && !interface_exists(TranslatorInterface::class);
+                                })
+                                ->thenInvalid('System prompt translation is enabled, but no translator is present. Try running `composer require symfony/translation`.')
+                            ->end()
                             ->children()
                                 ->scalarNode('text')
                                     ->info('The system prompt text')
@@ -191,6 +198,14 @@ return static function (DefinitionConfigurator $configurator): void {
                                 ->booleanNode('include_tools')
                                     ->info('Include tool definitions at the end of the system prompt')
                                     ->defaultFalse()
+                                ->end()
+                                ->booleanNode('enable_translation')
+                                    ->info('Enable translation for the system prompt')
+                                    ->defaultFalse()
+                                ->end()
+                                ->scalarNode('translation_domain')
+                                    ->info('The translation domain for the system prompt')
+                                    ->defaultNull()
                                 ->end()
                             ->end()
                         ->end()
