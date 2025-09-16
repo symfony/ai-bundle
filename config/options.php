@@ -122,7 +122,15 @@ return static function (DefinitionConfigurator $configurator): void {
                         ->end()
                         ->arrayNode('model')
                             ->children()
-                                ->scalarNode('class')->isRequired()->end()
+                                ->scalarNode('class')
+                                    ->isRequired()
+                                    ->validate()
+                                        ->ifTrue(function ($v) {
+                                            return !is_a($v, \Symfony\AI\Platform\Model::class, true);
+                                        })
+                                        ->thenInvalid('The model class "%s" must extend Symfony\AI\Platform\Model.')
+                                    ->end()
+                                ->end()
                                 ->scalarNode('name')->defaultNull()->end()
                                 ->arrayNode('options')
                                     ->variablePrototype()->end()
@@ -418,7 +426,15 @@ return static function (DefinitionConfigurator $configurator): void {
                         ->end()
                         ->arrayNode('model')
                             ->children()
-                                ->scalarNode('class')->isRequired()->end()
+                                ->scalarNode('class')
+                                    ->isRequired()
+                                    ->validate()
+                                        ->ifTrue(function ($v) {
+                                            return !is_a($v, \Symfony\AI\Platform\Model::class, true);
+                                        })
+                                        ->thenInvalid('The model class "%s" must extend Symfony\AI\Platform\Model.')
+                                    ->end()
+                                ->end()
                                 ->scalarNode('name')->defaultNull()->end()
                                 ->arrayNode('options')
                                     ->variablePrototype()->end()
