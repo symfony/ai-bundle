@@ -138,12 +138,26 @@ return static function (DefinitionConfigurator $configurator): void {
                             ->end()
                         ->end()
                         ->booleanNode('structured_output')->defaultTrue()->end()
-                        ->scalarNode('memory')
-                            ->info('Plain string or service name of the memory provider implementing MemoryProviderInterface')
+                        ->variableNode('memory')
+                            ->info('Memory configuration: string for static memory, or array with "service" key for service reference')
                             ->defaultNull()
                             ->validate()
-                                ->ifTrue(function ($v) { return \is_string($v) && '' === $v; })
+                                ->ifTrue(function ($v) {
+                                    return \is_string($v) && '' === $v;
+                                })
                                 ->thenInvalid('Memory cannot be empty.')
+                            ->end()
+                            ->validate()
+                                ->ifTrue(function ($v) {
+                                    return \is_array($v) && !isset($v['service']);
+                                })
+                                ->thenInvalid('Memory array configuration must contain a "service" key.')
+                            ->end()
+                            ->validate()
+                                ->ifTrue(function ($v) {
+                                    return \is_array($v) && isset($v['service']) && '' === $v['service'];
+                                })
+                                ->thenInvalid('Memory service cannot be empty.')
                             ->end()
                         ->end()
                         ->arrayNode('prompt')
