@@ -181,6 +181,33 @@ The array format supports these options:
 
 * ``text`` (string, required): The system prompt text that will be sent to the AI model
 * ``include_tools`` (boolean, optional): When set to ``true``, tool definitions will be appended to the system prompt
+* ``enable_translation`` (boolean, optional): When set to ``true``, enables translation for the system prompt text (requires symfony/translation)
+* ``translation_domain`` (string, optional): The translation domain to use for the system prompt translation
+
+**Translation Support**
+
+To use translated system prompts, you need to have the Symfony Translation component installed:
+
+.. code-block:: terminal
+
+    $ composer require symfony/translation
+
+Then configure the prompt with translation enabled:
+
+.. code-block:: yaml
+
+    ai:
+        agent:
+            my_agent:
+                model:
+                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
+                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
+                prompt:
+                    text: 'agent.system_prompt'  # Translation key
+                    enable_translation: true
+                    translation_domain: 'ai_prompts'  # Optional: specify translation domain
+
+The system prompt text will be automatically translated using the configured translator service. If no translation domain is specified, the default domain will be used.
 
 Memory Provider Configuration
 -----------------------------
