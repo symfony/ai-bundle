@@ -609,6 +609,9 @@ final class AiBundle extends AbstractBundle
                 ->setArguments([
                     $config['prompt']['text'],
                     $includeTools ? new Reference('ai.toolbox.'.$name) : null,
+                    new Reference('translator', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    $config['prompt']['enable_translation'],
+                    $config['prompt']['translation_domain'],
                     new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
                 ])
                 ->addTag('ai.agent.input_processor', ['agent' => $agentId, 'priority' => -30]);
