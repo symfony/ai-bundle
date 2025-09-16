@@ -485,10 +485,6 @@ final class AiBundle extends AbstractBundle
         // MODEL
         ['class' => $modelClass, 'name' => $modelName, 'options' => $options] = $config['model'];
 
-        if (!is_a($modelClass, Model::class, true)) {
-            throw new InvalidArgumentException(\sprintf('"%s" class is not extending Symfony\AI\Platform\Model.', $modelClass));
-        }
-
         $modelDefinition = new Definition($modelClass);
         if (null !== $modelName) {
             $modelDefinition->setArgument(0, $modelName);
@@ -1087,10 +1083,6 @@ final class AiBundle extends AbstractBundle
     private function processVectorizerConfig(string $name, array $config, ContainerBuilder $container): void
     {
         ['class' => $modelClass, 'name' => $modelName, 'options' => $options] = $config['model'];
-
-        if (!is_a($modelClass, Model::class, true)) {
-            throw new InvalidArgumentException(\sprintf('"%s" class is not extending Symfony\AI\Platform\Model.', $modelClass));
-        }
 
         $modelDefinition = (new Definition((string) $modelClass));
         if (null !== $modelName) {
