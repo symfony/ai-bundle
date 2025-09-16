@@ -406,7 +406,6 @@ final class AiBundle extends AbstractBundle
         if ('ollama' === $type) {
             $platformId = 'ai.platform.ollama';
             $definition = (new Definition(Platform::class))
-                ->setFactory(MistralPlatformFactory::class.'::create')
                 ->setFactory(OllamaPlatformFactory::class.'::create')
                 ->setLazy(true)
                 ->addTag('proxy', ['interface' => PlatformInterface::class])
