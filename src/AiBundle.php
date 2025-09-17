@@ -1130,8 +1130,13 @@ final class AiBundle extends AbstractBundle
     private function processIndexerConfig(int|string $name, array $config, ContainerBuilder $container): void
     {
         $transformers = [];
-        foreach ($config['transformers'] ?? [] as $transformer) {
+        foreach ($config['transformers'] as $transformer) {
             $transformers[] = new Reference($transformer);
+        }
+
+        $filters = [];
+        foreach ($config['filters'] as $filter) {
+            $filters[] = new Reference($filter);
         }
 
         $definition = new Definition(Indexer::class, [
@@ -1139,6 +1144,7 @@ final class AiBundle extends AbstractBundle
             new Reference($config['vectorizer']),
             new Reference($config['store']),
             $config['source'],
+            $filters,
             $transformers,
             new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
         ]);
