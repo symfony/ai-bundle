@@ -1401,6 +1401,145 @@ class AiBundleTest extends TestCase
         $this->assertSame('Static memory context for this agent', $staticProviderArgs[0]);
     }
 
+    #[TestDox('Model configuration with query parameters in model name works correctly')]
+    public function testModelConfigurationWithQueryParameters()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test' => [
+                        'model' => [
+                            'class' => Gpt::class,
+                            'name' => 'gpt-4o-mini?temperature=0.5&max_tokens=2000',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $modelDefinition = $container->getDefinition('ai.agent.test.model');
+        $this->assertSame('gpt-4o-mini', $modelDefinition->getArgument(0));
+        $this->assertEquals(['temperature' => '0.5', 'max_tokens' => '2000'], $modelDefinition->getArgument(1));
+    }
+
+    #[TestDox('Model configuration with separate options array works correctly')]
+    public function testModelConfigurationWithSeparateOptions()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test' => [
+                        'model' => [
+                            'class' => Gpt::class,
+                            'name' => 'gpt-4o-mini',
+                            'options' => [
+                                'temperature' => 0.7,
+                                'max_tokens' => 1500,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $modelDefinition = $container->getDefinition('ai.agent.test.model');
+        $this->assertSame('gpt-4o-mini', $modelDefinition->getArgument(0));
+        $this->assertEquals(['temperature' => 0.7, 'max_tokens' => 1500], $modelDefinition->getArgument(1));
+    }
+
+    #[TestDox('Model configuration with conflicting query parameters and options throws exception')]
+    public function testModelConfigurationConflictThrowsException()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('Cannot specify both query parameters in model name and options array');
+
+        $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test' => [
+                        'model' => [
+                            'class' => Gpt::class,
+                            'name' => 'gpt-4o-mini?temperature=0.5',
+                            'options' => [
+                                'temperature' => 0.7,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    #[TestDox('Model configuration query parameters are passed as strings')]
+    public function testModelConfigurationTypeConversion()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test' => [
+                        'model' => [
+                            'class' => Gpt::class,
+                            'name' => 'gpt-4o-mini?temperature=0.5&max_tokens=2000&stream=true&presence_penalty=0',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $modelDefinition = $container->getDefinition('ai.agent.test.model');
+        $this->assertSame('gpt-4o-mini', $modelDefinition->getArgument(0));
+
+        $options = $modelDefinition->getArgument(1);
+        $this->assertSame('0.5', $options['temperature']); // string
+        $this->assertSame('2000', $options['max_tokens']); // string
+        $this->assertSame('true', $options['stream']); // string
+        $this->assertSame('0', $options['presence_penalty']); // string
+    }
+
+    #[TestDox('Vectorizer model configuration with query parameters works correctly')]
+    public function testVectorizerModelConfigurationWithQueryParameters()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'vectorizer' => [
+                    'test' => [
+                        'model' => [
+                            'class' => Gpt::class,
+                            'name' => 'text-embedding-3-small?dimensions=512',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $modelDefinition = $container->getDefinition('ai.vectorizer.test.model');
+        $this->assertSame('text-embedding-3-small', $modelDefinition->getArgument(0));
+        $this->assertEquals(['dimensions' => '512'], $modelDefinition->getArgument(1));
+    }
+
+    #[TestDox('Vectorizer model configuration with conflicting parameters throws exception')]
+    public function testVectorizerModelConfigurationConflictThrowsException()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('Cannot specify both query parameters in model name and options array');
+
+        $this->buildContainer([
+            'ai' => [
+                'vectorizer' => [
+                    'test' => [
+                        'model' => [
+                            'class' => Gpt::class,
+                            'name' => 'text-embedding-3-small?dimensions=512',
+                            'options' => [
+                                'dimensions' => 1536,
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
     public function testVectorizerConfiguration()
     {
         $container = $this->buildContainer([

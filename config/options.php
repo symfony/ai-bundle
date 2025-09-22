@@ -195,6 +195,12 @@ return static function (DefinitionConfigurator $configurator): void {
                                     ->variablePrototype()->end()
                                 ->end()
                             ->end()
+                            ->validate()
+                                ->ifTrue(function ($v) {
+                                    return isset($v['name']) && str_contains($v['name'], '?') && !empty($v['options']);
+                                })
+                                ->thenInvalid('Cannot specify both query parameters in model name and options array. Use either "model.name" with query parameters (e.g., "gpt-4o-mini?temperature=0.5") or separate "model.name" and "model.options".')
+                            ->end()
                         ->end()
                         ->booleanNode('structured_output')->defaultTrue()->end()
                         ->variableNode('memory')
@@ -535,6 +541,12 @@ return static function (DefinitionConfigurator $configurator): void {
                                 ->arrayNode('options')
                                     ->variablePrototype()->end()
                                 ->end()
+                            ->end()
+                            ->validate()
+                                ->ifTrue(function ($v) {
+                                    return isset($v['name']) && str_contains($v['name'], '?') && !empty($v['options']);
+                                })
+                                ->thenInvalid('Cannot specify both query parameters in model name and options array. Use either "model.name" with query parameters (e.g., "gpt-4o-mini?temperature=0.5") or separate "model.name" and "model.options".')
                             ->end()
                         ->end()
                     ->end()
