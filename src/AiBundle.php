@@ -100,7 +100,7 @@ final class AiBundle extends AbstractBundle
         $container->addCompilerPass(new ProcessorCompilerPass());
     }
 
-    public function configure(DefinitionConfigurator $definition): void // @phpstan-ignore-line generics.notSubtype
+    public function configure(DefinitionConfigurator $definition): void
     {
         $definition->import('../config/options.php');
     }
