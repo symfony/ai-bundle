@@ -15,7 +15,6 @@
 
 namespace Symfony\AI\AiBundle\Tests\Command;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\AI\Agent\AgentInterface;
 use Symfony\AI\AiBundle\Command\ChatCommand;
@@ -28,7 +27,6 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
-#[CoversClass(ChatCommand::class)]
 final class ChatCommandTest extends TestCase
 {
     public function testCommandFailsWithInvalidAgent()
