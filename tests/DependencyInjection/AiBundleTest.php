@@ -11,11 +11,9 @@
 
 namespace Symfony\AI\AiBundle\Tests\DependencyInjection;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\Attributes\TestWith;
-use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\AI\Agent\AgentInterface;
 use Symfony\AI\Agent\Memory\MemoryInputProcessor;
@@ -32,13 +30,8 @@ use Symfony\AI\Store\Document\Vectorizer;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
-#[CoversClass(AiBundle::class)]
-#[UsesClass(ContainerBuilder::class)]
-#[UsesClass(Definition::class)]
-#[UsesClass(Reference::class)]
 class AiBundleTest extends TestCase
 {
     #[DoesNotPerformAssertions]

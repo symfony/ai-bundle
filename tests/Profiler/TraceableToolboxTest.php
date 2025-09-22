@@ -11,8 +11,6 @@
 
 namespace Symfony\AI\AiBundle\Tests\Profiler;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\Small;
 use PHPUnit\Framework\TestCase;
 use Symfony\AI\Agent\Toolbox\ToolboxInterface;
 use Symfony\AI\AiBundle\Profiler\TraceableToolbox;
@@ -20,8 +18,6 @@ use Symfony\AI\Platform\Result\ToolCall;
 use Symfony\AI\Platform\Tool\ExecutionReference;
 use Symfony\AI\Platform\Tool\Tool;
 
-#[CoversClass(TraceableToolbox::class)]
-#[Small]
 final class TraceableToolboxTest extends TestCase
 {
     public function testGetMap()
