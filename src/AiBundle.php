@@ -514,9 +514,7 @@ final class AiBundle extends AbstractBundle
         }
 
         $modelDefinition = new Definition($modelClass);
-        if (null !== $modelName) {
-            $modelDefinition->setArgument(0, $modelName);
-        }
+        $modelDefinition->setArgument(0, $modelName);
         if ([] !== $options) {
             $modelDefinition->setArgument(1, $options);
         }
@@ -1125,9 +1123,7 @@ final class AiBundle extends AbstractBundle
         }
 
         $modelDefinition = (new Definition((string) $modelClass));
-        if (null !== $modelName) {
-            $modelDefinition->setArgument(0, $modelName);
-        }
+        $modelDefinition->setArgument(0, $modelName);
         if ([] !== $options) {
             $modelDefinition->setArgument(1, $options);
         }
