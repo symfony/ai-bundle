@@ -53,7 +53,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'my_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                     ],
                 ],
             ],
@@ -90,7 +90,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'my_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                     ],
                 ],
             ],
@@ -106,7 +106,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'my_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                     ],
                 ],
             ],
@@ -121,7 +121,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'my_custom_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                     ],
                 ],
             ],
@@ -150,7 +150,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'my_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'tools' => [
                             ['service' => 'some_service', 'description' => 'Some tool'],
                         ],
@@ -171,7 +171,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'my_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'tools' => true,
                         'fault_tolerant_toolbox' => $enabled,
                     ],
@@ -188,7 +188,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'main_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'tools' => [
                             ['agent' => 'another_agent', 'description' => 'Agent tool with implicit name'],
                             ['agent' => 'another_agent', 'name' => 'another_agent_instance', 'description' => 'Agent tool with explicit name'],
@@ -209,7 +209,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'main_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'tools' => [['agent' => 'another_agent', 'service' => 'foo_bar', 'description' => 'Agent with service']],
                     ],
                 ],
@@ -359,7 +359,7 @@ class AiBundleTest extends TestCase
                 ],
                 'agent' => [
                     'My-Agent_Name.v2' => [ // Mixed case and special chars in key
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                     ],
                 ],
                 'store' => [
@@ -391,7 +391,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'tools' => [
                             ['service' => 'some_tool', 'description' => 'Test tool'],
                         ],
@@ -443,14 +443,14 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'first_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'tools' => [
                             ['service' => 'tool_one', 'description' => 'Tool for first agent'],
                         ],
                         'prompt' => 'First agent prompt',
                     ],
                     'second_agent' => [
-                        'model' => ['class' => Claude::class],
+                        'model' => ['class' => Claude::class, 'name' => 'claude-3-opus-20240229'],
                         'tools' => [
                             ['service' => 'tool_two', 'description' => 'Tool for second agent'],
                         ],
@@ -494,7 +494,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'agent_with_default_toolbox' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'tools' => true,
                     ],
                 ],
@@ -543,7 +543,7 @@ class AiBundleTest extends TestCase
                 'agent' => [
                     'tracked_agent' => [
                         'platform' => 'ai.platform.openai',
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'track_token_usage' => true,
                     ],
                 ],
@@ -664,7 +664,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
                             'enable_translation' => true,
@@ -695,7 +695,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
                             'include_tools' => true,
@@ -724,7 +724,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
                         ],
@@ -751,7 +751,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                     ],
                 ],
             ],
@@ -768,7 +768,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'prompt' => [
                             'text' => 'Valid prompt',
                             'include_tools' => true,
@@ -800,7 +800,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'prompt' => [
                             'text' => '',
                         ],
@@ -820,7 +820,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'prompt' => [
                             'include_tools' => true,
                         ],
@@ -837,7 +837,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'prompt' => 'You are a helpful assistant.',
                         'tools' => [
                             ['service' => 'some_tool', 'description' => 'Test tool'],
@@ -862,7 +862,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'memory' => 'Static memory for testing',
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
@@ -897,7 +897,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
                         ],
@@ -916,7 +916,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'memory' => null,
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
@@ -936,7 +936,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'memory' => 'conversation_memory_service',
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
@@ -979,7 +979,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'prompt' => 'You are a helpful assistant.',
                         // memory cannot be configured with string format
                     ],
@@ -1001,20 +1001,20 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'agent_with_memory' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'memory' => 'first_memory_service',
                         'prompt' => [
                             'text' => 'Agent with memory.',
                         ],
                     ],
                     'agent_without_memory' => [
-                        'model' => ['class' => Claude::class],
+                        'model' => ['class' => Claude::class, 'name' => 'claude-3-opus-20240229'],
                         'prompt' => [
                             'text' => 'Agent without memory.',
                         ],
                     ],
                     'agent_with_different_memory' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'memory' => 'second_memory_service',
                         'prompt' => [
                             'text' => 'Agent with different memory.',
@@ -1056,7 +1056,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'memory' => 'my_memory_service',
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
@@ -1094,7 +1094,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'memory' => '',
                         'prompt' => [
                             'text' => 'Test prompt',
@@ -1115,7 +1115,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'memory' => ['invalid' => 'value'],
                         'prompt' => [
                             'text' => 'Test prompt',
@@ -1136,7 +1136,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'memory' => ['service' => ''],
                         'prompt' => [
                             'text' => 'Test prompt',
@@ -1154,7 +1154,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'memory' => ['service' => 'my_custom_memory_service'],
                         'prompt' => [
                             'text' => 'Test prompt',
@@ -1181,7 +1181,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'memory' => 'test_memory',
                         'prompt' => [
                             'text' => 'Test prompt',
@@ -1210,7 +1210,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'memory' => 'my_memory_service',
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
@@ -1257,7 +1257,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'memory' => ['service' => 'existing_memory_service'], // New array syntax for service
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
@@ -1284,7 +1284,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'memory' => 'This is static memory content', // This is not a service
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
@@ -1329,7 +1329,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test_agent' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'memory' => ['service' => 'memory_alias'], // Use new array syntax for service alias
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
@@ -1365,14 +1365,14 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'agent_with_service' => [
-                        'model' => ['class' => Gpt::class],
+                        'model' => ['class' => Gpt::class, 'name' => 'gpt-4'],
                         'memory' => ['service' => 'dynamic_memory_service'], // Use new array syntax for service
                         'prompt' => [
                             'text' => 'Agent with service.',
                         ],
                     ],
                     'agent_with_static' => [
-                        'model' => ['class' => Claude::class],
+                        'model' => ['class' => Claude::class, 'name' => 'claude-3-opus-20240229'],
                         'memory' => 'Static memory context for this agent', // Static content
                         'prompt' => [
                             'text' => 'Agent with static memory.',
