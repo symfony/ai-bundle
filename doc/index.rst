@@ -145,6 +145,50 @@ Configuration
                 vectorizer: 'ai.vectorizer.mistral_embeddings'
                 store: 'ai.store.memory.research'
 
+Model Configuration
+-------------------
+
+Models can be configured in two different ways to specify model options and parameters. You can append query parameters directly to the model name using a URL-like syntax:
+
+.. code-block:: yaml
+
+    ai:
+        agent:
+            my_agent:
+                model:
+                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
+                    name: 'gpt-4o-mini?temperature=0.7&max_tokens=2000&stream=true'
+
+Alternatively, you can specify model options in a separate ``options`` section:
+
+.. code-block:: yaml
+
+    ai:
+        agent:
+            my_agent:
+                model:
+                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
+                    name: 'gpt-4o-mini'
+                    options:
+                        temperature: 0.7
+                        max_tokens: 2000
+                        stream: true
+
+.. note::
+
+    You cannot use both query parameters in the model name and the ``options`` key simultaneously.
+
+You can also define models for the vectorizer this way:
+
+.. code-block:: yaml
+
+    ai:
+        vectorizer:
+            embeddings:
+                model:
+                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Embeddings'
+                    name: 'text-embedding-3-small?dimensions=512&encoding_format=float'
+
 HTTP Client Configuration
 -------------------------
 
