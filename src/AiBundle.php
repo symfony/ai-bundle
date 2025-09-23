@@ -705,8 +705,8 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
 
@@ -738,8 +738,8 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
 
@@ -754,8 +754,8 @@ final class AiBundle extends AbstractBundle
                     ->addTag('ai.store');
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
 
@@ -782,8 +782,8 @@ final class AiBundle extends AbstractBundle
                 ;
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
 
@@ -814,8 +814,8 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
 
@@ -846,8 +846,8 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
 
@@ -872,8 +872,8 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
 
@@ -905,8 +905,8 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
 
@@ -933,8 +933,8 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
 
@@ -972,8 +972,8 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
 
@@ -998,8 +998,8 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
 
@@ -1026,8 +1026,8 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
 
@@ -1068,8 +1068,8 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
 
@@ -1096,8 +1096,8 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
 
@@ -1116,8 +1116,8 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.store.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
     }
