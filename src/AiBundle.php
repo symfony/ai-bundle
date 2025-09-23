@@ -503,6 +503,16 @@ final class AiBundle extends AbstractBundle
         // MODEL
         ['class' => $modelClass, 'name' => $modelName, 'options' => $options] = $config['model'];
 
+        // Parse query parameters from model name if present
+        if (str_contains((string) $modelName, '?')) {
+            $parsed = parse_url($modelName);
+            $modelName = $parsed['path'] ?? '';
+
+            if (isset($parsed['query'])) {
+                parse_str($parsed['query'], $options);
+            }
+        }
+
         $modelDefinition = new Definition($modelClass);
         if (null !== $modelName) {
             $modelDefinition->setArgument(0, $modelName);
@@ -1103,6 +1113,16 @@ final class AiBundle extends AbstractBundle
     private function processVectorizerConfig(string $name, array $config, ContainerBuilder $container): void
     {
         ['class' => $modelClass, 'name' => $modelName, 'options' => $options] = $config['model'];
+
+        // Parse query parameters from model name if present
+        if (str_contains((string) $modelName, '?')) {
+            $parsed = parse_url($modelName);
+            $modelName = $parsed['path'] ?? '';
+
+            if (isset($parsed['query'])) {
+                parse_str($parsed['query'], $options);
+            }
+        }
 
         $modelDefinition = (new Definition((string) $modelClass));
         if (null !== $modelName) {
