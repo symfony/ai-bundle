@@ -145,6 +145,55 @@ Configuration
                 vectorizer: 'ai.vectorizer.mistral_embeddings'
                 store: 'ai.store.memory.research'
 
+Store Dependency Injection
+--------------------------
+
+When using multiple stores in your application, the AI Bundle provides flexible dependency injection through store aliases. 
+This allows you to inject specific stores into your services without conflicts, even when stores share the same name across different types.
+
+For each configured store, the bundle automatically creates two types of aliases:
+
+1. **Simple alias**: ``StoreInterface $storeName`` - Direct reference by store name
+2. **Type-prefixed alias**: ``StoreInterface $typeStoreName`` - Reference with store type prefix in camelCase
+
+.. code-block:: yaml
+
+    ai:
+        store:
+            memory:
+                main:
+                    strategy: 'cosine'
+                products:
+                    strategy: 'manhattan'
+            chroma_db:
+                main:
+                    collection: 'documents'
+
+From the configuration above, the following aliases are automatically registered:
+
+- ``StoreInterface $main`` - References the memory store (first occurrence)
+- ``StoreInterface $memoryMain`` - Explicitly references the memory store
+- ``StoreInterface $chromaDbMain`` - Explicitly references the chroma_db store
+- ``StoreInterface $products`` - References the memory products store
+- ``StoreInterface $memoryProducts`` - Explicitly references the memory products store
+
+You can inject stores into your services using the generated aliases::
+
+    use Symfony\AI\Store\StoreInterface;
+
+    final readonly class DocumentService
+    {
+        public function __construct(
+            private StoreInterface $main,              // Uses memory store (first occurrence)
+            private StoreInterface $chromaDbMain,      // Explicitly uses chroma_db store  
+            private StoreInterface $memoryProducts,    // Explicitly uses memory products store
+        ) {
+        }
+    }
+
+When multiple stores share the same name (like ``main`` in the example), the simple alias (``$main``) will reference the first occurrence. 
+Use type-prefixed aliases (``$memoryMain``, ``$chromaDbMain``) for explicit disambiguation.
+
 Model Configuration
 -------------------
 
