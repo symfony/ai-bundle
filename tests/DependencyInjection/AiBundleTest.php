@@ -29,6 +29,7 @@ use Symfony\AI\Store\Document\Filter\TextContainsFilter;
 use Symfony\AI\Store\Document\Loader\InMemoryLoader;
 use Symfony\AI\Store\Document\Transformer\TextTrimTransformer;
 use Symfony\AI\Store\Document\Vectorizer;
+use Symfony\AI\Store\StoreInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -98,6 +99,37 @@ class AiBundleTest extends TestCase
 
         $this->assertTrue($container->hasAlias(AgentInterface::class));
         $this->assertTrue($container->hasAlias(AgentInterface::class.' $myAgentAgent'));
+    }
+
+    public function testInjectionStoreAliasIsRegistered()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'memory' => [
+                        'main' => [
+                            'strategy' => 'cosine',
+                        ],
+                        'secondary_with_custom_strategy' => [
+                            'strategy' => 'manhattan',
+                        ],
+                    ],
+                    'weaviate' => [
+                        'main' => [
+                            'endpoint' => 'http://localhost:8080',
+                            'api_key' => 'bar',
+                            'collection' => 'my_weaviate_collection',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasAlias(StoreInterface::class.' $main'));
+        $this->assertTrue($container->hasAlias('.'.StoreInterface::class.' $secondary_with_custom_strategy'));
+        $this->assertTrue($container->hasAlias(StoreInterface::class.' $secondaryWithCustomStrategy'));
+        $this->assertTrue($container->hasAlias('.'.StoreInterface::class.' $weaviate_main'));
+        $this->assertTrue($container->hasAlias(StoreInterface::class.' $weaviateMain'));
     }
 
     public function testAgentHasTag()
