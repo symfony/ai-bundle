@@ -11,8 +11,6 @@
 
 namespace Symfony\AI\AiBundle\Tests\Profiler;
 
-use PHPUnit\Framework\Attributes\CoversClass;
-use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\AI\Agent\Toolbox\ToolboxInterface;
 use Symfony\AI\AiBundle\Profiler\DataCollector;
@@ -27,9 +25,6 @@ use Symfony\AI\Platform\Result\ResultPromise;
 use Symfony\AI\Platform\Result\StreamResult;
 use Symfony\AI\Platform\Result\TextResult;
 
-#[CoversClass(DataCollector::class)]
-#[UsesClass(TraceablePlatform::class)]
-#[UsesClass(ResultPromise::class)]
 class DataCollectorTest extends TestCase
 {
     public function testCollectsDataForNonStreamingResponse()
