@@ -79,7 +79,6 @@ final class ChatCommand extends Command
     {
         $agentArg = $input->getArgument('agent');
 
-        // If agent is already provided and valid, nothing to do
         if ($agentArg) {
             return;
         }
@@ -106,7 +105,6 @@ final class ChatCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        // Initialize agent (moved from initialize() to execute() so it runs after interact())
         $availableAgents = array_keys($this->agents->getProvidedServices());
 
         if (0 === \count($availableAgents)) {
@@ -116,19 +114,16 @@ final class ChatCommand extends Command
         $agentArg = $input->getArgument('agent');
         $agentName = \is_string($agentArg) ? $agentArg : '';
 
-        // Validate that the agent exists if one was provided
         if ($agentName && !$this->agents->has($agentName)) {
             throw new InvalidArgumentException(\sprintf('Agent "%s" not found. Available agents: "%s"', $agentName, implode(', ', $availableAgents)));
         }
 
-        // If we still don't have an agent name at this point, something went wrong
         if (!$agentName) {
             throw new InvalidArgumentException(\sprintf('Agent name is required. Available agents: "%s"', implode(', ', $availableAgents)));
         }
 
         $agent = $this->agents->get($agentName);
 
-        // Now start the chat
         $io = new SymfonyStyle($input, $output);
 
         $io->title(\sprintf('Chat with %s Agent', $agentName));
@@ -155,7 +150,6 @@ final class ChatCommand extends Command
             try {
                 $result = $agent->call($messages);
 
-                // Display system prompt after first successful call
                 if (!$systemPromptDisplayed && null !== ($systemMessage = $messages->getSystemMessage())) {
                     $io->section('System Prompt');
                     $io->block($systemMessage->content, null, 'fg=gray', ' ', true);
