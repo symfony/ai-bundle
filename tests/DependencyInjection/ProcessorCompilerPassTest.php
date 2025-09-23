@@ -11,7 +11,6 @@
 
 namespace Symfony\AI\AiBundle\Tests\DependencyInjection;
 
-use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\AI\Agent\Agent;
 use Symfony\AI\Agent\Input;
@@ -22,7 +21,6 @@ use Symfony\AI\AiBundle\DependencyInjection\ProcessorCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
-#[CoversClass(ProcessorCompilerPass::class)]
 class ProcessorCompilerPassTest extends TestCase
 {
     public function testProcess()
