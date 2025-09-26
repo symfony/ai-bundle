@@ -18,6 +18,8 @@ use PHPUnit\Framework\TestCase;
 use Symfony\AI\Agent\AgentInterface;
 use Symfony\AI\Agent\Memory\MemoryInputProcessor;
 use Symfony\AI\Agent\Memory\StaticMemoryProvider;
+use Symfony\AI\Agent\MultiAgent\Handoff;
+use Symfony\AI\Agent\MultiAgent\MultiAgent;
 use Symfony\AI\AiBundle\AiBundle;
 use Symfony\AI\Store\Document\Filter\TextContainsFilter;
 use Symfony\AI\Store\Document\Loader\InMemoryLoader;
@@ -27,6 +29,7 @@ use Symfony\AI\Store\StoreInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Translation\TranslatableMessage;
 
@@ -1430,9 +1433,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test' => [
-                        'model' => [
-                            'name' => 'gpt-4o-mini?temperature=0.5&max_tokens=2000',
-                        ],
+                        'model' => 'gpt-4o-mini?temperature=0.5&max_tokens=2000',
                     ],
                 ],
             ],
@@ -1496,9 +1497,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'agent' => [
                     'test' => [
-                        'model' => [
-                            'name' => 'gpt-4o-mini?temperature=0.5&max_tokens=2000&stream=true&presence_penalty=0',
-                        ],
+                        'model' => 'gpt-4o-mini?temperature=0.5&max_tokens=2000&stream=true&presence_penalty=0',
                     ],
                 ],
             ],
@@ -1516,9 +1515,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'vectorizer' => [
                     'test' => [
-                        'model' => [
-                            'name' => 'text-embedding-3-small?dimensions=512',
-                        ],
+                        'model' => 'text-embedding-3-small?dimensions=512',
                     ],
                 ],
             ],
@@ -2085,6 +2082,440 @@ class AiBundleTest extends TestCase
 
         $this->assertInstanceOf(Reference::class, $arguments[6]); // logger
         $this->assertSame('logger', (string) $arguments[6]);
+    }
+
+    public function testValidMultiAgentConfiguration()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'dispatcher' => [
+                        'model' => 'gpt-4o-mini',
+                    ],
+                    'technical' => [
+                        'model' => 'gpt-4',
+                    ],
+                    'general' => [
+                        'model' => 'claude-3-opus-20240229',
+                    ],
+                ],
+                'multi_agent' => [
+                    'support' => [
+                        'orchestrator' => 'dispatcher',
+                        'fallback' => 'general',
+                        'handoffs' => [
+                            'technical' => ['code', 'debug', 'error'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        // Verify the MultiAgent service is created
+        $this->assertTrue($container->hasDefinition('ai.multi_agent.support'));
+
+        $multiAgentDefinition = $container->getDefinition('ai.multi_agent.support');
+
+        // Verify the class is correct
+        $this->assertSame(MultiAgent::class, $multiAgentDefinition->getClass());
+
+        // Verify arguments
+        $arguments = $multiAgentDefinition->getArguments();
+        $this->assertCount(4, $arguments);
+
+        // First argument: orchestrator agent reference
+        $this->assertInstanceOf(Reference::class, $arguments[0]);
+        $this->assertSame('ai.agent.dispatcher', (string) $arguments[0]);
+
+        // Second argument: handoffs array
+        $handoffs = $arguments[1];
+        $this->assertIsArray($handoffs);
+        $this->assertCount(1, $handoffs);
+
+        // Verify handoff structure
+        $handoff = $handoffs[0];
+        $this->assertInstanceOf(Definition::class, $handoff);
+        $this->assertSame(Handoff::class, $handoff->getClass());
+        $handoffArgs = $handoff->getArguments();
+        $this->assertCount(2, $handoffArgs);
+        $this->assertInstanceOf(Reference::class, $handoffArgs[0]);
+        $this->assertSame('ai.agent.technical', (string) $handoffArgs[0]);
+        $this->assertSame(['code', 'debug', 'error'], $handoffArgs[1]);
+
+        // Third argument: fallback agent reference
+        $this->assertInstanceOf(Reference::class, $arguments[2]);
+        $this->assertSame('ai.agent.general', (string) $arguments[2]);
+
+        // Fourth argument: name
+        $this->assertSame('support', $arguments[3]);
+
+        // Verify the MultiAgent service has proper tags
+        $tags = $multiAgentDefinition->getTags();
+        $this->assertArrayHasKey('ai.agent', $tags);
+        $this->assertSame([['name' => 'support']], $tags['ai.agent']);
+
+        // Verify alias is created
+        $this->assertTrue($container->hasAlias('Symfony\AI\Agent\AgentInterface $supportMultiAgent'));
+    }
+
+    public function testMultiAgentWithMultipleHandoffs()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'orchestrator' => [
+                        'model' => 'gpt-4o-mini',
+                    ],
+                    'code_expert' => [
+                        'model' => 'gpt-4',
+                    ],
+                    'billing_expert' => [
+                        'model' => 'gpt-4',
+                    ],
+                    'general_assistant' => [
+                        'model' => 'claude-3-opus-20240229',
+                    ],
+                ],
+                'multi_agent' => [
+                    'customer_service' => [
+                        'orchestrator' => 'orchestrator',
+                        'fallback' => 'general_assistant',
+                        'handoffs' => [
+                            'code_expert' => ['bug', 'code', 'programming', 'technical'],
+                            'billing_expert' => ['payment', 'invoice', 'subscription', 'refund'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.multi_agent.customer_service'));
+
+        $multiAgentDefinition = $container->getDefinition('ai.multi_agent.customer_service');
+        $handoffs = $multiAgentDefinition->getArgument(1);
+
+        $this->assertIsArray($handoffs);
+        $this->assertCount(2, $handoffs);
+
+        // Both handoffs should be Definition objects
+        foreach ($handoffs as $handoff) {
+            $this->assertInstanceOf(Definition::class, $handoff);
+            $this->assertSame(Handoff::class, $handoff->getClass());
+            $handoffArgs = $handoff->getArguments();
+            $this->assertCount(2, $handoffArgs);
+            $this->assertInstanceOf(Reference::class, $handoffArgs[0]);
+            $this->assertIsArray($handoffArgs[1]);
+        }
+
+        // Verify first handoff (code_expert)
+        $codeHandoff = $handoffs[0];
+        $codeHandoffArgs = $codeHandoff->getArguments();
+        $this->assertSame('ai.agent.code_expert', (string) $codeHandoffArgs[0]);
+        $this->assertSame(['bug', 'code', 'programming', 'technical'], $codeHandoffArgs[1]);
+
+        // Verify second handoff (billing_expert)
+        $billingHandoff = $handoffs[1];
+        $billingHandoffArgs = $billingHandoff->getArguments();
+        $this->assertSame('ai.agent.billing_expert', (string) $billingHandoffArgs[0]);
+        $this->assertSame(['payment', 'invoice', 'subscription', 'refund'], $billingHandoffArgs[1]);
+    }
+
+    public function testEmptyHandoffsThrowsException()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('The path "ai.multi_agent.support.handoffs" should have at least 1 element(s) defined.');
+
+        $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'orchestrator' => [
+                        'model' => 'gpt-4o-mini',
+                    ],
+                    'general' => [
+                        'model' => 'claude-3-opus-20240229',
+                    ],
+                ],
+                'multi_agent' => [
+                    'support' => [
+                        'orchestrator' => 'orchestrator',
+                        'fallback' => 'general',
+                        'handoffs' => [],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function testEmptyWhenConditionsThrowsException()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('The path "ai.multi_agent.support.handoffs.technical" should have at least 1 element(s) defined.');
+
+        $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'orchestrator' => [
+                        'model' => 'gpt-4o-mini',
+                    ],
+                    'technical' => [
+                        'model' => 'gpt-4',
+                    ],
+                    'general' => [
+                        'model' => 'claude-3-opus-20240229',
+                    ],
+                ],
+                'multi_agent' => [
+                    'support' => [
+                        'orchestrator' => 'orchestrator',
+                        'fallback' => 'general',
+                        'handoffs' => [
+                            'technical' => [],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function testMultiAgentReferenceToNonExistingAgentThrowsException()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('The agent "non_existing" referenced in multi-agent "support" as orchestrator does not exist');
+
+        $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'general' => [
+                        'model' => 'claude-3-opus-20240229',
+                    ],
+                ],
+                'multi_agent' => [
+                    'support' => [
+                        'orchestrator' => 'non_existing',
+                        'fallback' => 'general',
+                        'handoffs' => [
+                            'general' => ['help'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function testAgentAndMultiAgentNameConflictThrowsException()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('Agent names and multi-agent names must be unique. Duplicate name(s) found: "support"');
+
+        $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'support' => [
+                        'model' => 'gpt-4o-mini',
+                    ],
+                ],
+                'multi_agent' => [
+                    'support' => [
+                        'orchestrator' => 'dispatcher',
+                        'fallback' => 'general',
+                        'handoffs' => [
+                            'technical' => ['code', 'debug'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function testMultipleAgentAndMultiAgentNameConflictsThrowsException()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('Agent names and multi-agent names must be unique. Duplicate name(s) found: "support, billing"');
+
+        $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'support' => [
+                        'model' => 'gpt-4o-mini',
+                    ],
+                    'billing' => [
+                        'model' => 'gpt-4o-mini',
+                    ],
+                ],
+                'multi_agent' => [
+                    'support' => [
+                        'orchestrator' => 'dispatcher',
+                        'fallback' => 'general',
+                        'handoffs' => [
+                            'technical' => ['code', 'debug'],
+                        ],
+                    ],
+                    'billing' => [
+                        'orchestrator' => 'dispatcher',
+                        'fallback' => 'general',
+                        'handoffs' => [
+                            'payments' => ['payment', 'invoice'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    #[TestDox('Comprehensive multi-agent configuration with all features works correctly')]
+    public function testComprehensiveMultiAgentHappyPath()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    // Orchestrator agent - lightweight dispatcher with tools
+                    'orchestrator' => [
+                        'model' => 'gpt-4o-mini',
+                        'prompt' => [
+                            'text' => 'You are a dispatcher that routes requests to specialized agents.',
+                            'include_tools' => true,
+                        ],
+                        'tools' => [
+                            ['service' => 'routing_tool', 'description' => 'Routes requests to appropriate agents'],
+                        ],
+                    ],
+                    // Code expert agent with memory and tools
+                    'code_expert' => [
+                        'model' => 'gpt-4',
+                        'prompt' => [
+                            'text' => 'You are a senior software engineer specialized in debugging and code optimization.',
+                            'include_tools' => true,
+                        ],
+                        'memory' => 'code_memory_service',
+                        'tools' => [
+                            ['service' => 'code_analyzer', 'description' => 'Analyzes code for issues'],
+                            ['service' => 'test_runner', 'description' => 'Runs unit tests'],
+                        ],
+                    ],
+                    // Documentation expert
+                    'docs_expert' => [
+                        'model' => 'claude-3-opus-20240229',
+                        'prompt' => 'You are a technical documentation specialist.',
+                    ],
+                    // General support agent with memory
+                    'general_support' => [
+                        'model' => 'claude-3-sonnet-20240229',
+                        'prompt' => [
+                            'text' => 'You are a helpful general support assistant.',
+                        ],
+                        'memory' => 'general_memory_service',
+                    ],
+                ],
+                'multi_agent' => [
+                    // Customer support multi-agent system
+                    'customer_support' => [
+                        'orchestrator' => 'orchestrator',
+                        'fallback' => 'general_support',
+                        'handoffs' => [
+                            'code_expert' => ['bug', 'error', 'code', 'debug', 'performance', 'optimization'],
+                            'docs_expert' => ['documentation', 'docs', 'readme', 'api', 'guide', 'tutorial'],
+                        ],
+                    ],
+                    // Development multi-agent system (can reuse agents)
+                    'development_assistant' => [
+                        'orchestrator' => 'orchestrator',
+                        'fallback' => 'code_expert',
+                        'handoffs' => [
+                            'docs_expert' => ['comment', 'docblock', 'documentation'],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        // Verify all agents are created
+        $this->assertTrue($container->hasDefinition('ai.agent.orchestrator'));
+        $this->assertTrue($container->hasDefinition('ai.agent.code_expert'));
+        $this->assertTrue($container->hasDefinition('ai.agent.docs_expert'));
+        $this->assertTrue($container->hasDefinition('ai.agent.general_support'));
+
+        // Verify multi-agent services are created
+        $this->assertTrue($container->hasDefinition('ai.multi_agent.customer_support'));
+        $this->assertTrue($container->hasDefinition('ai.multi_agent.development_assistant'));
+
+        // Test customer_support multi-agent configuration
+        $customerSupportDef = $container->getDefinition('ai.multi_agent.customer_support');
+        $this->assertSame(MultiAgent::class, $customerSupportDef->getClass());
+
+        $csArguments = $customerSupportDef->getArguments();
+        $this->assertCount(4, $csArguments);
+
+        // Orchestrator reference
+        $this->assertInstanceOf(Reference::class, $csArguments[0]);
+        $this->assertSame('ai.agent.orchestrator', (string) $csArguments[0]);
+
+        // Handoffs
+        $csHandoffs = $csArguments[1];
+        $this->assertIsArray($csHandoffs);
+        $this->assertCount(2, $csHandoffs);
+
+        // Code expert handoff
+        $codeHandoff = $csHandoffs[0];
+        $this->assertInstanceOf(Definition::class, $codeHandoff);
+        $codeHandoffArgs = $codeHandoff->getArguments();
+        $this->assertSame('ai.agent.code_expert', (string) $codeHandoffArgs[0]);
+        $this->assertSame(['bug', 'error', 'code', 'debug', 'performance', 'optimization'], $codeHandoffArgs[1]);
+
+        // Docs expert handoff
+        $docsHandoff = $csHandoffs[1];
+        $this->assertInstanceOf(Definition::class, $docsHandoff);
+        $docsHandoffArgs = $docsHandoff->getArguments();
+        $this->assertSame('ai.agent.docs_expert', (string) $docsHandoffArgs[0]);
+        $this->assertSame(['documentation', 'docs', 'readme', 'api', 'guide', 'tutorial'], $docsHandoffArgs[1]);
+
+        // Fallback
+        $this->assertInstanceOf(Reference::class, $csArguments[2]);
+        $this->assertSame('ai.agent.general_support', (string) $csArguments[2]);
+
+        // Name
+        $this->assertSame('customer_support', $csArguments[3]);
+
+        // Verify tags and aliases
+        $csTags = $customerSupportDef->getTags();
+        $this->assertArrayHasKey('ai.agent', $csTags);
+        $this->assertSame([['name' => 'customer_support']], $csTags['ai.agent']);
+
+        $this->assertTrue($container->hasAlias('Symfony\AI\Agent\AgentInterface $customerSupportMultiAgent'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Agent\AgentInterface $developmentAssistantMultiAgent'));
+
+        // Test development_assistant multi-agent configuration
+        $devAssistantDef = $container->getDefinition('ai.multi_agent.development_assistant');
+        $daArguments = $devAssistantDef->getArguments();
+
+        // Verify it uses code_expert as fallback
+        $this->assertInstanceOf(Reference::class, $daArguments[2]);
+        $this->assertSame('ai.agent.code_expert', (string) $daArguments[2]);
+
+        // Verify it has only docs_expert handoff
+        $daHandoffs = $daArguments[1];
+        $this->assertCount(1, $daHandoffs);
+
+        // Verify agent components are properly configured
+
+        // Code expert should have memory processor
+        $this->assertTrue($container->hasDefinition('ai.agent.code_expert.memory_input_processor'));
+        $this->assertTrue($container->hasDefinition('ai.agent.code_expert.static_memory_provider'));
+
+        // Code expert should have tool processor
+        $this->assertTrue($container->hasDefinition('ai.tool.agent_processor.code_expert'));
+
+        // Code expert should have system prompt processor
+        $this->assertTrue($container->hasDefinition('ai.agent.code_expert.system_prompt_processor'));
+
+        // Docs expert should have only system prompt processor, no memory
+        $this->assertFalse($container->hasDefinition('ai.agent.docs_expert.memory_input_processor'));
+        $this->assertTrue($container->hasDefinition('ai.agent.docs_expert.system_prompt_processor'));
+
+        // General support should have memory processor
+        $this->assertTrue($container->hasDefinition('ai.agent.general_support.memory_input_processor'));
+
+        // Orchestrator should have tools processor
+        $this->assertTrue($container->hasDefinition('ai.tool.agent_processor.orchestrator'));
     }
 
     private function buildContainer(array $configuration): ContainerBuilder
