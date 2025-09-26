@@ -21,7 +21,7 @@ use Symfony\AI\Agent\Toolbox\ToolCallArgumentResolver;
 use Symfony\AI\Agent\Toolbox\ToolFactory\AbstractToolFactory;
 use Symfony\AI\Agent\Toolbox\ToolFactory\ReflectionToolFactory;
 use Symfony\AI\Agent\Toolbox\ToolResultConverter;
-use Symfony\AI\AiBundle\Command\ChatCommand;
+use Symfony\AI\AiBundle\Command\AgentCallCommand;
 use Symfony\AI\AiBundle\Profiler\DataCollector;
 use Symfony\AI\AiBundle\Profiler\TraceableToolbox;
 use Symfony\AI\AiBundle\Security\EventListener\IsGrantedToolAttributeListener;
@@ -154,7 +154,7 @@ return static function (ContainerConfigurator $container): void {
         ->set('ai.platform.search_result_processor.perplexity', PerplexitySearchResultProcessor::class)
 
         // commands
-        ->set('ai.command.chat', ChatCommand::class)
+        ->set('ai.command.chat', AgentCallCommand::class)
             ->args([
                 tagged_locator('ai.agent', 'name'),
             ])

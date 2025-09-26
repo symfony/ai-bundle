@@ -32,10 +32,11 @@ use Symfony\Component\DependencyInjection\ServiceLocator;
  * @author Oskar Stark <oskarstark@googlemail.com>
  */
 #[AsCommand(
-    name: 'ai:chat',
-    description: 'Chat with an agent',
+    name: 'ai:agent:call',
+    aliases: ['ai:chat'],
+    description: 'Call an agent',
 )]
-final class ChatCommand extends Command
+final class AgentCallCommand extends Command
 {
     /**
      * @param ServiceLocator<AgentInterface> $agents
