@@ -432,6 +432,136 @@ The system uses explicit configuration to determine memory behavior:
 
 In both cases, memory content is prepended to the system message, allowing the agent to utilize the context effectively.
 
+Multi-Agent Orchestration
+-------------------------
+
+The AI Bundle provides a configuration system for creating multi-agent orchestrators that route requests to specialized agents based on defined handoff rules.
+
+**Multi-Agent vs Agent-as-Tool**
+
+The AI Bundle supports two different approaches for combining multiple agents:
+
+1. **Agent-as-Tool**: An agent can use another agent as a tool during its processing. The main agent decides when and how to call the secondary agent, similar to any other tool. This is useful when:
+
+   - The main agent needs optional access to specialized capabilities
+   - The decision to use the secondary agent is context-dependent
+   - You want the main agent to control the entire conversation flow
+   - The secondary agent provides supplementary information
+
+   Example: A general assistant that can optionally query a research agent for detailed information.
+
+2. **Multi-Agent Orchestration**: A dedicated orchestrator analyzes each request and routes it to the most appropriate specialized agent. This is useful when:
+
+   - You have distinct domains that require different expertise
+   - You want clear separation of concerns between agents
+   - The routing decision should be made upfront based on the request type
+   - Each agent should handle the entire conversation for its domain
+
+   Example: A customer service system that routes to technical support, billing, or general inquiries based on the user's question.
+
+**Key Differences**
+
+* **Control Flow**: Agent-as-tool maintains control in the primary agent; Multi-Agent delegates full control to the selected agent
+* **Decision Making**: Agent-as-tool decides during processing; Multi-Agent decides before processing
+* **Response Generation**: Agent-as-tool integrates tool responses; Multi-Agent returns the selected agent's complete response
+* **Use Case**: Agent-as-tool for augmentation; Multi-Agent for specialization
+
+**Configuration**
+
+.. code-block:: yaml
+
+    # config/packages/ai.yaml
+    ai:
+        multi_agent:
+            # Define named multi-agent systems
+            support:
+                # The main orchestrator agent that analyzes requests
+                orchestrator: 'orchestrator'
+                
+                # Handoff rules mapping agents to trigger keywords
+                # At least 1 handoff required
+                handoffs:
+                    technical: ['bug', 'problem', 'technical', 'error', 'code', 'debug']
+                    
+                # Fallback agent for unmatched requests (required)
+                fallback: 'general'
+
+.. important::
+
+    The orchestrator agent MUST have ``structured_output: true`` (the default) to work correctly.
+    The multi-agent system uses structured output to reliably parse agent selection decisions.
+
+Each multi-agent configuration automatically registers a service with the ID pattern ``ai.multi_agent.{name}``.
+
+For the example above, the service ``ai.multi_agent.support`` is registered and can be injected::
+
+    use Symfony\AI\Agent\AgentInterface;
+    use Symfony\AI\Platform\Message\Message;
+    use Symfony\AI\Platform\Message\MessageBag;
+    use Symfony\Component\DependencyInjection\Attribute\Autowire;
+
+    final class SupportController
+    {
+        public function __construct(
+            #[Autowire(service: 'ai.multi_agent.support')]
+            private AgentInterface $supportAgent,
+        ) {
+        }
+        
+        public function askSupport(string $question): string
+        {
+            $messages = new MessageBag(Message::ofUser($question));
+            $response = $this->supportAgent->call($messages);
+            
+            return $response->getContent();
+        }
+    }
+
+**Handoff Rules and Fallback**
+
+Handoff rules are defined as a key-value mapping where:
+
+* **Key**: The name of the target agent (automatically prefixed with ``ai.agent.``)
+* **Value**: An array of keywords or phrases that trigger this handoff
+
+Example of creating a Handoff in PHP::
+
+    use Symfony\AI\Agent\MultiAgent\Handoff;
+
+    $technicalHandoff = new Handoff(
+        to: $technicalAgent,
+        when: ['code', 'debug', 'implementation', 'refactor', 'programming']
+    );
+
+    $documentationHandoff = new Handoff(
+        to: $documentationAgent,
+        when: ['document', 'readme', 'explain', 'tutorial']
+    );
+
+The ``fallback`` parameter (required) specifies an agent to handle requests that don't match any handoff rules. This ensures all requests have a proper handler.
+
+**How It Works**
+
+1. The orchestrator agent receives the initial request
+2. It analyzes the request content and matches it against handoff rules
+3. If keywords match a handoff's conditions, the request is delegated to that agent
+4. If no specific conditions match, the request is delegated to the fallback agent
+5. The selected agent processes the request and returns the response
+
+**Example: Customer Service Bot**
+
+.. code-block:: yaml
+
+    ai:
+        multi_agent:
+            customer_service:
+                orchestrator: 'analyzer'
+                handoffs:
+                    tech_support: ['error', 'bug', 'crash', 'not working', 'broken']
+                    billing: ['payment', 'invoice', 'billing', 'subscription', 'price']
+                    product_info: ['features', 'how to', 'tutorial', 'guide', 'documentation']
+                fallback: 'general_support'  # Fallback for general inquiries
+
 Usage
 -----
 

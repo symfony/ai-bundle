@@ -385,6 +385,33 @@ return static function (DefinitionConfigurator $configurator): void {
                     ->end()
                 ->end()
             ->end()
+            ->arrayNode('multi_agent')
+                ->info('Multi-agent orchestration configuration')
+                ->useAttributeAsKey('name')
+                ->arrayPrototype()
+                    ->children()
+                        ->stringNode('orchestrator')
+                            ->info('Service ID of the orchestrator agent')
+                            ->isRequired()
+                        ->end()
+                        ->arrayNode('handoffs')
+                            ->info('Handoff rules mapping agent service IDs to trigger keywords')
+                            ->isRequired()
+                            ->requiresAtLeastOneElement()
+                            ->useAttributeAsKey('service')
+                            ->arrayPrototype()
+                                ->info('Keywords or phrases that trigger handoff to this agent')
+                                ->requiresAtLeastOneElement()
+                                ->scalarPrototype()->end()
+                            ->end()
+                        ->end()
+                        ->stringNode('fallback')
+                            ->info('Service ID of the fallback agent for unmatched requests')
+                            ->isRequired()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
             ->arrayNode('store')
                 ->children()
                     ->arrayNode('azure_search')
@@ -687,6 +714,75 @@ return static function (DefinitionConfigurator $configurator): void {
                     ->end()
                 ->end()
             ->end()
+        ->end()
+        ->validate()
+            ->ifTrue(function ($v) {
+                if (!isset($v['agent']) || !isset($v['multi_agent'])) {
+                    return false;
+                }
+
+                $agentNames = array_keys($v['agent']);
+                $multiAgentNames = array_keys($v['multi_agent']);
+                $duplicates = array_intersect($agentNames, $multiAgentNames);
+
+                return !empty($duplicates);
+            })
+            ->then(function ($v) {
+                $agentNames = array_keys($v['agent'] ?? []);
+                $multiAgentNames = array_keys($v['multi_agent'] ?? []);
+                $duplicates = array_intersect($agentNames, $multiAgentNames);
+
+                throw new \InvalidArgumentException(\sprintf('Agent names and multi-agent names must be unique. Duplicate name(s) found: "%s"', implode(', ', $duplicates)));
+            })
+        ->end()
+        ->validate()
+            ->ifTrue(function ($v) {
+                if (!isset($v['multi_agent']) || !isset($v['agent'])) {
+                    return false;
+                }
+
+                $agentNames = array_keys($v['agent']);
+
+                foreach ($v['multi_agent'] as $multiAgentName => $multiAgent) {
+                    // Check orchestrator exists
+                    if (!\in_array($multiAgent['orchestrator'], $agentNames, true)) {
+                        return true;
+                    }
+
+                    // Check fallback exists
+                    if (!\in_array($multiAgent['fallback'], $agentNames, true)) {
+                        return true;
+                    }
+
+                    // Check handoff agents exist
+                    foreach (array_keys($multiAgent['handoffs']) as $handoffAgent) {
+                        if (!\in_array($handoffAgent, $agentNames, true)) {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            })
+            ->then(function ($v) {
+                $agentNames = array_keys($v['agent']);
+
+                foreach ($v['multi_agent'] as $multiAgentName => $multiAgent) {
+                    if (!\in_array($multiAgent['orchestrator'], $agentNames, true)) {
+                        throw new \InvalidArgumentException(\sprintf('The agent "%s" referenced in multi-agent "%s" as orchestrator does not exist', $multiAgent['orchestrator'], $multiAgentName));
+                    }
+
+                    if (!\in_array($multiAgent['fallback'], $agentNames, true)) {
+                        throw new \InvalidArgumentException(\sprintf('The agent "%s" referenced in multi-agent "%s" as fallback does not exist', $multiAgent['fallback'], $multiAgentName));
+                    }
+
+                    foreach (array_keys($multiAgent['handoffs']) as $handoffAgent) {
+                        if (!\in_array($handoffAgent, $agentNames, true)) {
+                            throw new \InvalidArgumentException(\sprintf('The agent "%s" referenced in multi-agent "%s" as handoff target does not exist', $handoffAgent, $multiAgentName));
+                        }
+                    }
+                }
+            })
         ->end()
     ;
 };

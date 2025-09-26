@@ -15,10 +15,12 @@ use PHPUnit\Framework\TestCase;
 use Symfony\AI\Agent\Agent;
 use Symfony\AI\Agent\Input;
 use Symfony\AI\Agent\InputProcessorInterface;
+use Symfony\AI\Agent\MultiAgent\MultiAgent;
 use Symfony\AI\Agent\Output;
 use Symfony\AI\Agent\OutputProcessorInterface;
 use Symfony\AI\AiBundle\DependencyInjection\ProcessorCompilerPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
 class ProcessorCompilerPassTest extends TestCase
@@ -99,6 +101,55 @@ class ProcessorCompilerPassTest extends TestCase
             ],
             $container->getDefinition('agent2')->getArgument(3)
         );
+    }
+
+    public function testProcessSkipsMultiAgent()
+    {
+        $container = new ContainerBuilder();
+
+        // Regular Agent service - should be processed
+        $container
+            ->register('agent1', Agent::class)
+            ->setArguments([null, null, [], []])
+            ->addTag('ai.agent');
+
+        // MultiAgent service - should NOT be processed
+        $orchestratorRef = new Reference('orchestrator');
+        $handoffs = [new Definition('Symfony\AI\Agent\MultiAgent\Handoff')];
+        $fallbackRef = new Reference('fallback');
+        $name = 'support';
+
+        $container
+            ->register('multi_agent', MultiAgent::class)
+            ->setArguments([$orchestratorRef, $handoffs, $fallbackRef, $name])
+            ->addTag('ai.agent');
+
+        // Add processors
+        $container
+            ->register(DummyInputProcessor1::class, DummyInputProcessor1::class)
+            ->addTag('ai.agent.input_processor');
+        $container
+            ->register(DummyOutputProcessor1::class, DummyOutputProcessor1::class)
+            ->addTag('ai.agent.output_processor');
+
+        (new ProcessorCompilerPass())->process($container);
+
+        // Regular agent should have processors injected
+        $this->assertEquals(
+            [new Reference(DummyInputProcessor1::class)],
+            $container->getDefinition('agent1')->getArgument(2)
+        );
+        $this->assertEquals(
+            [new Reference(DummyOutputProcessor1::class)],
+            $container->getDefinition('agent1')->getArgument(3)
+        );
+
+        // MultiAgent arguments should remain unchanged
+        $multiAgentDef = $container->getDefinition('multi_agent');
+        $this->assertInstanceOf(Reference::class, $multiAgentDef->getArgument(0));
+        $this->assertIsArray($multiAgentDef->getArgument(1));
+        $this->assertInstanceOf(Reference::class, $multiAgentDef->getArgument(2));
+        $this->assertSame('support', $multiAgentDef->getArgument(3));
     }
 }
 

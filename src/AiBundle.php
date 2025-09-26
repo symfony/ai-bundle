@@ -21,6 +21,8 @@ use Symfony\AI\Agent\InputProcessor\SystemPromptInputProcessor;
 use Symfony\AI\Agent\InputProcessorInterface;
 use Symfony\AI\Agent\Memory\MemoryInputProcessor;
 use Symfony\AI\Agent\Memory\StaticMemoryProvider;
+use Symfony\AI\Agent\MultiAgent\Handoff;
+use Symfony\AI\Agent\MultiAgent\MultiAgent;
 use Symfony\AI\Agent\OutputProcessorInterface;
 use Symfony\AI\Agent\Toolbox\Attribute\AsTool;
 use Symfony\AI\Agent\Toolbox\FaultTolerantToolbox;
@@ -136,6 +138,10 @@ final class AiBundle extends AbstractBundle
         }
         if (1 === \count($config['agent']) && isset($agentName)) {
             $builder->setAlias(AgentInterface::class, 'ai.agent.'.$agentName);
+        }
+
+        foreach ($config['multi_agent'] ?? [] as $multiAgentName => $multiAgent) {
+            $this->processMultiAgentConfig($multiAgentName, $multiAgent, $builder);
         }
 
         foreach ($config['store'] ?? [] as $type => $store) {
@@ -1186,5 +1192,50 @@ final class AiBundle extends AbstractBundle
         $definition->addTag('ai.indexer', ['name' => $name]);
 
         $container->setDefinition('ai.indexer.'.$name, $definition);
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function processMultiAgentConfig(string $name, array $config, ContainerBuilder $container): void
+    {
+        $orchestratorServiceId = self::normalizeAgentServiceId($config['orchestrator']);
+
+        $handoffReferences = [];
+
+        foreach ($config['handoffs'] as $agentName => $whenConditions) {
+            // Create handoff definitions directly (not as separate services)
+            // The container will inline simple value objects like Handoff
+            $handoffReferences[] = new Definition(Handoff::class, [
+                new Reference(self::normalizeAgentServiceId($agentName)),
+                $whenConditions,
+            ]);
+        }
+
+        $multiAgentId = 'ai.multi_agent.'.$name;
+        $multiAgentDefinition = new Definition(MultiAgent::class, [
+            new Reference($orchestratorServiceId),
+            $handoffReferences,
+            new Reference(self::normalizeAgentServiceId($config['fallback'])),
+            $name,
+        ]);
+
+        $multiAgentDefinition->addTag('ai.multi_agent', ['name' => $name]);
+        $multiAgentDefinition->addTag('ai.agent', ['name' => $name]);
+
+        $container->setDefinition($multiAgentId, $multiAgentDefinition);
+        $container->registerAliasForArgument($multiAgentId, AgentInterface::class, (new Target($name.'MultiAgent'))->getParsedName());
+    }
+
+    /**
+     * Ensures an agent name has the 'ai.agent.' prefix for service resolution.
+     *
+     * @param non-empty-string $agentName
+     *
+     * @return non-empty-string
+     */
+    private static function normalizeAgentServiceId(string $agentName): string
+    {
+        return str_starts_with($agentName, 'ai.agent.') ? $agentName : 'ai.agent.'.$agentName;
     }
 }
