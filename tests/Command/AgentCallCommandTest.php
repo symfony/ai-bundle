@@ -17,7 +17,7 @@ namespace Symfony\AI\AiBundle\Tests\Command;
 
 use PHPUnit\Framework\TestCase;
 use Symfony\AI\Agent\AgentInterface;
-use Symfony\AI\AiBundle\Command\ChatCommand;
+use Symfony\AI\AiBundle\Command\AgentCallCommand;
 use Symfony\AI\AiBundle\Exception\RuntimeException;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
@@ -27,7 +27,7 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 
-final class ChatCommandTest extends TestCase
+final class AgentCallCommandTest extends TestCase
 {
     public function testCommandFailsWithInvalidAgent()
     {
@@ -37,7 +37,7 @@ final class ChatCommandTest extends TestCase
             'test' => $agent,
         ];
 
-        $command = new ChatCommand($this->createServiceLocator($agents));
+        $command = new AgentCallCommand($this->createServiceLocator($agents));
         $application = self::createApplication($command);
 
         $commandTester = new CommandTester($command);
@@ -71,7 +71,7 @@ final class ChatCommandTest extends TestCase
             'test' => $agent,
         ];
 
-        $command = new ChatCommand($this->createServiceLocator($agents));
+        $command = new AgentCallCommand($this->createServiceLocator($agents));
         $application = self::createApplication($command);
 
         $commandTester = new CommandTester($command);
@@ -100,7 +100,7 @@ final class ChatCommandTest extends TestCase
             'test' => $agent,
         ];
 
-        $command = new ChatCommand($this->createServiceLocator($agents));
+        $command = new AgentCallCommand($this->createServiceLocator($agents));
         $application = self::createApplication($command);
 
         $commandTester = new CommandTester($command);
@@ -128,7 +128,7 @@ final class ChatCommandTest extends TestCase
             'test' => $agent,
         ];
 
-        $command = new ChatCommand($this->createServiceLocator($agents));
+        $command = new AgentCallCommand($this->createServiceLocator($agents));
         $application = self::createApplication($command);
 
         $commandTester = new CommandTester($command);
@@ -165,7 +165,7 @@ final class ChatCommandTest extends TestCase
             'second' => $agent2,
         ];
 
-        $command = new ChatCommand($this->createServiceLocator($agents));
+        $command = new AgentCallCommand($this->createServiceLocator($agents));
         $application = self::createApplication($command);
 
         $commandTester = new CommandTester($command);
@@ -203,7 +203,7 @@ final class ChatCommandTest extends TestCase
             'test' => $agent,
         ];
 
-        $command = new ChatCommand($this->createServiceLocator($agents));
+        $command = new AgentCallCommand($this->createServiceLocator($agents));
         $application = self::createApplication($command);
 
         $commandTester = new CommandTester($command);
