@@ -323,7 +323,7 @@ final class AiBundle extends AbstractBundle
                     $platform['location'],
                     $platform['project_id'],
                     $httpClient,
-                    new Reference('ai.platform.contract.vertexai', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference('ai.platform.contract.vertexai.gemini', ContainerInterface::NULL_ON_INVALID_REFERENCE),
                 ])
                 ->addTag('ai.platform');
 
