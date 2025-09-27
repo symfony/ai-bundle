@@ -32,6 +32,7 @@ use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Translation\TranslatableMessage;
 
 class AiBundleTest extends TestCase
 {
@@ -707,10 +708,8 @@ class AiBundleTest extends TestCase
         $definition = $container->getDefinition('ai.agent.test_agent.system_prompt_processor');
         $arguments = $definition->getArguments();
 
-        $this->assertSame('You are a helpful assistant.', $arguments[0]);
+        $this->assertEquals(new TranslatableMessage('You are a helpful assistant.', domain: 'prompts'), $arguments[0]);
         $this->assertNull($arguments[1]); // include_tools is false, so null reference
-        $this->assertTrue($arguments[3]);
-        $this->assertSame('prompts', $arguments[4]);
     }
 
     #[TestDox('System prompt with include_tools enabled works correctly')]
