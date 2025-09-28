@@ -73,7 +73,7 @@ return static function (ContainerConfigurator $container): void {
             ->factory([OpenAiContract::class, 'create'])
         ->set('ai.platform.contract.anthropic', Contract::class)
             ->factory([AnthropicContract::class, 'create'])
-        ->set('ai.platform.contract.google', Contract::class)
+        ->set('ai.platform.contract.gemini', Contract::class)
             ->factory([GeminiContract::class, 'create'])
         ->set('ai.platform.contract.vertexai.gemini', Contract::class)
             ->factory([VertexAiGeminiContract::class, 'create'])

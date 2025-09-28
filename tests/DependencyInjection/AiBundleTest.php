@@ -606,9 +606,9 @@ class AiBundleTest extends TestCase
         $definition = $container->getDefinition('ai.platform.openai');
         $arguments = $definition->getArguments();
 
-        $this->assertCount(4, $arguments);
+        $this->assertCount(5, $arguments);
         $this->assertSame('sk-test-key', $arguments[0]);
-        $this->assertNull($arguments[3]); // region should be null by default
+        $this->assertNull($arguments[4]); // region should be null by default
     }
 
     #[TestWith(['EU'])]
@@ -632,9 +632,9 @@ class AiBundleTest extends TestCase
         $definition = $container->getDefinition('ai.platform.openai');
         $arguments = $definition->getArguments();
 
-        $this->assertCount(4, $arguments);
+        $this->assertCount(5, $arguments);
         $this->assertSame('sk-test-key', $arguments[0]);
-        $this->assertSame($region, $arguments[3]);
+        $this->assertSame($region, $arguments[4]);
     }
 
     public function testOpenAiPlatformWithInvalidRegion()
@@ -671,12 +671,14 @@ class AiBundleTest extends TestCase
         $definition = $container->getDefinition('ai.platform.perplexity');
         $arguments = $definition->getArguments();
 
-        $this->assertCount(3, $arguments);
+        $this->assertCount(4, $arguments);
         $this->assertSame('pplx-test-key', $arguments[0]);
         $this->assertInstanceOf(Reference::class, $arguments[1]);
         $this->assertSame('http_client', (string) $arguments[1]);
         $this->assertInstanceOf(Reference::class, $arguments[2]);
-        $this->assertSame('ai.platform.contract.perplexity', (string) $arguments[2]);
+        $this->assertSame('ai.platform.model_catalog.perplexity', (string) $arguments[2]);
+        $this->assertInstanceOf(Reference::class, $arguments[3]);
+        $this->assertSame('ai.platform.contract.perplexity', (string) $arguments[3]);
     }
 
     #[TestDox('System prompt with array structure works correctly')]
