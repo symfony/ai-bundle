@@ -248,7 +248,7 @@ final class AiBundle extends AbstractBundle
                         $config['api_key'],
                         new Reference($config['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                         new Reference('ai.platform.model_catalog.azure.openai'),
-                        new Reference('ai.platform.contract.azure.openai'),
+                        new Reference('ai.platform.contract.openai'),
                     ])
                     ->addTag('ai.platform');
 
