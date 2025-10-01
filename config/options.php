@@ -252,6 +252,10 @@ return static function (DefinitionConfigurator $configurator): void {
                                             throw new InvalidConfigurationException('Model name cannot be empty.');
                                         }
 
+                                        if (isset($parsed['scheme'])) {
+                                            $model = $parsed['scheme'].':'.$model;
+                                        }
+
                                         if (isset($parsed['query'])) {
                                             // If options array is also provided, throw an error
                                             if ([] !== $options) {
@@ -657,6 +661,10 @@ return static function (DefinitionConfigurator $configurator): void {
 
                                         if ('' === $model) {
                                             throw new InvalidConfigurationException('Model name cannot be empty.');
+                                        }
+
+                                        if (isset($parsed['scheme'])) {
+                                            $model = $parsed['scheme'].':'.$model;
                                         }
 
                                         if (isset($parsed['query'])) {

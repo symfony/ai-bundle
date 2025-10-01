@@ -2518,6 +2518,53 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.tool.agent_processor.orchestrator'));
     }
 
+    #[TestDox('Agent model configuration preserves colon notation in model names (e.g., qwen3:0.6b)')]
+    #[TestWith(['qwen3:0.6b'])]
+    #[TestWith(['deepseek-r1:70b'])]
+    #[TestWith(['qwen3-coder:30b'])]
+    #[TestWith(['qwen3:0.6b?think=false'])]
+    public function testModelConfigurationWithColonNotation(string $model)
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test' => [
+                        'model' => [
+                            'name' => $model,
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $agentDefinition = $container->getDefinition('ai.agent.test');
+
+        $this->assertSame($model, $agentDefinition->getArgument(1));
+    }
+
+    #[TestDox('Vectorizer model configuration preserves colon notation in model names (e.g., bge-m3:1024)')]
+    #[TestWith(['bge-m3:567m'])]
+    #[TestWith(['nomic-embed-text:137m-v1.5-fp16'])]
+    #[TestWith(['qwen3-embedding:0.6b?normalize=true'])]
+    public function testVectorizerConfigurationWithColonNotation(string $model)
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'vectorizer' => [
+                    'test' => [
+                        'model' => [
+                            'name' => $model,
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $definition = $container->getDefinition('ai.vectorizer.test');
+
+        $this->assertSame($model, $definition->getArgument(1));
+    }
+
     private function buildContainer(array $configuration): ContainerBuilder
     {
         $container = new ContainerBuilder();
