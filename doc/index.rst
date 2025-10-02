@@ -30,9 +30,7 @@ Configuration
                 api_key: '%env(OPENAI_API_KEY)%'
         agent:
             default:
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
-                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
+                model: 'gpt-4o-mini'
 
 **Advanced Example with Anthropic, Azure, ElevenLabs, Gemini, Perplexity, Vertex AI, Ollama multiple agents**
 
@@ -68,9 +66,7 @@ Configuration
                 platform: 'ai.platform.azure.gpt_deployment'
                 structured_output: false # Disables support for "output_structure" option, default is true
                 track_token_usage: true # Enable tracking of token usage for the agent, default is true
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
-                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
+                model: 'gpt-4o-mini'
                 memory: 'You have access to conversation history and user preferences' # Optional: static memory content
                 prompt: # The system prompt configuration
                     text: 'You are a helpful assistant that can answer questions.' # The prompt text
@@ -91,23 +87,17 @@ Configuration
                       description: 'Can research on Wikipedia'
             research:
                 platform: 'ai.platform.anthropic'
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\Anthropic\Claude'
-                    name: !php/const Symfony\AI\Platform\Bridge\Anthropic\Claude::SONNET_37
+                model: 'claude-3-7-sonnet'
                 tools: # If undefined, all tools are injected into the agent, use "tools: false" to disable tools.
                     - 'Symfony\AI\Agent\Toolbox\Tool\Wikipedia'
                 fault_tolerant_toolbox: false # Disables fault tolerant toolbox, default is true
             search_agent:
                 platform: 'ai.platform.perplexity'
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\Perplexity\Perplexity'
-                    name: !php/const Symfony\AI\Platform\Bridge\Perplexity\Perplexity::SONAR
+                model: 'sonar'
                 tools: false
             audio:
                 platform: 'ai.platform.eleven_labs'
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\ElevenLabs'
-                    name: !php/const Symfony\AI\Platform\Bridge\ElevenLabs::TEXT_TO_SPEECH
+                model: 'text-to-speech'
                 tools: false
         store:
             chroma_db:
@@ -127,15 +117,12 @@ Configuration
             openai_embeddings:
                 platform: 'ai.platform.openai'
                 model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Embeddings'
-                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Embeddings::TEXT_EMBEDDING_3_SMALL
+                    name: 'text-embedding-3-small'
                     options:
                         dimensions: 512
             mistral_embeddings:
                 platform: 'ai.platform.mistral'
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\Mistral\Embeddings'
-                    name: !php/const Symfony\AI\Platform\Bridge\Mistral\Embeddings::MISTRAL_EMBED
+                model: 'mistral-embed'
         indexer:
             default:
                 vectorizer: 'ai.vectorizer.openai_embeddings'
@@ -204,9 +191,7 @@ Models can be configured in two different ways to specify model options and para
     ai:
         agent:
             my_agent:
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
-                    name: 'gpt-4o-mini?temperature=0.7&max_tokens=2000&stream=true'
+                model: 'gpt-4o-mini?temperature=0.7&max_tokens=2000&stream=true'
 
 Alternatively, you can specify model options in a separate ``options`` section:
 
@@ -216,7 +201,6 @@ Alternatively, you can specify model options in a separate ``options`` section:
         agent:
             my_agent:
                 model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
                     name: 'gpt-4o-mini'
                     options:
                         temperature: 0.7
@@ -234,9 +218,7 @@ You can also define models for the vectorizer this way:
     ai:
         vectorizer:
             embeddings:
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Embeddings'
-                    name: 'text-embedding-3-small?dimensions=512&encoding_format=float'
+                model: 'text-embedding-3-small?dimensions=512&encoding_format=float'
 
 HTTP Client Configuration
 -------------------------
@@ -274,9 +256,7 @@ For basic usage, specify the system prompt as a simple string:
     ai:
         agent:
             my_agent:
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
-                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
+                model: 'gpt-4o-mini'
                 prompt: 'You are a helpful assistant.'
 
 **Advanced Configuration**
@@ -288,9 +268,7 @@ For more control, such as including tool definitions in the system prompt, use t
     ai:
         agent:
             my_agent:
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
-                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
+                model: 'gpt-4o-mini'
                 prompt:
                     text: 'You are a helpful assistant that can answer questions.'
                     include_tools: true # Include tool definitions at the end of the system prompt
@@ -317,9 +295,7 @@ Then configure the prompt with translation enabled:
     ai:
         agent:
             my_agent:
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
-                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
+                model: 'gpt-4o-mini'
                 prompt:
                     text: 'agent.system_prompt'  # Translation key
                     enable_translation: true
@@ -342,9 +318,7 @@ The simplest way to add memory is to provide a string that will be used as stati
     ai:
         agent:
             my_agent:
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
-                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
+                model: 'gpt-4o-mini'
                 memory: 'You have access to user preferences and conversation history'
                 prompt:
                     text: 'You are a helpful assistant.'
@@ -361,9 +335,7 @@ Use the array syntax with a ``service`` key to explicitly reference a service:
     ai:
         agent:
             my_agent:
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
-                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
+                model: 'gpt-4o-mini'
                 memory:
                     service: 'my_memory_service'  # Explicitly references an existing service
                 prompt:
@@ -382,14 +354,12 @@ Memory can work independently or alongside the system prompt:
         agent:
             # Agent with memory only (memory becomes system prompt)
             memory_only_agent:
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
+                model: 'gpt-4o-mini'
                 memory: 'You are a helpful assistant with conversation history'
-            
+
             # Agent with both memory and prompt (memory prepended to prompt)
             memory_and_prompt_agent:
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
+                model: 'gpt-4o-mini'
                 memory: 'Previous conversation context...'
                 prompt:
                     text: 'You are a helpful assistant.'
@@ -756,9 +726,7 @@ To disable token usage tracking for an agent, set the ``track_token_usage`` opti
         agent:
             my_agent:
                 track_token_usage: false
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Gpt'
-                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Gpt::GPT_4O_MINI
+                model: 'gpt-4o-mini'
 
 Vectorizers
 -----------
@@ -777,22 +745,17 @@ Vectorizers are defined in the ``vectorizer`` section of your configuration:
             openai_small:
                 platform: 'ai.platform.openai'
                 model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Embeddings'
-                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Embeddings::TEXT_EMBEDDING_3_SMALL
+                    name: 'text-embedding-3-small'
                     options:
                         dimensions: 512
 
             openai_large:
                 platform: 'ai.platform.openai'
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\OpenAi\Embeddings'
-                    name: !php/const Symfony\AI\Platform\Bridge\OpenAi\Embeddings::TEXT_EMBEDDING_3_LARGE
+                model: 'text-embedding-3-large'
 
             mistral_embed:
                 platform: 'ai.platform.mistral'
-                model:
-                    class: 'Symfony\AI\Platform\Bridge\Mistral\Embeddings'
-                    name: !php/const Symfony\AI\Platform\Bridge\Mistral\Embeddings::MISTRAL_EMBED
+                model: 'mistral-embed'
 
 **Using Vectorizers in Indexers**
 
