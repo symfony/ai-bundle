@@ -50,6 +50,7 @@ use Symfony\AI\Platform\Bridge\Scaleway\PlatformFactory as ScalewayPlatformFacto
 use Symfony\AI\Platform\Bridge\VertexAi\PlatformFactory as VertexAiPlatformFactory;
 use Symfony\AI\Platform\Bridge\Voyage\PlatformFactory as VoyagePlatformFactory;
 use Symfony\AI\Platform\Exception\RuntimeException;
+use Symfony\AI\Platform\Message\Content\File;
 use Symfony\AI\Platform\ModelClientInterface;
 use Symfony\AI\Platform\Platform;
 use Symfony\AI\Platform\PlatformInterface;
@@ -652,14 +653,28 @@ final class AiBundle extends AbstractBundle
         if (isset($config['prompt'])) {
             $includeTools = isset($config['prompt']['include_tools']) && $config['prompt']['include_tools'];
 
-            if ($config['prompt']['enable_translation']) {
-                if (!class_exists(TranslatableMessage::class)) {
-                    throw new RuntimeException('For using prompt translataion, symfony/translation package is required. Try running "composer require symfony/translation".');
-                }
+            // Create prompt from file if configured, otherwise use text
+            if (isset($config['prompt']['file'])) {
+                $filePath = $config['prompt']['file'];
+                // File::fromFile() handles validation, so no need to check here
+                // Use Definition with factory method because File objects cannot be serialized during container compilation
+                $prompt = (new Definition(File::class))
+                    ->setFactory([File::class, 'fromFile'])
+                    ->setArguments([$filePath]);
+            } elseif (isset($config['prompt']['text'])) {
+                $promptText = $config['prompt']['text'];
 
-                $prompt = new TranslatableMessage($config['prompt']['text'], domain: $config['prompt']['translation_domain']);
+                if ($config['prompt']['enable_translation']) {
+                    if (!class_exists(TranslatableMessage::class)) {
+                        throw new RuntimeException('For using prompt translataion, symfony/translation package is required. Try running "composer require symfony/translation".');
+                    }
+
+                    $prompt = new TranslatableMessage($promptText, domain: $config['prompt']['translation_domain']);
+                } else {
+                    $prompt = $promptText;
+                }
             } else {
-                $prompt = $config['prompt']['text'];
+                $prompt = '';
             }
 
             $systemPromptInputProcessorDefinition = (new Definition(SystemPromptInputProcessor::class))

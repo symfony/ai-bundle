@@ -275,10 +275,61 @@ For more control, such as including tool definitions in the system prompt, use t
 
 The array format supports these options:
 
-* ``text`` (string, required): The system prompt text that will be sent to the AI model
+* ``text`` (string): The system prompt text that will be sent to the AI model (either ``text`` or ``file`` is required)
+* ``file`` (string): Path to a file containing the system prompt (either ``text`` or ``file`` is required)
 * ``include_tools`` (boolean, optional): When set to ``true``, tool definitions will be appended to the system prompt
 * ``enable_translation`` (boolean, optional): When set to ``true``, enables translation for the system prompt text (requires symfony/translation)
 * ``translation_domain`` (string, optional): The translation domain to use for the system prompt translation
+
+.. note::
+
+    You cannot use both ``text`` and ``file`` simultaneously. Choose one option based on your needs.
+
+**File-Based Prompts**
+
+For better organization and reusability, you can store system prompts in external files. This is particularly useful for:
+
+* Long, complex prompts with multiple sections
+* Prompts shared across multiple agents or projects
+* Version-controlled prompt templates
+* JSON-structured prompts with specific formatting
+
+Configure the prompt with a file path:
+
+.. code-block:: yaml
+
+    ai:
+        agent:
+            my_agent:
+                model: 'gpt-4o-mini'
+                prompt:
+                    file: '%kernel.project_dir%/prompts/assistant.txt'
+
+The file can be in any text format (.txt, .json, .md, etc.). The entire content of the file will be used as the system prompt text.
+
+**Example Text File** (``prompts/assistant.txt``):
+
+.. code-block:: text
+
+    You are a helpful and knowledgeable assistant.
+
+    Guidelines:
+    - Be clear and direct in your responses
+    - Provide examples when appropriate
+    - Be respectful and professional at all times
+
+**Example JSON File** (``prompts/code-reviewer.json``):
+
+.. code-block:: json
+
+    {
+      "role": "You are an expert code reviewer",
+      "responsibilities": [
+        "Review code for bugs and potential issues",
+        "Suggest improvements for code quality"
+      ],
+      "tone": "constructive and educational"
+    }
 
 **Translation Support**
 

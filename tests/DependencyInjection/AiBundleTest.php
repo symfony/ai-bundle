@@ -835,11 +835,29 @@ class AiBundleTest extends TestCase
         ]);
     }
 
-    #[TestDox('System prompt array without text key throws configuration exception')]
+    #[TestDox('System prompt array without text or file throws configuration exception')]
     public function testSystemPromptArrayWithoutTextKeyThrowsException()
     {
         $this->expectException(InvalidConfigurationException::class);
-        $this->expectExceptionMessage('The "text" cannot be empty.');
+        $this->expectExceptionMessage('Either "text" or "file" must be configured for prompt.');
+
+        $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => 'gpt-4',
+                        'prompt' => [],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    #[TestDox('System prompt with only include_tools throws configuration exception')]
+    public function testSystemPromptWithOnlyIncludeToolsThrowsException()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('Either "text" or "file" must be configured for prompt.');
 
         $this->buildContainer([
             'ai' => [
