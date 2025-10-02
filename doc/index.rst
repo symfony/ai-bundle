@@ -19,7 +19,8 @@ Installation
 Configuration
 -------------
 
-**Simple Example with OpenAI**
+Basic Example with OpenAI
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: yaml
 
@@ -32,7 +33,8 @@ Configuration
             default:
                 model: 'gpt-4o-mini'
 
-**Advanced Example with Anthropic, Azure, ElevenLabs, Gemini, Perplexity, Vertex AI, Ollama multiple agents**
+Advanced Example with multiple agents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: yaml
 
@@ -259,7 +261,8 @@ For basic usage, specify the system prompt as a simple string:
                 model: 'gpt-4o-mini'
                 prompt: 'You are a helpful assistant.'
 
-**Advanced Configuration**
+Advanced Configuration
+~~~~~~~~~~~~~~~~~~~~~~
 
 For more control, such as including tool definitions in the system prompt, use the array format:
 
@@ -285,7 +288,8 @@ The array format supports these options:
 
     You cannot use both ``text`` and ``file`` simultaneously. Choose one option based on your needs.
 
-**File-Based Prompts**
+File-Based Prompts
+~~~~~~~~~~~~~~~~~~
 
 For better organization and reusability, you can store system prompts in external files. This is particularly useful for:
 
@@ -307,7 +311,10 @@ Configure the prompt with a file path:
 
 The file can be in any text format (.txt, .json, .md, etc.). The entire content of the file will be used as the system prompt text.
 
-**Example Text File** (``prompts/assistant.txt``):
+Example Text File
+.................
+
+``prompts/assistant.txt``:
 
 .. code-block:: text
 
@@ -318,7 +325,10 @@ The file can be in any text format (.txt, .json, .md, etc.). The entire content 
     - Provide examples when appropriate
     - Be respectful and professional at all times
 
-**Example JSON File** (``prompts/code-reviewer.json``):
+Example JSON File
+.................
+
+``prompts/code-reviewer.json``:
 
 .. code-block:: json
 
@@ -331,7 +341,8 @@ The file can be in any text format (.txt, .json, .md, etc.). The entire content 
       "tone": "constructive and educational"
     }
 
-**Translation Support**
+Translation Support
+~~~~~~~~~~~~~~~~~~~
 
 To use translated system prompts, you need to have the Symfony Translation component installed:
 
@@ -357,10 +368,11 @@ The system prompt text will be automatically translated using the configured tra
 Memory Provider Configuration
 -----------------------------
 
-Memory providers allow agents to access and utilize conversation history and context from previous interactions. 
+Memory providers allow agents to access and utilize conversation history and context from previous interactions.
 This enables agents to maintain context across conversations and provide more personalized responses.
 
-**Static Memory (Simple)**
+Static Memory (Simple)
+~~~~~~~~~~~~~~~~~~~~~~
 
 The simplest way to add memory is to provide a string that will be used as static context:
 
@@ -376,7 +388,8 @@ The simplest way to add memory is to provide a string that will be used as stati
 
 This static memory content is consistently available to the agent across all conversations.
 
-**Dynamic Memory (Advanced)**
+Dynamic Memory (Advanced)
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For more sophisticated scenarios, you can reference an existing service that implements dynamic memory.
 Use the array syntax with a ``service`` key to explicitly reference a service:
@@ -392,7 +405,8 @@ Use the array syntax with a ``service`` key to explicitly reference a service:
                 prompt:
                     text: 'You are a helpful assistant.'
 
-**Memory as System Prompt**
+Memory as System Prompt
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Memory can work independently or alongside the system prompt:
 
@@ -415,7 +429,8 @@ Memory can work independently or alongside the system prompt:
                 prompt:
                     text: 'You are a helpful assistant.'
 
-**Custom Memory Provider Requirements**
+Custom Memory Provider Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When using a service reference, the memory service must implement the ``Symfony\AI\Agent\Memory\MemoryProviderInterface``::
 
@@ -435,17 +450,23 @@ When using a service reference, the memory service must implement the ``Symfony\
         }
     }
 
-**How Memory Works**
+How Memory Works
+~~~~~~~~~~~~~~~~
 
 The system uses explicit configuration to determine memory behavior:
 
-**Static Memory Processing:**
+Static Memory Processing
+........................
+
+
 1. When you provide a string value (e.g., ``memory: 'some text'``)
 2. The system creates a ``StaticMemoryProvider`` automatically
 3. Content is formatted as "## Static Memory" with the provided text
 4. This memory is consistently available across all conversations
 
-**Dynamic Memory Processing:**
+Dynamic Memory Processing
+.........................
+
 1. When you provide an array with a service key (e.g., ``memory: {service: 'my_service'}``)
 2. The ``MemoryInputProcessor`` uses the specified service directly
 3. The service's ``loadMemory()`` method is called before processing user input
@@ -458,7 +479,8 @@ Multi-Agent Orchestration
 
 The AI Bundle provides a configuration system for creating multi-agent orchestrators that route requests to specialized agents based on defined handoff rules.
 
-**Multi-Agent vs Agent-as-Tool**
+Multi-Agent vs Agent-as-Tool
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The AI Bundle supports two different approaches for combining multiple agents:
 
@@ -480,14 +502,16 @@ The AI Bundle supports two different approaches for combining multiple agents:
 
    Example: A customer service system that routes to technical support, billing, or general inquiries based on the user's question.
 
-**Key Differences**
+Key Differences
+^^^^^^^^^^^^^^^
 
 * **Control Flow**: Agent-as-tool maintains control in the primary agent; Multi-Agent delegates full control to the selected agent
 * **Decision Making**: Agent-as-tool decides during processing; Multi-Agent decides before processing
 * **Response Generation**: Agent-as-tool integrates tool responses; Multi-Agent returns the selected agent's complete response
 * **Use Case**: Agent-as-tool for augmentation; Multi-Agent for specialization
 
-**Configuration**
+Configuration
+^^^^^^^^^^^^^
 
 .. code-block:: yaml
 
@@ -538,7 +562,8 @@ For the example above, the service ``ai.multi_agent.support`` is registered and 
         }
     }
 
-**Handoff Rules and Fallback**
+Handoff Rules and Fallback
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Handoff rules are defined as a key-value mapping where:
 
@@ -561,7 +586,8 @@ Example of creating a Handoff in PHP::
 
 The ``fallback`` parameter (required) specifies an agent to handle requests that don't match any handoff rules. This ensures all requests have a proper handler.
 
-**How It Works**
+How It Works
+^^^^^^^^^^^^
 
 1. The orchestrator agent receives the initial request
 2. It analyzes the request content and matches it against handoff rules
@@ -569,7 +595,8 @@ The ``fallback`` parameter (required) specifies an agent to handle requests that
 4. If no specific conditions match, the request is delegated to the fallback agent
 5. The selected agent processes the request and returns the response
 
-**Example: Customer Service Bot**
+Example: Customer Service Bot
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: yaml
 
@@ -586,7 +613,8 @@ The ``fallback`` parameter (required) specifies an agent to handle requests that
 Usage
 -----
 
-**Agent Service**
+Agent Service
+~~~~~~~~~~~~~
 
 Use the `Agent` service to leverage models and tools::
 
@@ -612,7 +640,8 @@ Use the `Agent` service to leverage models and tools::
         }
     }
 
-**Register Processors**
+Register Processors
+~~~~~~~~~~~~~~~~~~~
 
 By default, all services implementing the ``InputProcessorInterface`` or the
 ``OutputProcessorInterface`` interfaces are automatically applied to every ``Agent``.
@@ -640,7 +669,8 @@ the ``#[AsOutputProcessor]`` attributes::
         }
     }
 
-**Register Tools**
+Register Tools
+~~~~~~~~~~~~~~
 
 To use existing tools, you can register them as a service:
 
@@ -760,14 +790,16 @@ The token usage information can be accessed from the result metadata::
         }
     }
 
-**Supported Platforms**
+Supported Platforms
+~~~~~~~~~~~~~~~~~~~
 
 Token usage tracking is currently supported, and by default enabled, for the following platforms:
 
 * **OpenAI**: Tracks all token types including cached and thinking tokens
 * **Mistral**: Tracks basic token usage and rate limit information
 
-**Disable Tracking**
+Disable Tracking
+~~~~~~~~~~~~~~~~
 
 To disable token usage tracking for an agent, set the ``track_token_usage`` option to ``false``:
 
@@ -785,7 +817,8 @@ Vectorizers
 Vectorizers are components that convert text documents into vector embeddings for storage and retrieval.
 They can be configured once and reused across multiple indexers, providing better maintainability and consistency.
 
-**Configuring Vectorizers**
+Configuring Vectorizers
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Vectorizers are defined in the ``vectorizer`` section of your configuration:
 
@@ -808,7 +841,8 @@ Vectorizers are defined in the ``vectorizer`` section of your configuration:
                 platform: 'ai.platform.mistral'
                 model: 'mistral-embed'
 
-**Using Vectorizers in Indexers**
+Using Vectorizers in Indexers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Once configured, vectorizers can be referenced by name in indexer configurations:
 
@@ -828,7 +862,8 @@ Once configured, vectorizers can be referenced by name in indexer configurations
                 vectorizer: 'ai.vectorizer.mistral_embed'
                 store: 'ai.store.memory.kb'
 
-**Benefits of Configured Vectorizers**
+Benefits of Configured Vectorizers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * **Reusability**: Define once, use in multiple indexers
 * **Consistency**: Ensure all indexers using the same vectorizer have identical embedding configuration
