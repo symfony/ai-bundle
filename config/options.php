@@ -306,21 +306,34 @@ return static function (DefinitionConfigurator $configurator): void {
                                     return ['text' => $v];
                                 })
                             ->end()
-                            ->beforeNormalization()
-                                ->ifArray()
-                                ->then(function (array $v) {
-                                    if (!isset($v['text']) && !isset($v['include_tools'])) {
-                                        throw new \InvalidArgumentException('Either "text" or "include_tools" must be configured for prompt.');
+                            ->validate()
+                                ->ifTrue(function ($v) {
+                                    if (!\is_array($v)) {
+                                        return false;
                                     }
+                                    $hasTextOrFile = isset($v['text']) || isset($v['file']);
 
-                                    return $v;
+                                    return !$hasTextOrFile;
                                 })
+                                ->thenInvalid('Either "text" or "file" must be configured for prompt.')
                             ->end()
                             ->validate()
                                 ->ifTrue(function ($v) {
-                                    return \is_array($v) && '' === trim($v['text'] ?? '');
+                                    return \is_array($v) && isset($v['text']) && isset($v['file']);
+                                })
+                                ->thenInvalid('Cannot use both "text" and "file" for prompt. Choose one.')
+                            ->end()
+                            ->validate()
+                                ->ifTrue(function ($v) {
+                                    return \is_array($v) && isset($v['text']) && '' === trim($v['text']);
                                 })
                                 ->thenInvalid('The "text" cannot be empty.')
+                            ->end()
+                            ->validate()
+                                ->ifTrue(function ($v) {
+                                    return \is_array($v) && isset($v['file']) && '' === trim($v['file']);
+                                })
+                                ->thenInvalid('The "file" cannot be empty.')
                             ->end()
                             ->validate()
                                 ->ifTrue(function ($v) {
@@ -331,6 +344,9 @@ return static function (DefinitionConfigurator $configurator): void {
                             ->children()
                                 ->stringNode('text')
                                     ->info('The system prompt text')
+                                ->end()
+                                ->stringNode('file')
+                                    ->info('Path to file containing the system prompt')
                                 ->end()
                                 ->booleanNode('include_tools')
                                     ->info('Include tool definitions at the end of the system prompt')
