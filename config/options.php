@@ -271,6 +271,12 @@ return static function (DefinitionConfigurator $configurator): void {
                                         return $model;
                                     }
 
+                                    array_walk_recursive($options, static function (mixed &$value): void {
+                                        if (\is_bool($value)) {
+                                            $value = $value ? 'true' : 'false';
+                                        }
+                                    });
+
                                     return $model.'?'.http_build_query($options);
                                 })
                             ->end()
@@ -697,6 +703,12 @@ return static function (DefinitionConfigurator $configurator): void {
                                     if ([] === $options) {
                                         return $model;
                                     }
+
+                                    array_walk_recursive($options, static function (mixed &$value): void {
+                                        if (\is_bool($value)) {
+                                            $value = $value ? 'true' : 'false';
+                                        }
+                                    });
 
                                     return $model.'?'.http_build_query($options);
                                 })

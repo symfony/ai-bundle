@@ -2583,6 +2583,58 @@ class AiBundleTest extends TestCase
         $this->assertSame($model, $definition->getArgument(1));
     }
 
+    public function testAgentModelBooleanOptionsArePreserved()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test' => [
+                        'model' => [
+                            'name' => 'qwen3',
+                            'options' => [
+                                'stream' => false,
+                                'think' => true,
+                                'nested' => [
+                                    'bool' => false,
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $agentDefinition = $container->getDefinition('ai.agent.test');
+
+        $this->assertSame('qwen3?stream=false&think=true&nested%5Bbool%5D=false', $agentDefinition->getArgument(1));
+    }
+
+    public function testVectorizerModelBooleanOptionsArePreserved()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'vectorizer' => [
+                    'test' => [
+                        'model' => [
+                            'name' => 'text-embedding-3-small',
+                            'options' => [
+                                'normalize' => false,
+                                'cache' => true,
+                                'nested' => [
+                                    'bool' => false,
+                                ],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $vectorizerDefinition = $container->getDefinition('ai.vectorizer.test');
+
+        $this->assertSame('text-embedding-3-small?normalize=false&cache=true&nested%5Bbool%5D=false', $vectorizerDefinition->getArgument(1));
+    }
+
     private function buildContainer(array $configuration): ContainerBuilder
     {
         $container = new ContainerBuilder();
