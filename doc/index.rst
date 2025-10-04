@@ -127,17 +127,19 @@ Advanced Example with multiple agents
                 model: 'mistral-embed'
         indexer:
             default:
+                loader: 'Symfony\AI\Store\Document\Loader\InMemoryLoader'
                 vectorizer: 'ai.vectorizer.openai_embeddings'
                 store: 'ai.store.chroma_db.default'
 
             research:
+                loader: 'Symfony\AI\Store\Document\Loader\TextFileLoader'
                 vectorizer: 'ai.vectorizer.mistral_embeddings'
                 store: 'ai.store.memory.research'
 
 Store Dependency Injection
 --------------------------
 
-When using multiple stores in your application, the AI Bundle provides flexible dependency injection through store aliases. 
+When using multiple stores in your application, the AI Bundle provides flexible dependency injection through store aliases.
 This allows you to inject specific stores into your services without conflicts, even when stores share the same name across different types.
 
 For each configured store, the bundle automatically creates two types of aliases:
@@ -174,13 +176,13 @@ You can inject stores into your services using the generated aliases::
     {
         public function __construct(
             private StoreInterface $main,              // Uses memory store (first occurrence)
-            private StoreInterface $chromaDbMain,      // Explicitly uses chroma_db store  
+            private StoreInterface $chromaDbMain,      // Explicitly uses chroma_db store
             private StoreInterface $memoryProducts,    // Explicitly uses memory products store
         ) {
         }
     }
 
-When multiple stores share the same name (like ``main`` in the example), the simple alias (``$main``) will reference the first occurrence. 
+When multiple stores share the same name (like ``main`` in the example), the simple alias (``$main``) will reference the first occurrence.
 Use type-prefixed aliases (``$memoryMain``, ``$chromaDbMain``) for explicit disambiguation.
 
 Model Configuration
@@ -225,7 +227,7 @@ You can also define models for the vectorizer this way:
 HTTP Client Configuration
 -------------------------
 
-Each platform can be configured with a custom HTTP client service to handle API requests. 
+Each platform can be configured with a custom HTTP client service to handle API requests.
 This allows you to customize timeouts, proxy settings, SSL configurations, and other HTTP-specific options.
 
 By default, all platforms use the standard Symfony HTTP client service (``http_client``):
@@ -522,12 +524,12 @@ Configuration
             support:
                 # The main orchestrator agent that analyzes requests
                 orchestrator: 'orchestrator'
-                
+
                 # Handoff rules mapping agents to trigger keywords
                 # At least 1 handoff required
                 handoffs:
                     technical: ['bug', 'problem', 'technical', 'error', 'code', 'debug']
-                    
+
                 # Fallback agent for unmatched requests (required)
                 fallback: 'general'
 
@@ -552,12 +554,12 @@ For the example above, the service ``ai.multi_agent.support`` is registered and 
             private AgentInterface $supportAgent,
         ) {
         }
-        
+
         public function askSupport(string $question): string
         {
             $messages = new MessageBag(Message::ofUser($question));
             $response = $this->supportAgent->call($messages);
-            
+
             return $response->getContent();
         }
     }
@@ -851,14 +853,17 @@ Once configured, vectorizers can be referenced by name in indexer configurations
     ai:
         indexer:
             documents:
+                loader: 'Symfony\AI\Store\Document\Loader\TextFileLoader'
                 vectorizer: 'ai.vectorizer.openai_small'
                 store: 'ai.store.chroma_db.documents'
 
             research:
+                loader: 'Symfony\AI\Store\Document\Loader\TextFileLoader'
                 vectorizer: 'ai.vectorizer.openai_large'
                 store: 'ai.store.chroma_db.research'
 
             knowledge_base:
+                loader: 'Symfony\AI\Store\Document\Loader\InMemoryLoader'
                 vectorizer: 'ai.vectorizer.mistral_embed'
                 store: 'ai.store.memory.kb'
 
