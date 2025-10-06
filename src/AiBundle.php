@@ -34,6 +34,8 @@ use Symfony\AI\AiBundle\Exception\InvalidArgumentException;
 use Symfony\AI\AiBundle\Profiler\TraceablePlatform;
 use Symfony\AI\AiBundle\Profiler\TraceableToolbox;
 use Symfony\AI\AiBundle\Security\Attribute\IsGrantedTool;
+use Symfony\AI\Chat\Bridge\HttpFoundation\SessionStore;
+use Symfony\AI\Chat\MessageStoreInterface;
 use Symfony\AI\Platform\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFactory;
 use Symfony\AI\Platform\Bridge\Azure\OpenAi\PlatformFactory as AzureOpenAiPlatformFactory;
 use Symfony\AI\Platform\Bridge\Cerebras\PlatformFactory as CerebrasPlatformFactory;
@@ -161,6 +163,21 @@ final class AiBundle extends AbstractBundle
         if ([] === $stores) {
             $builder->removeDefinition('ai.command.setup_store');
             $builder->removeDefinition('ai.command.drop_store');
+        }
+
+        foreach ($config['message_store'] ?? [] as $type => $store) {
+            $this->processMessageStoreConfig($type, $store, $builder);
+        }
+
+        $messageStores = array_keys($builder->findTaggedServiceIds('ai.message_store'));
+
+        if (1 === \count($messageStores)) {
+            $builder->setAlias(MessageStoreInterface::class, reset($messageStores));
+        }
+
+        if ([] === $messageStores) {
+            $builder->removeDefinition('ai.command.setup_message_store');
+            $builder->removeDefinition('ai.command.drop_message_store');
         }
 
         foreach ($config['vectorizer'] ?? [] as $vectorizerName => $vectorizer) {
@@ -1250,6 +1267,62 @@ final class AiBundle extends AbstractBundle
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
                 $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
                 $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
+            }
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $messageStores
+     */
+    private function processMessageStoreConfig(string $type, array $messageStores, ContainerBuilder $container): void
+    {
+        if ('memory' === $type) {
+            foreach ($messageStores as $name => $messageStore) {
+                $definition = new Definition(InMemoryStore::class);
+                $definition
+                    ->setArgument(0, $messageStore['identifier'])
+                    ->addTag('ai.message_store');
+
+                $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $type.'_'.$name);
+            }
+        }
+
+        if ('cache' === $type) {
+            foreach ($messageStores as $name => $messageStore) {
+                $arguments = [
+                    new Reference($messageStore['service']),
+                ];
+
+                if (\array_key_exists('key', $messageStore)) {
+                    $arguments['key'] = $messageStore['key'];
+                }
+
+                $definition = new Definition(CacheStore::class);
+                $definition
+                    ->setArguments($arguments)
+                    ->addTag('ai.message_store');
+
+                $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $type.'_'.$name);
+            }
+        }
+
+        if ('session' === $type) {
+            foreach ($messageStores as $name => $messageStore) {
+                $definition = new Definition(SessionStore::class);
+                $definition
+                    ->setArguments([
+                        new Reference('request_stack'),
+                        $messageStore['identifier'],
+                    ])
+                    ->addTag('ai.message_store');
+
+                $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $type.'_'.$name);
             }
         }
     }

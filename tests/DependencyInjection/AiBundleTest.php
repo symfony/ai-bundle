@@ -21,6 +21,7 @@ use Symfony\AI\Agent\Memory\StaticMemoryProvider;
 use Symfony\AI\Agent\MultiAgent\Handoff;
 use Symfony\AI\Agent\MultiAgent\MultiAgent;
 use Symfony\AI\AiBundle\AiBundle;
+use Symfony\AI\Chat\MessageStoreInterface;
 use Symfony\AI\Store\Document\Filter\TextContainsFilter;
 use Symfony\AI\Store\Document\Loader\InMemoryLoader;
 use Symfony\AI\Store\Document\Transformer\TextTrimTransformer;
@@ -58,6 +59,30 @@ class AiBundleTest extends TestCase
         $this->assertSame([
             'ai.command.setup_store' => true,
             'ai.command.drop_store' => true,
+            'ai.command.setup_message_store' => true,
+            'ai.command.drop_message_store' => true,
+        ], $container->getRemovedIds());
+    }
+
+    public function testMessageStoreCommandsArentDefinedWithoutMessageStore()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'my_agent' => [
+                        'model' => 'gpt-4',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertFalse($container->hasDefinition('ai.command.setup_message_store'));
+        $this->assertFalse($container->hasDefinition('ai.command.drop_message_store'));
+        $this->assertSame([
+            'ai.command.setup_store' => true,
+            'ai.command.drop_store' => true,
+            'ai.command.setup_message_store' => true,
+            'ai.command.drop_message_store' => true,
         ], $container->getRemovedIds());
     }
 
@@ -74,6 +99,23 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.command.drop_store'));
 
         $dropStoreCommandDefinition = $container->getDefinition('ai.command.drop_store');
+        $this->assertCount(1, $dropStoreCommandDefinition->getArguments());
+        $this->assertArrayHasKey('console.command', $dropStoreCommandDefinition->getTags());
+    }
+
+    public function testMessageStoreCommandsAreDefined()
+    {
+        $container = $this->buildContainer($this->getFullConfig());
+
+        $this->assertTrue($container->hasDefinition('ai.command.setup_message_store'));
+
+        $setupStoreCommandDefinition = $container->getDefinition('ai.command.setup_message_store');
+        $this->assertCount(1, $setupStoreCommandDefinition->getArguments());
+        $this->assertArrayHasKey('console.command', $setupStoreCommandDefinition->getTags());
+
+        $this->assertTrue($container->hasDefinition('ai.command.drop_message_store'));
+
+        $dropStoreCommandDefinition = $container->getDefinition('ai.command.drop_message_store');
         $this->assertCount(1, $dropStoreCommandDefinition->getArguments());
         $this->assertArrayHasKey('console.command', $dropStoreCommandDefinition->getTags());
     }
@@ -123,6 +165,31 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasAlias(StoreInterface::class.' $secondaryWithCustomStrategy'));
         $this->assertTrue($container->hasAlias('.'.StoreInterface::class.' $weaviate_main'));
         $this->assertTrue($container->hasAlias(StoreInterface::class.' $weaviateMain'));
+    }
+
+    public function testInjectionMessageStoreAliasIsRegistered()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'memory' => [
+                        'main' => [
+                            'identifier' => '_memory',
+                        ],
+                    ],
+                    'session' => [
+                        'session' => [
+                            'identifier' => 'session',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasAlias(MessageStoreInterface::class.' $main'));
+        $this->assertTrue($container->hasAlias('.'.MessageStoreInterface::class.' $memory_main'));
+        $this->assertTrue($container->hasAlias(MessageStoreInterface::class.' $session'));
+        $this->assertTrue($container->hasAlias('.'.MessageStoreInterface::class.' $session_session'));
     }
 
     public function testAgentHasTag()
@@ -2940,6 +3007,27 @@ class AiBundleTest extends TestCase
                             'password' => 'pass',
                             'table_name' => 'my_table',
                             'vector_field' => 'my_embedding',
+                        ],
+                    ],
+                ],
+                'message_store' => [
+                    'cache' => [
+                        'my_cache_message_store' => [
+                            'service' => 'cache.system',
+                        ],
+                        'my_cache_message_store_with_custom_cache_key' => [
+                            'service' => 'cache.system',
+                            'key' => 'foo',
+                        ],
+                    ],
+                    'memory' => [
+                        'my_memory_message_store' => [
+                            'identifier' => '_memory',
+                        ],
+                    ],
+                    'session' => [
+                        'my_session_message_store' => [
+                            'identifier' => 'session',
                         ],
                     ],
                 ],
