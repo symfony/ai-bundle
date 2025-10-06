@@ -105,7 +105,7 @@ final class DataCollector extends AbstractDataCollector implements LateDataColle
     {
         $calls = $platform->calls;
         foreach ($calls as $key => $call) {
-            $result = $call['result']->await();
+            $result = $call['result']->getResult();
 
             if (isset($platform->resultCache[$result])) {
                 $call['result'] = $platform->resultCache[$result];

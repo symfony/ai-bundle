@@ -15,9 +15,10 @@ use PHPUnit\Framework\TestCase;
 use Symfony\AI\AiBundle\Command\PlatformInvokeCommand;
 use Symfony\AI\AiBundle\Exception\InvalidArgumentException;
 use Symfony\AI\Platform\PlatformInterface;
+use Symfony\AI\Platform\Result\DeferredResult;
 use Symfony\AI\Platform\Result\InMemoryRawResult;
-use Symfony\AI\Platform\Result\ResultPromise;
 use Symfony\AI\Platform\Result\TextResult;
+use Symfony\AI\Platform\Test\PlainConverter;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\DependencyInjection\ServiceLocator;
@@ -28,7 +29,7 @@ final class PlatformInvokeCommandTest extends TestCase
     {
         $textResult = new TextResult('Hello! How can I assist you?');
         $rawResult = new InMemoryRawResult([]);
-        $promise = new ResultPromise(fn () => $textResult, $rawResult);
+        $promise = new DeferredResult(new PlainConverter($textResult), $rawResult);
 
         $platform = $this->createMock(PlatformInterface::class);
         $platform->method('invoke')
