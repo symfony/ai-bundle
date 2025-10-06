@@ -68,6 +68,7 @@ use Symfony\AI\Store\Bridge\Milvus\Store as MilvusStore;
 use Symfony\AI\Store\Bridge\MongoDb\Store as MongoDbStore;
 use Symfony\AI\Store\Bridge\Neo4j\Store as Neo4jStore;
 use Symfony\AI\Store\Bridge\Pinecone\Store as PineconeStore;
+use Symfony\AI\Store\Bridge\Postgres\Store;
 use Symfony\AI\Store\Bridge\Qdrant\Store as QdrantStore;
 use Symfony\AI\Store\Bridge\Redis\Store as RedisStore;
 use Symfony\AI\Store\Bridge\SurrealDb\Store as SurrealDbStore;
@@ -1180,6 +1181,39 @@ final class AiBundle extends AbstractBundle
                 ];
 
                 $definition = new Definition(WeaviateStore::class);
+                $definition
+                    ->addTag('ai.store')
+                    ->setArguments($arguments);
+
+                $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
+            }
+        }
+
+        if ('postgres' === $type) {
+            foreach ($stores as $name => $store) {
+                $pdo = new Definition(\PDO::class);
+                $pdo->setArguments([
+                    $store['dsn'],
+                    $store['username'] ?? null,
+                    $store['password'] ?? null],
+                );
+
+                $arguments = [
+                    $pdo,
+                    $store['table_name'],
+                ];
+
+                if (\array_key_exists('vector_field', $store)) {
+                    $arguments[2] = $store['vector_field'];
+                }
+
+                if (\array_key_exists('distance', $store)) {
+                    $arguments[3] = $store['distance'];
+                }
+
+                $definition = new Definition(Store::class);
                 $definition
                     ->addTag('ai.store')
                     ->setArguments($arguments);

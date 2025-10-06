@@ -2894,6 +2894,15 @@ class AiBundleTest extends TestCase
                             'collection' => 'my_weaviate_collection',
                         ],
                     ],
+                    'postgres' => [
+                        'my_postgres_store' => [
+                            'dsn' => 'pgsql:host=127.0.0.1;port=5432;dbname=postgresql_db',
+                            'username' => 'postgres',
+                            'password' => 'pass',
+                            'table_name' => 'my_table',
+                            'vector_field' => 'my_embedding',
+                        ],
+                    ],
                 ],
                 'vectorizer' => [
                     'test_vectorizer' => [
