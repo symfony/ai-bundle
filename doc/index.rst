@@ -615,7 +615,7 @@ Example: Customer Service Bot
 Commands
 --------
 
-The AI Bundle provides several console commands for interacting with AI platforms and agents.
+The AI Bundle provides several console commands for interacting with AI platforms, agents, and stores.
 
 ``ai:platform:invoke``
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -632,6 +632,91 @@ This is useful for testing platform configurations and quick interactions with A
 
     # Using Anthropic
     $ php bin/console ai:platform:invoke anthropic claude-3-5-sonnet-20241022 "Explain quantum physics"
+
+``ai:agent:call``
+~~~~~~~~~~~~~~~~~
+
+The ``ai:agent:call`` command (alias: ``ai:chat``) provides an interactive chat interface to communicate with configured agents.
+This is useful for testing agent configurations, tools, and conversational flows.
+
+.. code-block:: terminal
+
+    $ php bin/console ai:agent:call <agent>
+
+    # Chat with the default agent
+    $ php bin/console ai:agent:call default
+
+    # Chat with a specific agent
+    $ php bin/console ai:agent:call wikipedia
+
+The command starts an interactive session where you can:
+
+* Type messages and press Enter to send them to the agent
+* See the agent's responses in real-time
+* View the system prompt that was configured for the agent
+* Type ``exit`` or ``quit`` to end the conversation
+
+If no agent name is provided, you'll be prompted to select one from the available configured agents.
+
+``ai:store:setup``
+~~~~~~~~~~~~~~~~~~
+
+The ``ai:store:setup`` command prepares the required infrastructure for a store (e.g., creates database tables, indexes, collections).
+
+.. code-block:: terminal
+
+    $ php bin/console ai:store:setup <store>
+
+    # Setup the chroma_db store
+    $ php bin/console ai:store:setup chroma_db.default
+
+.. note::
+
+    This command only works with stores that implement ``ManagedStoreInterface``.
+    Not all store types support or require setup operations.
+
+``ai:store:drop``
+~~~~~~~~~~~~~~~~~
+
+The ``ai:store:drop`` command drops the infrastructure for a store (e.g., removes database tables, indexes, collections).
+
+.. code-block:: terminal
+
+    $ php bin/console ai:store:drop <store> --force
+
+    # Drop the chroma_db store
+    $ php bin/console ai:store:drop chroma_db.default --force
+
+.. warning::
+
+    The ``--force`` (or ``-f``) option is required to prevent accidental data loss.
+    This command will permanently delete all data in the store.
+
+.. note::
+
+    This command only works with stores that implement ``ManagedStoreInterface``.
+    Not all store types support drop operations.
+
+``ai:store:index``
+~~~~~~~~~~~~~~~~~~
+
+The ``ai:store:index`` command indexes documents into a store using a configured indexer.
+
+.. code-block:: terminal
+
+    $ php bin/console ai:store:index <indexer>
+
+    # Index using the default indexer
+    $ php bin/console ai:store:index default
+
+    # Override the configured source with a single file
+    $ php bin/console ai:store:index blog --source=/path/to/file.txt
+
+    # Override with multiple sources
+    $ php bin/console ai:store:index blog --source=/path/to/file1.txt --source=/path/to/file2.txt
+
+The ``--source`` (or ``-s``) option allows you to override the source(s) configured in your indexer.
+This is useful for ad-hoc indexing operations or testing different data sources.
 
 Usage
 -----
