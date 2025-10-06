@@ -19,10 +19,11 @@ use Symfony\AI\Platform\Message\Content\Text;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
 use Symfony\AI\Platform\PlatformInterface;
+use Symfony\AI\Platform\Result\DeferredResult;
 use Symfony\AI\Platform\Result\RawResultInterface;
-use Symfony\AI\Platform\Result\ResultPromise;
 use Symfony\AI\Platform\Result\StreamResult;
 use Symfony\AI\Platform\Result\TextResult;
+use Symfony\AI\Platform\Test\PlainConverter;
 
 class DataCollectorTest extends TestCase
 {
@@ -33,7 +34,7 @@ class DataCollectorTest extends TestCase
         $messageBag = new MessageBag(Message::ofUser(new Text('Hello')));
         $result = new TextResult('Assistant response');
 
-        $platform->method('invoke')->willReturn(new ResultPromise(static fn () => $result, $this->createStub(RawResultInterface::class)));
+        $platform->method('invoke')->willReturn(new DeferredResult(new PlainConverter($result), $this->createStub(RawResultInterface::class)));
 
         $result = $traceablePlatform->invoke('gpt-4o', $messageBag, ['stream' => false]);
         $this->assertSame('Assistant response', $result->asText());
@@ -57,7 +58,7 @@ class DataCollectorTest extends TestCase
             })(),
         );
 
-        $platform->method('invoke')->willReturn(new ResultPromise(static fn () => $result, $this->createStub(RawResultInterface::class)));
+        $platform->method('invoke')->willReturn(new DeferredResult(new PlainConverter($result), $this->createStub(RawResultInterface::class)));
 
         $result = $traceablePlatform->invoke('gpt-4o', $messageBag, ['stream' => true]);
         $this->assertSame('Assistant response', implode('', iterator_to_array($result->asStream())));
