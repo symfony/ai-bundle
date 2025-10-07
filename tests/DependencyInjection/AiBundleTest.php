@@ -366,6 +366,45 @@ class AiBundleTest extends TestCase
         $this->assertSame('ai.store.distance_calculator.my_memory_store_with_custom_strategy', (string) $definition->getArgument(0));
     }
 
+    public function testPostgresStoreWithDifferentConnectionCanBeConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'postgres' => [
+                        'db' => [
+                            'dsn' => 'pgsql:host=localhost;port=5432;dbname=testdb;user=app;password=mypass',
+                            'table_name' => 'vectors',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.store.postgres.db'));
+
+        $definition = $container->getDefinition('ai.store.postgres.db');
+        $this->assertCount(3, $definition->getArguments());
+        $this->assertInstanceOf(Definition::class, $definition->getArgument(0));
+
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'postgres' => [
+                        'db' => [
+                            'dbal_connection' => 'my_connection',
+                            'table_name' => 'vectors',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $definition = $container->getDefinition('ai.store.postgres.db');
+        $this->assertCount(3, $definition->getArguments());
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
+    }
+
     public function testConfigurationWithUseAttributeAsKeyWorksWithoutNormalizeKeys()
     {
         // Test that configurations using useAttributeAsKey work correctly
