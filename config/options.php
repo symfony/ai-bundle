@@ -17,6 +17,7 @@ use Probots\Pinecone\Client as PineconeClient;
 use Symfony\AI\Platform\Bridge\OpenAi\PlatformFactory;
 use Symfony\AI\Platform\Capability;
 use Symfony\AI\Platform\PlatformInterface;
+use Symfony\AI\Store\Bridge\Postgres\Distance as PostgresDistance;
 use Symfony\AI\Store\Bridge\Redis\Distance;
 use Symfony\AI\Store\Document\VectorizerInterface;
 use Symfony\AI\Store\StoreInterface;
@@ -678,8 +679,19 @@ return static function (DefinitionConfigurator $configurator): void {
                                 ->stringNode('table_name')->isRequired()->end()
                                 ->stringNode('vector_field')->end()
                                 ->enumNode('distance')
-                                    ->values(['cosine', 'inner_product', 'l1', 'l2'])
+                                    ->info('Distance metric to use for vector similarity search')
+                                    ->enumFqcn(PostgresDistance::class)
+                                    ->defaultValue(PostgresDistance::L2)
                                 ->end()
+                                ->stringNode('dbal_connection')->cannotBeEmpty()->end()
+                            ->end()
+                            ->validate()
+                                ->ifTrue(static fn ($v) => !isset($v['dsn']) && !isset($v['dbal_connection']))
+                                ->thenInvalid('Either "dsn" or "dbal_connection" must be configured.')
+                            ->end()
+                            ->validate()
+                                ->ifTrue(static fn ($v) => isset($v['dsn'], $v['dbal_connection']))
+                                ->thenInvalid('Either "dsn" or "dbal_connection" can be configured, but not both.')
                             ->end()
                         ->end()
                     ->end()
