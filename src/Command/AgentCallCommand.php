@@ -153,7 +153,7 @@ final class AgentCallCommand extends Command
 
                 if (!$systemPromptDisplayed && null !== ($systemMessage = $messages->getSystemMessage())) {
                     $io->section('System Prompt');
-                    $io->block($systemMessage->content, null, 'fg=gray', ' ', true);
+                    $io->block($systemMessage->getContent(), null, 'fg=gray', ' ', true);
                     $systemPromptDisplayed = true;
                 }
 
