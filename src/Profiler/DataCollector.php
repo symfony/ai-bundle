@@ -12,7 +12,7 @@
 namespace Symfony\AI\AiBundle\Profiler;
 
 use Symfony\AI\Agent\Toolbox\ToolboxInterface;
-use Symfony\AI\Platform\Model;
+use Symfony\AI\Agent\Toolbox\ToolResult;
 use Symfony\AI\Platform\Tool\Tool;
 use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
 use Symfony\Component\HttpFoundation\Request;
@@ -23,7 +23,6 @@ use Symfony\Component\HttpKernel\DataCollector\LateDataCollectorInterface;
  * @author Christopher Hertel <mail@christopher-hertel.de>
  *
  * @phpstan-import-type PlatformCallData from TraceablePlatform
- * @phpstan-import-type ToolCallData from TraceableToolbox
  */
 final class DataCollector extends AbstractDataCollector implements LateDataCollectorInterface
 {
@@ -86,7 +85,7 @@ final class DataCollector extends AbstractDataCollector implements LateDataColle
     }
 
     /**
-     * @return ToolCallData[]
+     * @return ToolResult[]
      */
     public function getToolCalls(): array
     {

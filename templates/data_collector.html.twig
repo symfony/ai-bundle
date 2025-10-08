@@ -221,25 +221,25 @@
 
     <h3>Tool Calls</h3>
     {% if collector.toolCalls|length %}
-        {% for call in collector.toolCalls %}
+        {% for toolResult in collector.toolCalls %}
             <table class="table">
                 <thead>
                     <tr>
-                        <th colspan="2">{{ call.call.name }}</th>
+                        <th colspan="2">{{ toolResult.toolCall.name }}</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
                         <th>ID</th>
-                        <td>{{ call.call.id }}</td>
+                        <td>{{ toolResult.toolCall.id }}</td>
                     </tr>
                     <tr>
                         <th>Arguments</th>
-                        <td>{{ dump(call.call.arguments) }}</td>
+                        <td>{{ dump(toolResult.toolCall.arguments) }}</td>
                     </tr>
                     <tr>
                         <th>Result</th>
-                        <td>{{ dump(call.result) }}</td>
+                        <td>{{ dump(toolResult.result) }}</td>
                     </tr>
                 </tbody>
             </table>
