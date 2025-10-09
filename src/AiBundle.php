@@ -613,7 +613,9 @@ final class AiBundle extends AbstractBundle
             }
 
             $toolProcessorDefinition = (new ChildDefinition('ai.tool.agent_processor.abstract'))
-                ->replaceArgument(0, new Reference('ai.toolbox.'.$name));
+                ->replaceArgument(0, new Reference('ai.toolbox.'.$name))
+                ->replaceArgument(3, $config['keep_tool_messages'])
+                ->replaceArgument(4, $config['include_sources']);
 
             $container->setDefinition('ai.tool.agent_processor.'.$name, $toolProcessorDefinition)
                 ->addTag('ai.agent.input_processor', ['agent' => $agentId, 'priority' => -10])
