@@ -271,7 +271,7 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $this->assertSame($enabled, $container->hasDefinition('ai.fault_tolerant_toolbox'));
+        $this->assertSame($enabled, $container->hasDefinition('ai.fault_tolerant_toolbox.my_agent'));
     }
 
     public function testAgentsCanBeRegisteredAsTools()
@@ -619,12 +619,12 @@ class AiBundleTest extends TestCase
     }
 
     #[TestDox('Processors work correctly when using the default toolbox')]
-    public function testDefaultToolboxProcessorTags()
+    public function testToolboxWithoutExplicitToolsDefined()
     {
         $container = $this->buildContainer([
             'ai' => [
                 'agent' => [
-                    'agent_with_default_toolbox' => [
+                    'agent_with_tools' => [
                         'model' => 'gpt-4',
                         'tools' => true,
                     ],
@@ -632,10 +632,10 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $agentId = 'ai.agent.agent_with_default_toolbox';
+        $agentId = 'ai.agent.agent_with_tools';
 
         // When using default toolbox, the ai.tool.agent_processor service gets the tags
-        $defaultToolProcessor = $container->getDefinition('ai.tool.agent_processor');
+        $defaultToolProcessor = $container->getDefinition('ai.tool.agent_processor.agent_with_tools');
         $inputTags = $defaultToolProcessor->getTag('ai.agent.input_processor');
         $outputTags = $defaultToolProcessor->getTag('ai.agent.output_processor');
 

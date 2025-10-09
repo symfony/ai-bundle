@@ -589,9 +589,37 @@ final class AiBundle extends AbstractBundle
             ->setArgument(0, new Reference($config['platform']))
             ->setArgument(1, $config['model']);
 
-        // TOOL & PROCESSOR
+        // TOOLBOX
         if ($config['tools']['enabled']) {
-            // Create specific toolbox and process if tools are explicitly defined
+            // Setup toolbox for agent
+            $toolboxDefinition = (new ChildDefinition('ai.toolbox.abstract'))
+                ->replaceArgument(1, new Reference('ai.toolbox.'.$name.'.chain_factory'))
+                ->addTag('ai.toolbox', ['name' => $name]);
+            $container->setDefinition('ai.toolbox.'.$name, $toolboxDefinition);
+
+            if ($config['fault_tolerant_toolbox']) {
+                $container->setDefinition('ai.fault_tolerant_toolbox.'.$name, new Definition(FaultTolerantToolbox::class))
+                    ->setArguments([new Reference('.inner')])
+                    ->setDecoratedService('ai.toolbox.'.$name);
+            }
+
+            if ($container->getParameter('kernel.debug')) {
+                $traceableToolboxDefinition = (new Definition('ai.traceable_toolbox.'.$name))
+                    ->setClass(TraceableToolbox::class)
+                    ->setArguments([new Reference('.inner')])
+                    ->setDecoratedService('ai.toolbox.'.$name)
+                    ->addTag('ai.traceable_toolbox');
+                $container->setDefinition('ai.traceable_toolbox.'.$name, $traceableToolboxDefinition);
+            }
+
+            $toolProcessorDefinition = (new ChildDefinition('ai.tool.agent_processor.abstract'))
+                ->replaceArgument(0, new Reference('ai.toolbox.'.$name));
+
+            $container->setDefinition('ai.tool.agent_processor.'.$name, $toolProcessorDefinition)
+                ->addTag('ai.agent.input_processor', ['agent' => $agentId, 'priority' => -10])
+                ->addTag('ai.agent.output_processor', ['agent' => $agentId, 'priority' => -10]);
+
+            // Define specific list of tools if are explicitly defined
             if ([] !== $config['tools']['services']) {
                 $memoryFactoryDefinition = new ChildDefinition('ai.tool_factory.abstract');
                 $memoryFactoryDefinition->setClass(MemoryToolFactory::class);
@@ -620,42 +648,7 @@ final class AiBundle extends AbstractBundle
                     $tools[] = $reference;
                 }
 
-                $toolboxDefinition = (new ChildDefinition('ai.toolbox.abstract'))
-                    ->replaceArgument(0, $tools)
-                    ->replaceArgument(1, new Reference('ai.toolbox.'.$name.'.chain_factory'));
-                $container->setDefinition('ai.toolbox.'.$name, $toolboxDefinition);
-
-                if ($config['fault_tolerant_toolbox']) {
-                    $container->setDefinition('ai.fault_tolerant_toolbox.'.$name, new Definition(FaultTolerantToolbox::class))
-                        ->setArguments([new Reference('.inner')])
-                        ->setDecoratedService('ai.toolbox.'.$name);
-                }
-
-                if ($container->getParameter('kernel.debug')) {
-                    $traceableToolboxDefinition = (new Definition('ai.traceable_toolbox.'.$name))
-                        ->setClass(TraceableToolbox::class)
-                        ->setArguments([new Reference('.inner')])
-                        ->setDecoratedService('ai.toolbox.'.$name)
-                        ->addTag('ai.traceable_toolbox');
-                    $container->setDefinition('ai.traceable_toolbox.'.$name, $traceableToolboxDefinition);
-                }
-
-                $toolProcessorDefinition = (new ChildDefinition('ai.tool.agent_processor.abstract'))
-                    ->replaceArgument(0, new Reference('ai.toolbox.'.$name));
-
-                $container->setDefinition('ai.tool.agent_processor.'.$name, $toolProcessorDefinition)
-                    ->addTag('ai.agent.input_processor', ['agent' => $agentId, 'priority' => -10])
-                    ->addTag('ai.agent.output_processor', ['agent' => $agentId, 'priority' => -10]);
-            } else {
-                if ($config['fault_tolerant_toolbox'] && !$container->hasDefinition('ai.fault_tolerant_toolbox')) {
-                    $container->setDefinition('ai.fault_tolerant_toolbox', new Definition(FaultTolerantToolbox::class))
-                        ->setArguments([new Reference('.inner')])
-                        ->setDecoratedService('ai.toolbox');
-                }
-
-                $container->getDefinition('ai.tool.agent_processor')
-                    ->addTag('ai.agent.input_processor', ['agent' => $agentId, 'priority' => -10])
-                    ->addTag('ai.agent.output_processor', ['agent' => $agentId, 'priority' => -10]);
+                $toolboxDefinition->replaceArgument(0, $tools);
             }
         }
 

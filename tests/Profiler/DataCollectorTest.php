@@ -12,7 +12,6 @@
 namespace Symfony\AI\AiBundle\Tests\Profiler;
 
 use PHPUnit\Framework\TestCase;
-use Symfony\AI\Agent\Toolbox\ToolboxInterface;
 use Symfony\AI\AiBundle\Profiler\DataCollector;
 use Symfony\AI\AiBundle\Profiler\TraceablePlatform;
 use Symfony\AI\Platform\Message\Content\Text;
@@ -39,7 +38,7 @@ class DataCollectorTest extends TestCase
         $result = $traceablePlatform->invoke('gpt-4o', $messageBag, ['stream' => false]);
         $this->assertSame('Assistant response', $result->asText());
 
-        $dataCollector = new DataCollector([$traceablePlatform], $this->createStub(ToolboxInterface::class), []);
+        $dataCollector = new DataCollector([$traceablePlatform], []);
         $dataCollector->lateCollect();
 
         $this->assertCount(1, $dataCollector->getPlatformCalls());
@@ -63,7 +62,7 @@ class DataCollectorTest extends TestCase
         $result = $traceablePlatform->invoke('gpt-4o', $messageBag, ['stream' => true]);
         $this->assertSame('Assistant response', implode('', iterator_to_array($result->asStream())));
 
-        $dataCollector = new DataCollector([$traceablePlatform], $this->createStub(ToolboxInterface::class), []);
+        $dataCollector = new DataCollector([$traceablePlatform], []);
         $dataCollector->lateCollect();
 
         $this->assertCount(1, $dataCollector->getPlatformCalls());

@@ -16,7 +16,6 @@ use Symfony\AI\Agent\StructuredOutput\ResponseFormatFactory;
 use Symfony\AI\Agent\StructuredOutput\ResponseFormatFactoryInterface;
 use Symfony\AI\Agent\Toolbox\AgentProcessor as ToolProcessor;
 use Symfony\AI\Agent\Toolbox\Toolbox;
-use Symfony\AI\Agent\Toolbox\ToolboxInterface;
 use Symfony\AI\Agent\Toolbox\ToolCallArgumentResolver;
 use Symfony\AI\Agent\Toolbox\ToolFactory\AbstractToolFactory;
 use Symfony\AI\Agent\Toolbox\ToolFactory\ReflectionToolFactory;
@@ -24,7 +23,6 @@ use Symfony\AI\Agent\Toolbox\ToolResultConverter;
 use Symfony\AI\AiBundle\Command\AgentCallCommand;
 use Symfony\AI\AiBundle\Command\PlatformInvokeCommand;
 use Symfony\AI\AiBundle\Profiler\DataCollector;
-use Symfony\AI\AiBundle\Profiler\TraceableToolbox;
 use Symfony\AI\AiBundle\Security\EventListener\IsGrantedToolAttributeListener;
 use Symfony\AI\Chat\Command\DropStoreCommand as DropMessageStoreCommand;
 use Symfony\AI\Chat\Command\SetupStoreCommand as SetupMessageStoreCommand;
@@ -130,16 +128,12 @@ return static function (ContainerConfigurator $container): void {
         ->set('ai.toolbox.abstract', Toolbox::class)
             ->abstract()
             ->args([
-                abstract_arg('Collection of tools'),
+                tagged_iterator('ai.tool'),
                 service('ai.tool_factory'),
                 service('ai.tool_call_argument_resolver'),
                 service('logger')->ignoreOnInvalid(),
                 service('event_dispatcher')->nullOnInvalid(),
             ])
-        ->set('ai.toolbox', Toolbox::class)
-            ->parent('ai.toolbox.abstract')
-            ->arg('index_0', tagged_iterator('ai.tool'))
-        ->alias(ToolboxInterface::class, 'ai.toolbox')
         ->set('ai.tool_factory.abstract', AbstractToolFactory::class)
             ->abstract()
             ->args([
@@ -164,9 +158,6 @@ return static function (ContainerConfigurator $container): void {
                 service('event_dispatcher')->nullOnInvalid(),
                 false,
             ])
-        ->set('ai.tool.agent_processor', ToolProcessor::class)
-            ->parent('ai.tool.agent_processor.abstract')
-            ->arg('index_0', service('ai.toolbox'))
         ->set('ai.security.is_granted_attribute_listener', IsGrantedToolAttributeListener::class)
             ->args([
                 service('security.authorization_checker'),
@@ -178,16 +169,9 @@ return static function (ContainerConfigurator $container): void {
         ->set('ai.data_collector', DataCollector::class)
             ->args([
                 tagged_iterator('ai.traceable_platform'),
-                service('ai.toolbox'),
                 tagged_iterator('ai.traceable_toolbox'),
             ])
             ->tag('data_collector')
-        ->set('ai.traceable_toolbox', TraceableToolbox::class)
-            ->decorate('ai.toolbox', priority: -1)
-            ->args([
-                service('.inner'),
-            ])
-            ->tag('ai.traceable_toolbox')
 
         // token usage processors
         ->set('ai.platform.token_usage_processor.anthropic', AnthropicTokenOutputProcessor::class)
