@@ -11,7 +11,6 @@
 
 namespace Symfony\AI\AiBundle\Profiler;
 
-use Symfony\AI\Agent\Toolbox\ToolboxInterface;
 use Symfony\AI\Agent\Toolbox\ToolResult;
 use Symfony\AI\Platform\Tool\Tool;
 use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
@@ -42,7 +41,6 @@ final class DataCollector extends AbstractDataCollector implements LateDataColle
      */
     public function __construct(
         iterable $platforms,
-        private readonly ToolboxInterface $defaultToolBox,
         iterable $toolboxes,
     ) {
         $this->platforms = $platforms instanceof \Traversable ? iterator_to_array($platforms) : $platforms;
@@ -57,7 +55,7 @@ final class DataCollector extends AbstractDataCollector implements LateDataColle
     public function lateCollect(): void
     {
         $this->data = [
-            'tools' => $this->defaultToolBox->getTools(),
+            'tools' => $this->getAllTools(),
             'platform_calls' => array_merge(...array_map($this->awaitCallResults(...), $this->platforms)),
             'tool_calls' => array_merge(...array_map(fn (TraceableToolbox $toolbox) => $toolbox->calls, $this->toolboxes)),
         ];
@@ -90,6 +88,14 @@ final class DataCollector extends AbstractDataCollector implements LateDataColle
     public function getToolCalls(): array
     {
         return $this->data['tool_calls'] ?? [];
+    }
+
+    /**
+     * @return Tool[]
+     */
+    private function getAllTools(): array
+    {
+        return array_merge(...array_map(fn (TraceableToolbox $toolbox) => $toolbox->getTools(), $this->toolboxes));
     }
 
     /**
