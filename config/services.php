@@ -157,6 +157,7 @@ return static function (ContainerConfigurator $container): void {
                 service('ai.tool_result_converter'),
                 service('event_dispatcher')->nullOnInvalid(),
                 false,
+                false,
             ])
         ->set('ai.security.is_granted_attribute_listener', IsGrantedToolAttributeListener::class)
             ->args([
