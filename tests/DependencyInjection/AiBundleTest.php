@@ -23,6 +23,7 @@ use Symfony\AI\Agent\MultiAgent\MultiAgent;
 use Symfony\AI\AiBundle\AiBundle;
 use Symfony\AI\Chat\ChatInterface;
 use Symfony\AI\Chat\MessageStoreInterface;
+use Symfony\AI\Platform\Bridge\Ollama\OllamaApiCatalog;
 use Symfony\AI\Store\Document\Filter\TextContainsFilter;
 use Symfony\AI\Store\Document\Loader\InMemoryLoader;
 use Symfony\AI\Store\Document\Transformer\TextTrimTransformer;
@@ -581,6 +582,45 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.platform.azure.Test_Instance-123'));
         $this->assertTrue($container->hasDefinition('ai.agent.My-Agent_Name.v2'));
         $this->assertTrue($container->hasDefinition('ai.store.mongodb.Production_DB-v3'));
+    }
+
+    public function testOllamaCanBeCreatedWithCatalogFromApi()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'ollama' => [
+                        'api_catalog' => true,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.platform.ollama'));
+        $this->assertTrue($container->hasDefinition('ai.platform.model_catalog.ollama'));
+
+        $ollamaDefinition = $container->getDefinition('ai.platform.ollama');
+
+        $this->assertTrue($ollamaDefinition->isLazy());
+        $this->assertCount(5, $ollamaDefinition->getArguments());
+        $this->assertSame('http://127.0.0.1:11434', $ollamaDefinition->getArgument(0));
+        $this->assertInstanceOf(Reference::class, $ollamaDefinition->getArgument(1));
+        $this->assertSame('http_client', (string) $ollamaDefinition->getArgument(1));
+        $this->assertInstanceOf(Reference::class, $ollamaDefinition->getArgument(2));
+        $this->assertSame('ai.platform.model_catalog.ollama', (string) $ollamaDefinition->getArgument(2));
+        $this->assertInstanceOf(Reference::class, $ollamaDefinition->getArgument(3));
+        $this->assertSame('ai.platform.contract.ollama', (string) $ollamaDefinition->getArgument(3));
+        $this->assertInstanceOf(Reference::class, $ollamaDefinition->getArgument(4));
+        $this->assertSame('event_dispatcher', (string) $ollamaDefinition->getArgument(4));
+
+        $ollamaCatalogDefinition = $container->getDefinition('ai.platform.model_catalog.ollama');
+
+        $this->assertTrue($ollamaCatalogDefinition->isLazy());
+        $this->assertSame(OllamaApiCatalog::class, $ollamaCatalogDefinition->getClass());
+        $this->assertCount(2, $ollamaCatalogDefinition->getArguments());
+        $this->assertSame('http://127.0.0.1:11434', $ollamaCatalogDefinition->getArgument(0));
+        $this->assertInstanceOf(Reference::class, $ollamaCatalogDefinition->getArgument(1));
+        $this->assertSame('http_client', (string) $ollamaCatalogDefinition->getArgument(1));
     }
 
     /**
