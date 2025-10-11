@@ -593,6 +593,14 @@ final class AiBundle extends AbstractBundle
         // TOOLBOX
         if ($config['tools']['enabled']) {
             // Setup toolbox for agent
+            $memoryFactoryDefinition = new ChildDefinition('ai.tool_factory.abstract');
+            $memoryFactoryDefinition->setClass(MemoryToolFactory::class);
+            $container->setDefinition('ai.toolbox.'.$name.'.memory_factory', $memoryFactoryDefinition);
+            $chainFactoryDefinition = new Definition(ChainFactory::class, [
+                [new Reference('ai.toolbox.'.$name.'.memory_factory'), new Reference('ai.tool_factory')],
+            ]);
+            $container->setDefinition('ai.toolbox.'.$name.'.chain_factory', $chainFactoryDefinition);
+
             $toolboxDefinition = (new ChildDefinition('ai.toolbox.abstract'))
                 ->replaceArgument(1, new Reference('ai.toolbox.'.$name.'.chain_factory'))
                 ->addTag('ai.toolbox', ['name' => $name]);
@@ -624,14 +632,6 @@ final class AiBundle extends AbstractBundle
 
             // Define specific list of tools if are explicitly defined
             if ([] !== $config['tools']['services']) {
-                $memoryFactoryDefinition = new ChildDefinition('ai.tool_factory.abstract');
-                $memoryFactoryDefinition->setClass(MemoryToolFactory::class);
-                $container->setDefinition('ai.toolbox.'.$name.'.memory_factory', $memoryFactoryDefinition);
-                $chainFactoryDefinition = new Definition(ChainFactory::class, [
-                    [new Reference('ai.toolbox.'.$name.'.memory_factory'), new Reference('ai.tool_factory')],
-                ]);
-                $container->setDefinition('ai.toolbox.'.$name.'.chain_factory', $chainFactoryDefinition);
-
                 $tools = [];
                 foreach ($config['tools']['services'] as $tool) {
                     if (isset($tool['agent'])) {
