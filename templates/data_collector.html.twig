@@ -164,6 +164,15 @@
                                         {% else %}
                                             {{ call.result }}
                                         {% endif %}
+                                        {% if call.metadata|length > 0 %}
+                                            <br />
+                                            <strong>Metadata</strong>
+                                            <ul>
+                                                {% for key, value in call.metadata.all %}
+                                                    <li>{{ key }}:<br />{{ dump(value) }}</li>
+                                                {% endfor %}
+                                            </ul>
+                                        {% endif %}
                                     </td>
                                 </tr>
                             </tbody>

@@ -12,6 +12,7 @@
 namespace Symfony\AI\AiBundle\Profiler;
 
 use Symfony\AI\Agent\Toolbox\ToolResult;
+use Symfony\AI\Platform\Metadata\Metadata;
 use Symfony\AI\Platform\Tool\Tool;
 use Symfony\Bundle\FrameworkBundle\DataCollector\AbstractDataCollector;
 use Symfony\Component\HttpFoundation\Request;
@@ -103,7 +104,8 @@ final class DataCollector extends AbstractDataCollector implements LateDataColle
      *     model: string,
      *     input: array<mixed>|string|object,
      *     options: array<string, mixed>,
-     *     result: string|iterable<mixed>|object|null
+     *     result: string|iterable<mixed>|object|null,
+     *     metadata: Metadata,
      * }[]
      */
     private function awaitCallResults(TraceablePlatform $platform): array
@@ -117,6 +119,8 @@ final class DataCollector extends AbstractDataCollector implements LateDataColle
             } else {
                 $call['result'] = $result->getContent();
             }
+
+            $call['metadata'] = $result->getMetadata();
 
             $calls[$key] = $call;
         }
