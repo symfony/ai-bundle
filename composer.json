@@ -48,5 +48,11 @@
     "config": {
         "sort-packages": true
     },
+    "extra": {
+        "thanks": {
+            "name": "symfony/ai",
+            "url": "https://github.com/symfony/ai"
+        }
+    },
     "minimum-stability": "dev"
 }
