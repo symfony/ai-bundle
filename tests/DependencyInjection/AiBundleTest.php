@@ -3042,6 +3042,13 @@ class AiBundleTest extends TestCase
                             'index_name' => 'test',
                         ],
                     ],
+                    'pogocache' => [
+                        'my_pogocache_message_store' => [
+                            'endpoint' => 'http://127.0.0.1:9401',
+                            'password' => 'foo',
+                            'key' => 'bar',
+                        ],
+                    ],
                     'session' => [
                         'my_session_message_store' => [
                             'identifier' => 'session',
