@@ -297,7 +297,6 @@ final class AiBundle extends AbstractBundle
                     $platform['host'],
                     new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.model_catalog.elevenlabs'),
-                    new Reference('ai.platform.contract.default'),
                 ])
                 ->addTag('ai.platform', ['name' => 'eleven_labs']);
 
@@ -395,7 +394,6 @@ final class AiBundle extends AbstractBundle
                     $platform['api_key'],
                     new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.model_catalog.openrouter'),
-                    new Reference('ai.platform.contract.default'),
                 ])
                 ->addTag('ai.platform', ['name' => 'openrouter']);
 
@@ -414,7 +412,6 @@ final class AiBundle extends AbstractBundle
                     $platform['api_key'],
                     new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.model_catalog.mistral'),
-                    new Reference('ai.platform.contract.default'),
                 ])
                 ->addTag('ai.platform', ['name' => 'mistral']);
 
@@ -433,7 +430,6 @@ final class AiBundle extends AbstractBundle
                     $platform['host_url'],
                     new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.model_catalog.lmstudio'),
-                    new Reference('ai.platform.contract.default'),
                 ])
                 ->addTag('ai.platform', ['name' => 'lmstudio']);
 
@@ -471,7 +467,6 @@ final class AiBundle extends AbstractBundle
                     $platform['api_key'],
                     new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.model_catalog.cerebras'),
-                    new Reference('ai.platform.contract.default'),
                 ])
                 ->addTag('ai.platform', ['name' => 'cerebras']);
 
@@ -490,7 +485,6 @@ final class AiBundle extends AbstractBundle
                     $platform['api_key'],
                     new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.model_catalog.deepseek'),
-                    new Reference('ai.platform.contract.default'),
                 ])
                 ->addTag('ai.platform', ['name' => 'deepseek']);
 
@@ -509,7 +503,6 @@ final class AiBundle extends AbstractBundle
                     $platform['api_key'],
                     new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.model_catalog.voyage'),
-                    new Reference('ai.platform.contract.default'),
                 ])
                 ->addTag('ai.platform', ['name' => 'voyage']);
 
@@ -547,7 +540,6 @@ final class AiBundle extends AbstractBundle
                     $platform['host_url'],
                     new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.model_catalog.dockermodelrunner'),
-                    new Reference('ai.platform.contract.default'),
                 ])
                 ->addTag('ai.platform');
 
@@ -566,7 +558,6 @@ final class AiBundle extends AbstractBundle
                     $platform['api_key'],
                     new Reference('http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     new Reference('ai.platform.model_catalog.scaleway'),
-                    new Reference('ai.platform.contract.default'),
                 ])
                 ->addTag('ai.platform');
 
