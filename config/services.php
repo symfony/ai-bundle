@@ -69,8 +69,6 @@ use Symfony\AI\Store\Command\SetupStoreCommand;
 return static function (ContainerConfigurator $container): void {
     $container->services()
         // contract
-        ->set('ai.platform.contract.default', Contract::class)
-            ->factory([Contract::class, 'create'])
         ->set('ai.platform.contract.openai', Contract::class)
             ->factory([OpenAiContract::class, 'create'])
         ->set('ai.platform.contract.anthropic', Contract::class)
