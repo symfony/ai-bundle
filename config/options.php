@@ -283,7 +283,6 @@ return static function (DefinitionConfigurator $configurator): void {
                                 })
                             ->end()
                         ->end()
-                        ->booleanNode('structured_output')->defaultTrue()->end()
                         ->variableNode('memory')
                             ->info('Memory configuration: string for static memory, or array with "service" key for service reference')
                             ->defaultNull()
