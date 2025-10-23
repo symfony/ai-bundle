@@ -55,6 +55,7 @@ use Symfony\AI\Platform\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFac
 use Symfony\AI\Platform\Bridge\Azure\OpenAi\PlatformFactory as AzureOpenAiPlatformFactory;
 use Symfony\AI\Platform\Bridge\Cartesia\PlatformFactory as CartesiaPlatformFactory;
 use Symfony\AI\Platform\Bridge\Cerebras\PlatformFactory as CerebrasPlatformFactory;
+use Symfony\AI\Platform\Bridge\Decart\PlatformFactory as DecartPlatformFactory;
 use Symfony\AI\Platform\Bridge\DeepSeek\PlatformFactory as DeepSeekPlatformFactory;
 use Symfony\AI\Platform\Bridge\DockerModelRunner\PlatformFactory as DockerModelRunnerPlatformFactory;
 use Symfony\AI\Platform\Bridge\ElevenLabs\PlatformFactory as ElevenLabsPlatformFactory;
@@ -426,6 +427,27 @@ final class AiBundle extends AbstractBundle
                 ->addTag('ai.platform', ['name' => 'cartesia']);
 
             $container->setDefinition('ai.platform.cartesia', $definition);
+
+            return;
+        }
+
+        if ('decart' === $type) {
+            $definition = (new Definition(Platform::class))
+                ->setFactory(DecartPlatformFactory::class.'::create')
+                ->setLazy(true)
+                ->setArguments([
+                    $platform['api_key'],
+                    $platform['host'],
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference('ai.platform.model_catalog.'.$type),
+                    null,
+                    new Reference('event_dispatcher'),
+                ])
+                ->addTag('proxy', ['interface' => PlatformInterface::class])
+                ->addTag('ai.platform', ['name' => $type]);
+
+            $container->setDefinition('ai.platform.'.$type, $definition);
+            $container->registerAliasForArgument('ai.platform.'.$type, PlatformInterface::class, $type);
 
             return;
         }
