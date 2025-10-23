@@ -27,7 +27,8 @@ use Symfony\AI\AiBundle\AiBundle;
 use Symfony\AI\Chat\ChatInterface;
 use Symfony\AI\Chat\ManagedStoreInterface as ManagedMessageStoreInterface;
 use Symfony\AI\Chat\MessageStoreInterface;
-use Symfony\AI\Platform\Bridge\ElevenLabs\PlatformFactory;
+use Symfony\AI\Platform\Bridge\Decart\PlatformFactory as DecartPlatformFactory;
+use Symfony\AI\Platform\Bridge\ElevenLabs\PlatformFactory as ElevenLabsPlatformFactory;
 use Symfony\AI\Platform\Bridge\Ollama\OllamaApiCatalog;
 use Symfony\AI\Platform\Capability;
 use Symfony\AI\Platform\Model;
@@ -3595,6 +3596,49 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.store.mongodb.Production_DB-v3'));
     }
 
+    public function testDecartPlatformCanBeCreatedWithCustomEndpoint()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'decart' => [
+                        'api_key' => 'foo',
+                        'host' => 'https://api.decart.ai/v2',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.platform.decart'));
+        $this->assertTrue($container->hasDefinition('ai.platform.model_catalog.decart'));
+
+        $definition = $container->getDefinition('ai.platform.decart');
+
+        $this->assertTrue($definition->isLazy());
+        $this->assertSame([
+            DecartPlatformFactory::class,
+            'create',
+        ], $definition->getFactory());
+        $this->assertCount(6, $definition->getArguments());
+        $this->assertSame('foo', $definition->getArgument(0));
+        $this->assertSame('https://api.decart.ai/v2', $definition->getArgument(1));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(2));
+        $this->assertSame('http_client', (string) $definition->getArgument(2));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(3));
+        $this->assertSame('ai.platform.model_catalog.decart', (string) $definition->getArgument(3));
+        $this->assertNull($definition->getArgument(4));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(5));
+        $this->assertSame('event_dispatcher', (string) $definition->getArgument(5));
+
+        $this->assertTrue($definition->hasTag('proxy'));
+        $this->assertSame([['interface' => PlatformInterface::class]], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.platform'));
+        $this->assertSame([['name' => 'decart']], $definition->getTag('ai.platform'));
+
+        $this->assertTrue($container->hasAlias('Symfony\AI\Platform\PlatformInterface $decart'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Platform\PlatformInterface'));
+    }
+
     public function testOllamaCanBeCreatedWithCatalogFromApi()
     {
         $container = $this->buildContainer([
@@ -3785,7 +3829,7 @@ class AiBundleTest extends TestCase
         $definition = $container->getDefinition('ai.platform.elevenlabs');
 
         $this->assertTrue($definition->isLazy());
-        $this->assertSame([PlatformFactory::class, 'create'], $definition->getFactory());
+        $this->assertSame([ElevenLabsPlatformFactory::class, 'create'], $definition->getFactory());
 
         $this->assertCount(6, $definition->getArguments());
         $this->assertSame('foo', $definition->getArgument(0));
@@ -3825,7 +3869,7 @@ class AiBundleTest extends TestCase
         $definition = $container->getDefinition('ai.platform.elevenlabs');
 
         $this->assertTrue($definition->isLazy());
-        $this->assertSame([PlatformFactory::class, 'create'], $definition->getFactory());
+        $this->assertSame([ElevenLabsPlatformFactory::class, 'create'], $definition->getFactory());
 
         $this->assertCount(6, $definition->getArguments());
         $this->assertSame('foo', $definition->getArgument(0));
@@ -3865,7 +3909,7 @@ class AiBundleTest extends TestCase
         $definition = $container->getDefinition('ai.platform.elevenlabs');
 
         $this->assertTrue($definition->isLazy());
-        $this->assertSame([PlatformFactory::class, 'create'], $definition->getFactory());
+        $this->assertSame([ElevenLabsPlatformFactory::class, 'create'], $definition->getFactory());
 
         $this->assertCount(6, $definition->getArguments());
         $this->assertSame('foo', $definition->getArgument(0));
@@ -6906,6 +6950,9 @@ class AiBundleTest extends TestCase
                         'api_key' => 'cartesia_key_full',
                         'version' => '2025-04-16',
                         'http_client' => 'http_client',
+                    ],
+                    'decart' => [
+                        'api_key' => 'foo',
                     ],
                     'elevenlabs' => [
                         'host' => 'https://api.elevenlabs.io/v1',
