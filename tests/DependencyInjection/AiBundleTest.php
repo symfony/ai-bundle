@@ -526,7 +526,6 @@ class AiBundleTest extends TestCase
                         'tools' => [
                             ['service' => 'some_tool', 'description' => 'Test tool'],
                         ],
-                        'structured_output' => true,
                         'prompt' => 'You are a test assistant.',
                     ],
                 ],
@@ -544,21 +543,6 @@ class AiBundleTest extends TestCase
         $outputTags = $toolProcessorDefinition->getTag('ai.agent.output_processor');
         $this->assertNotEmpty($outputTags, 'Tool processor should have output processor tags');
         $this->assertSame($agentId, $outputTags[0]['agent'], 'Tool output processor tag should use full agent ID');
-
-        // Test structured output processor tags
-        $structuredOutputTags = $container->getDefinition('ai.agent.structured_output_processor')
-            ->getTag('ai.agent.input_processor');
-        $this->assertNotEmpty($structuredOutputTags, 'Structured output processor should have input processor tags');
-
-        // Find the tag for our specific agent
-        $foundAgentTag = false;
-        foreach ($structuredOutputTags as $tag) {
-            if (($tag['agent'] ?? '') === $agentId) {
-                $foundAgentTag = true;
-                break;
-            }
-        }
-        $this->assertTrue($foundAgentTag, 'Structured output processor should have tag with full agent ID');
 
         // Test system prompt processor tags
         $systemPromptDefinition = $container->getDefinition('ai.agent.test_agent.system_prompt_processor');
@@ -715,7 +699,7 @@ class AiBundleTest extends TestCase
         $definition = $container->getDefinition('ai.platform.openai');
         $arguments = $definition->getArguments();
 
-        $this->assertCount(5, $arguments);
+        $this->assertCount(6, $arguments);
         $this->assertSame('sk-test-key', $arguments[0]);
         $this->assertNull($arguments[4]); // region should be null by default
     }
@@ -741,7 +725,7 @@ class AiBundleTest extends TestCase
         $definition = $container->getDefinition('ai.platform.openai');
         $arguments = $definition->getArguments();
 
-        $this->assertCount(5, $arguments);
+        $this->assertCount(6, $arguments);
         $this->assertSame('sk-test-key', $arguments[0]);
         $this->assertSame($region, $arguments[4]);
     }
@@ -780,7 +764,7 @@ class AiBundleTest extends TestCase
         $definition = $container->getDefinition('ai.platform.perplexity');
         $arguments = $definition->getArguments();
 
-        $this->assertCount(4, $arguments);
+        $this->assertCount(5, $arguments);
         $this->assertSame('pplx-test-key', $arguments[0]);
         $this->assertInstanceOf(Reference::class, $arguments[1]);
         $this->assertSame('http_client', (string) $arguments[1]);
@@ -2826,7 +2810,6 @@ class AiBundleTest extends TestCase
                                 'nested' => ['options' => ['work' => 'too']],
                             ],
                         ],
-                        'structured_output' => false,
                         'track_token_usage' => true,
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
