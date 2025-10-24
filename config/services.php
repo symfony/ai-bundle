@@ -11,9 +11,6 @@
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use Symfony\AI\Agent\StructuredOutput\AgentProcessor as StructureOutputProcessor;
-use Symfony\AI\Agent\StructuredOutput\ResponseFormatFactory;
-use Symfony\AI\Agent\StructuredOutput\ResponseFormatFactoryInterface;
 use Symfony\AI\Agent\Toolbox\AgentProcessor as ToolProcessor;
 use Symfony\AI\Agent\Toolbox\Toolbox;
 use Symfony\AI\Agent\Toolbox\ToolCallArgumentResolver;
@@ -61,6 +58,9 @@ use Symfony\AI\Platform\Bridge\Voyage\ModelCatalog as VoyageModelCatalog;
 use Symfony\AI\Platform\Contract;
 use Symfony\AI\Platform\Contract\JsonSchema\DescriptionParser;
 use Symfony\AI\Platform\Contract\JsonSchema\Factory as SchemaFactory;
+use Symfony\AI\Platform\StructuredOutput\PlatformSubscriber;
+use Symfony\AI\Platform\StructuredOutput\ResponseFormatFactory;
+use Symfony\AI\Platform\StructuredOutput\ResponseFormatFactoryInterface;
 use Symfony\AI\Store\Command\DropStoreCommand;
 use Symfony\AI\Store\Command\IndexCommand;
 use Symfony\AI\Store\Command\SetupStoreCommand;
@@ -113,12 +113,13 @@ return static function (ContainerConfigurator $container): void {
                 service('ai.platform.json_schema.description_parser'),
                 service('type_info.resolver')->nullOnInvalid(),
             ])
-        ->alias(ResponseFormatFactoryInterface::class, 'ai.agent.response_format_factory')
-        ->set('ai.agent.structured_output_processor', StructureOutputProcessor::class)
+        ->alias(ResponseFormatFactoryInterface::class, 'ai.platform.response_format_factory')
+        ->set('ai.platform.structured_output_subscriber', PlatformSubscriber::class)
             ->args([
                 service('ai.agent.response_format_factory'),
                 service('serializer'),
             ])
+            ->tag('kernel.event_subscriber')
 
         // tools
         ->set('ai.toolbox.abstract', Toolbox::class)
