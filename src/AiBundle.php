@@ -41,6 +41,7 @@ use Symfony\AI\Chat\Bridge\Local\CacheStore as CacheMessageStore;
 use Symfony\AI\Chat\Bridge\Meilisearch\MessageStore as MeilisearchMessageStore;
 use Symfony\AI\Chat\Bridge\Pogocache\MessageStore as PogocacheMessageStore;
 use Symfony\AI\Chat\Bridge\Redis\MessageStore as RedisMessageStore;
+use Symfony\AI\Chat\Bridge\SurrealDb\MessageStore as SurrealDbMessageStore;
 use Symfony\AI\Chat\Chat;
 use Symfony\AI\Chat\ChatInterface;
 use Symfony\AI\Chat\MessageStoreInterface;
@@ -1594,6 +1595,36 @@ final class AiBundle extends AbstractBundle
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
                 $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $name);
                 $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $type.'_'.$name);
+            }
+        }
+
+        if ('surreal_db' === $type) {
+            foreach ($messageStores as $name => $messageStore) {
+                $arguments = [
+                    new Reference('http_client'),
+                    $messageStore['endpoint'],
+                    $messageStore['username'],
+                    $messageStore['password'],
+                    $messageStore['namespace'],
+                    $messageStore['database'],
+                    new Reference('serializer'),
+                    $messageStore['table'] ?? $name,
+                ];
+
+                if (\array_key_exists('namespaced_user', $messageStore)) {
+                    $arguments[8] = $messageStore['namespaced_user'];
+                }
+
+                $definition = new Definition(SurrealDbMessageStore::class);
+                $definition
+                    ->setLazy(true)
+                    ->addTag('proxy', ['interface' => MessageStoreInterface::class])
+                    ->addTag('ai.message_store')
+                    ->setArguments($arguments);
+
+                $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
     }
