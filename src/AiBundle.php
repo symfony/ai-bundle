@@ -40,6 +40,7 @@ use Symfony\AI\Chat\Bridge\Doctrine\DoctrineDbalMessageStore;
 use Symfony\AI\Chat\Bridge\HttpFoundation\SessionStore;
 use Symfony\AI\Chat\Bridge\Local\CacheStore as CacheMessageStore;
 use Symfony\AI\Chat\Bridge\Meilisearch\MessageStore as MeilisearchMessageStore;
+use Symfony\AI\Chat\Bridge\MongoDb\MessageStore as MongoDbMessageStore;
 use Symfony\AI\Chat\Bridge\Pogocache\MessageStore as PogocacheMessageStore;
 use Symfony\AI\Chat\Bridge\Redis\MessageStore as RedisMessageStore;
 use Symfony\AI\Chat\Bridge\SurrealDb\MessageStore as SurrealDbMessageStore;
@@ -1601,6 +1602,26 @@ final class AiBundle extends AbstractBundle
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
                 $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $name);
                 $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $type.'_'.$name);
+            }
+        }
+
+        if ('mongodb' === $type) {
+            foreach ($messageStores as $name => $messageStore) {
+                $definition = new Definition(MongoDbMessageStore::class);
+                $definition
+                    ->setLazy(true)
+                    ->setArguments([
+                        new Reference($messageStore['client']),
+                        $messageStore['database'],
+                        $messageStore['collection'],
+                        new Reference('serializer'),
+                    ])
+                    ->addTag('proxy', ['interface' => MessageStoreInterface::class])
+                    ->addTag('ai.message_store');
+
+                $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
             }
         }
 

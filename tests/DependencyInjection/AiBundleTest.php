@@ -11,6 +11,7 @@
 
 namespace Symfony\AI\AiBundle\Tests\DependencyInjection;
 
+use MongoDB\Client as MongoDbClient;
 use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\Attributes\TestWith;
@@ -3087,6 +3088,69 @@ class AiBundleTest extends TestCase
         $this->assertTrue($memoryMessageStoreDefinition->hasTag('ai.message_store'));
     }
 
+    public function testMongoDbMessageStoreIsConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'mongodb' => [
+                        'custom' => [
+                            'collection' => 'foo',
+                            'database' => 'bar',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $mongoDbMessageStoreDefinition = $container->getDefinition('ai.message_store.mongodb.custom');
+
+        $this->assertTrue($mongoDbMessageStoreDefinition->isLazy());
+        $this->assertCount(4, $mongoDbMessageStoreDefinition->getArguments());
+        $this->assertInstanceOf(Reference::class, $mongoDbMessageStoreDefinition->getArgument(0));
+        $this->assertSame(MongoDbClient::class, (string) $mongoDbMessageStoreDefinition->getArgument(0));
+        $this->assertSame('bar', $mongoDbMessageStoreDefinition->getArgument(1));
+        $this->assertSame('foo', $mongoDbMessageStoreDefinition->getArgument(2));
+        $this->assertInstanceOf(Reference::class, $mongoDbMessageStoreDefinition->getArgument(3));
+        $this->assertSame('serializer', (string) $mongoDbMessageStoreDefinition->getArgument(3));
+
+        $this->assertTrue($mongoDbMessageStoreDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => MessageStoreInterface::class]], $mongoDbMessageStoreDefinition->getTag('proxy'));
+        $this->assertTrue($mongoDbMessageStoreDefinition->hasTag('ai.message_store'));
+    }
+
+    public function testMongoDbMessageStoreIsConfiguredWithCustomClient()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'mongodb' => [
+                        'custom' => [
+                            'client' => 'custom',
+                            'collection' => 'foo',
+                            'database' => 'bar',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $mongoDbMessageStoreDefinition = $container->getDefinition('ai.message_store.mongodb.custom');
+
+        $this->assertTrue($mongoDbMessageStoreDefinition->isLazy());
+        $this->assertCount(4, $mongoDbMessageStoreDefinition->getArguments());
+        $this->assertInstanceOf(Reference::class, $mongoDbMessageStoreDefinition->getArgument(0));
+        $this->assertSame('custom', (string) $mongoDbMessageStoreDefinition->getArgument(0));
+        $this->assertSame('bar', $mongoDbMessageStoreDefinition->getArgument(1));
+        $this->assertSame('foo', $mongoDbMessageStoreDefinition->getArgument(2));
+        $this->assertInstanceOf(Reference::class, $mongoDbMessageStoreDefinition->getArgument(3));
+        $this->assertSame('serializer', (string) $mongoDbMessageStoreDefinition->getArgument(3));
+
+        $this->assertTrue($mongoDbMessageStoreDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => MessageStoreInterface::class]], $mongoDbMessageStoreDefinition->getTag('proxy'));
+        $this->assertTrue($mongoDbMessageStoreDefinition->hasTag('ai.message_store'));
+    }
+
     public function testPogocacheMessageStoreIsConfigured()
     {
         $container = $this->buildContainer([
@@ -3810,6 +3874,17 @@ class AiBundleTest extends TestCase
                             'endpoint' => 'http://127.0.0.1:7700',
                             'api_key' => 'foo',
                             'index_name' => 'test',
+                        ],
+                    ],
+                    'mongodb' => [
+                        'my_mongo_db_message_store' => [
+                            'collection' => 'foo',
+                            'database' => 'bar',
+                        ],
+                        'my_mongo_db_message_store_with_custom_client' => [
+                            'client' => 'custom',
+                            'collection' => 'foo',
+                            'database' => 'bar',
                         ],
                     ],
                     'pogocache' => [
