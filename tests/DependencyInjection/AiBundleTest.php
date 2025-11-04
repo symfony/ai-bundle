@@ -2911,6 +2911,17 @@ class AiBundleTest extends TestCase
                             'endpoint_url' => 'https://api.cloudflare.com/client/v5/accounts',
                         ],
                     ],
+                    'manticore' => [
+                        'my_manticore_store' => [
+                            'endpoint' => 'http://127.0.0.1:9306',
+                            'table' => 'test',
+                            'field' => 'foo_vector',
+                            'type' => 'hnsw',
+                            'similarity' => 'cosine',
+                            'dimensions' => 768,
+                            'quantization' => '1bit',
+                        ],
+                    ],
                     'meilisearch' => [
                         'my_meilisearch_store' => [
                             'endpoint' => 'http://127.0.0.1:7700',

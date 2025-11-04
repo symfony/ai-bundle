@@ -69,6 +69,7 @@ use Symfony\AI\Store\Bridge\Local\CacheStore;
 use Symfony\AI\Store\Bridge\Local\DistanceCalculator;
 use Symfony\AI\Store\Bridge\Local\DistanceStrategy;
 use Symfony\AI\Store\Bridge\Local\InMemoryStore;
+use Symfony\AI\Store\Bridge\Manticore\Store as ManticoreStore;
 use Symfony\AI\Store\Bridge\Meilisearch\Store as MeilisearchStore;
 use Symfony\AI\Store\Bridge\Milvus\Store as MilvusStore;
 use Symfony\AI\Store\Bridge\MongoDb\Store as MongoDbStore;
@@ -902,6 +903,45 @@ final class AiBundle extends AbstractBundle
                 }
 
                 $definition = new Definition(CloudflareStore::class);
+                $definition
+                    ->addTag('ai.store')
+                    ->setArguments($arguments);
+
+                $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
+            }
+        }
+
+        if ('manticore' === $type) {
+            foreach ($stores as $name => $store) {
+                $arguments = [
+                    new Reference('http_client'),
+                    $store['endpoint'],
+                    $store['table'],
+                ];
+
+                if (\array_key_exists('field', $store)) {
+                    $arguments[3] = $store['field'];
+                }
+
+                if (\array_key_exists('type', $store)) {
+                    $arguments[4] = $store['type'];
+                }
+
+                if (\array_key_exists('similarity', $store)) {
+                    $arguments[5] = $store['similarity'];
+                }
+
+                if (\array_key_exists('dimensions', $store)) {
+                    $arguments[6] = $store['dimensions'];
+                }
+
+                if (\array_key_exists('quantization', $store)) {
+                    $arguments[7] = $store['quantization'];
+                }
+
+                $definition = new Definition(ManticoreStore::class);
                 $definition
                     ->addTag('ai.store')
                     ->setArguments($arguments);
