@@ -32,14 +32,39 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Translation\TranslatableMessage;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class AiBundleTest extends TestCase
 {
     #[DoesNotPerformAssertions]
     public function testExtensionLoadDoesNotThrow()
     {
-        $this->buildContainer($this->getFullConfig());
+        $container = $this->buildContainer($this->getFullConfig());
+
+        // Mock services that are used as platform create arguments, but should not be testet here or are not available.
+        $container->set('event_dispatcher', $this->createMock(EventDispatcherInterface::class));
+        $container->getDefinition('ai.platform.vertexai')->replaceArgument(2, $this->createMock(HttpClientInterface::class));
+
+        $platforms = $container->findTaggedServiceIds('ai.platform');
+
+        foreach (array_keys($platforms) as $platformId) {
+            try {
+                $platformService = $container->get($platformId);
+                $platformService->getModelCatalog();
+            } catch (\Throwable $e) {
+                $failureMessage = \sprintf(
+                    'Failed to load platform service "%s" or call getModelCatalog(). '.
+                    'Original error: %s (in %s:%d)',
+                    $platformId,
+                    $e->getMessage(),
+                    $e->getFile(),
+                    $e->getLine()
+                );
+                $this->fail($failureMessage);
+            }
+        }
     }
 
     public function testStoreCommandsArentDefinedWithoutStore()
@@ -2752,13 +2777,13 @@ class AiBundleTest extends TestCase
                     'azure' => [
                         'my_azure_instance' => [
                             'api_key' => 'azure_key_full',
-                            'base_url' => 'https://myazure.openai.azure.com/',
+                            'base_url' => 'myazure.openai.azure.com/',
                             'deployment' => 'gpt-35-turbo',
                             'api_version' => '2024-02-15-preview',
                         ],
                         'another_azure_instance' => [
                             'api_key' => 'azure_key_2',
-                            'base_url' => 'https://myazure2.openai.azure.com/',
+                            'base_url' => 'myazure2.openai.azure.com/',
                             'deployment' => 'gpt-4',
                             'api_version' => '2024-02-15-preview',
                         ],
@@ -2771,13 +2796,13 @@ class AiBundleTest extends TestCase
                         'api_key' => 'gemini_key_full',
                     ],
                     'openai' => [
-                        'api_key' => 'openai_key_full',
+                        'api_key' => 'sk-openai_key_full',
                     ],
                     'mistral' => [
                         'api_key' => 'mistral_key_full',
                     ],
                     'openrouter' => [
-                        'api_key' => 'openrouter_key_full',
+                        'api_key' => 'sk-openrouter_key_full',
                     ],
                     'lmstudio' => [
                         'host_url' => 'http://127.0.0.1:1234',
@@ -2786,7 +2811,7 @@ class AiBundleTest extends TestCase
                         'host_url' => 'http://127.0.0.1:11434',
                     ],
                     'cerebras' => [
-                        'api_key' => 'cerebras_key_full',
+                        'api_key' => 'csk-cerebras_key_full',
                     ],
                     'voyage' => [
                         'api_key' => 'voyage_key_full',
