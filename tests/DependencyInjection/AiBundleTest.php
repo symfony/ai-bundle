@@ -2942,6 +2942,7 @@ class AiBundleTest extends TestCase
                             'collection_name' => 'foo',
                             'dimensions' => 768,
                             'distance' => 'Cosine',
+                            'async' => false,
                         ],
                     ],
                     'redis' => [

@@ -1102,6 +1102,10 @@ final class AiBundle extends AbstractBundle
                     $arguments[5] = $store['distance'];
                 }
 
+                if (\array_key_exists('async', $store)) {
+                    $arguments[6] = $store['async'];
+                }
+
                 $definition = new Definition(QdrantStore::class);
                 $definition
                     ->addTag('ai.store')
