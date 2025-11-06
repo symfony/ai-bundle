@@ -607,6 +607,7 @@ return static function (DefinitionConfigurator $configurator): void {
                                 ->stringNode('collection_name')->cannotBeEmpty()->end()
                                 ->integerNode('dimensions')->end()
                                 ->stringNode('distance')->end()
+                                ->booleanNode('async')->defaultFalse()->end()
                             ->end()
                         ->end()
                     ->end()
