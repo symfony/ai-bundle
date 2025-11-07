@@ -38,6 +38,7 @@ use Symfony\AI\Chat\Bridge\HttpFoundation\SessionStore;
 use Symfony\AI\Chat\Bridge\Meilisearch\MessageStore as MeilisearchMessageStore;
 use Symfony\AI\Chat\Bridge\Pogocache\MessageStore as PogocacheMessageStore;
 use Symfony\AI\Chat\MessageStoreInterface;
+use Symfony\AI\Platform\Bridge\Albert\PlatformFactory as AlbertPlatformFactory;
 use Symfony\AI\Platform\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFactory;
 use Symfony\AI\Platform\Bridge\Azure\OpenAi\PlatformFactory as AzureOpenAiPlatformFactory;
 use Symfony\AI\Platform\Bridge\Cerebras\PlatformFactory as CerebrasPlatformFactory;
@@ -246,6 +247,26 @@ final class AiBundle extends AbstractBundle
      */
     private function processPlatformConfig(string $type, array $platform, ContainerBuilder $container): void
     {
+        if ('albert' === $type) {
+            $platformId = 'ai.platform.albert';
+            $definition = (new Definition(Platform::class))
+                ->setFactory(AlbertPlatformFactory::class.'::create')
+                ->setLazy(true)
+                ->addTag('proxy', ['interface' => PlatformInterface::class])
+                ->setArguments([
+                    $platform['api_key'],
+                    $platform['base_url'],
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference('ai.platform.model_catalog.albert'),
+                    new Reference('event_dispatcher'),
+                ])
+                ->addTag('ai.platform', ['name' => 'albert']);
+
+            $container->setDefinition($platformId, $definition);
+
+            return;
+        }
+
         if ('anthropic' === $type) {
             $platformId = 'ai.platform.anthropic';
             $definition = (new Definition(Platform::class))

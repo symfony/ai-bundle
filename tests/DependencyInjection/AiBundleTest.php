@@ -2774,6 +2774,10 @@ class AiBundleTest extends TestCase
                     'anthropic' => [
                         'api_key' => 'anthropic_key_full',
                     ],
+                    'albert' => [
+                        'api_key' => 'albert-test-key',
+                        'base_url' => 'https://albert.api.etalab.gouv.fr/v1',
+                    ],
                     'azure' => [
                         'my_azure_instance' => [
                             'api_key' => 'azure_key_full',
