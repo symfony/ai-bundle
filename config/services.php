@@ -36,6 +36,7 @@ use Symfony\AI\Platform\Bridge\ElevenLabs\ModelCatalog as ElevenLabsModelCatalog
 use Symfony\AI\Platform\Bridge\Gemini\Contract\GeminiContract;
 use Symfony\AI\Platform\Bridge\Gemini\ModelCatalog as GeminiModelCatalog;
 use Symfony\AI\Platform\Bridge\Gemini\TokenOutputProcessor as GeminiTokenOutputProcessor;
+use Symfony\AI\Platform\Bridge\HuggingFace\Contract\HuggingFaceContract;
 use Symfony\AI\Platform\Bridge\HuggingFace\ModelCatalog as HuggingFaceModelCatalog;
 use Symfony\AI\Platform\Bridge\LmStudio\ModelCatalog as LmStudioModelCatalog;
 use Symfony\AI\Platform\Bridge\Meta\ModelCatalog as MetaModelCatalog;
@@ -76,6 +77,8 @@ return static function (ContainerConfigurator $container): void {
             ->factory([AnthropicContract::class, 'create'])
         ->set('ai.platform.contract.gemini', Contract::class)
             ->factory([GeminiContract::class, 'create'])
+        ->set('ai.platform.contract.huggingface', Contract::class)
+            ->factory([HuggingFaceContract::class, 'create'])
         ->set('ai.platform.contract.vertexai.gemini', Contract::class)
             ->factory([VertexAiGeminiContract::class, 'create'])
         ->set('ai.platform.contract.ollama', Contract::class)

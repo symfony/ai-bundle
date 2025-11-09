@@ -166,7 +166,7 @@
                                                 {% endfor %}
                                             </ol>
                                         {% else %}
-                                            {{ call.result }}
+                                            {{ dump(call.result) }}
                                         {% endif %}
                                         {% if call.metadata|length > 0 %}
                                             <br />
