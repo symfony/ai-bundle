@@ -43,6 +43,7 @@ use Symfony\AI\Chat\Bridge\Redis\MessageStore as RedisMessageStore;
 use Symfony\AI\Chat\Chat;
 use Symfony\AI\Chat\ChatInterface;
 use Symfony\AI\Chat\MessageStoreInterface;
+use Symfony\AI\Platform\Bridge\Albert\PlatformFactory as AlbertPlatformFactory;
 use Symfony\AI\Platform\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFactory;
 use Symfony\AI\Platform\Bridge\Azure\OpenAi\PlatformFactory as AzureOpenAiPlatformFactory;
 use Symfony\AI\Platform\Bridge\Cartesia\PlatformFactory as CartesiaPlatformFactory;
@@ -292,6 +293,26 @@ final class AiBundle extends AbstractBundle
      */
     private function processPlatformConfig(string $type, array $platform, ContainerBuilder $container): void
     {
+        if ('albert' === $type) {
+            $platformId = 'ai.platform.albert';
+            $definition = (new Definition(Platform::class))
+                ->setFactory(AlbertPlatformFactory::class.'::create')
+                ->setLazy(true)
+                ->addTag('proxy', ['interface' => PlatformInterface::class])
+                ->setArguments([
+                    $platform['api_key'],
+                    $platform['base_url'],
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    new Reference('ai.platform.model_catalog.albert'),
+                    new Reference('event_dispatcher'),
+                ])
+                ->addTag('ai.platform', ['name' => 'albert']);
+
+            $container->setDefinition($platformId, $definition);
+
+            return;
+        }
+
         if ('anthropic' === $type) {
             $platformId = 'ai.platform.anthropic';
             $definition = (new Definition(Platform::class))
