@@ -25,6 +25,7 @@ use Symfony\AI\Chat\Command\DropStoreCommand as DropMessageStoreCommand;
 use Symfony\AI\Chat\Command\SetupStoreCommand as SetupMessageStoreCommand;
 use Symfony\AI\Chat\MessageNormalizer;
 use Symfony\AI\Platform\Bridge\AiMlApi\ModelCatalog as AiMlApiModelCatalog;
+use Symfony\AI\Platform\Bridge\Albert\ModelCatalog as AlbertModelCatalog;
 use Symfony\AI\Platform\Bridge\Anthropic\Contract\AnthropicContract;
 use Symfony\AI\Platform\Bridge\Anthropic\ModelCatalog as AnthropicModelCatalog;
 use Symfony\AI\Platform\Bridge\Anthropic\TokenOutputProcessor as AnthropicTokenOutputProcessor;
@@ -88,6 +89,7 @@ return static function (ContainerConfigurator $container): void {
 
         // model catalog
         ->set('ai.platform.model_catalog.aimlapi', AiMlApiModelCatalog::class)
+        ->set('ai.platform.model_catalog.albert', AlbertModelCatalog::class)
         ->set('ai.platform.model_catalog.anthropic', AnthropicModelCatalog::class)
         ->set('ai.platform.model_catalog.cartesia', CartesiaModelCatalog::class)
         ->set('ai.platform.model_catalog.cerebras', CerebrasModelCatalog::class)
