@@ -882,7 +882,7 @@ return static function (DefinitionConfigurator $configurator): void {
                             ->end()
                             ->beforeNormalization()
                                 ->always(function ($v) {
-                                    if (\is_string($v)) {
+                                    if (\is_string($v) || null === $v) {
                                         return $v;
                                     }
 
