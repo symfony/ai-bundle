@@ -27,6 +27,8 @@ use Symfony\AI\Store\Document\Filter\TextContainsFilter;
 use Symfony\AI\Store\Document\Loader\InMemoryLoader;
 use Symfony\AI\Store\Document\Transformer\TextTrimTransformer;
 use Symfony\AI\Store\Document\Vectorizer;
+use Symfony\AI\Store\Document\VectorizerInterface;
+use Symfony\AI\Store\IndexerInterface;
 use Symfony\AI\Store\StoreInterface;
 use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -1784,6 +1786,25 @@ class AiBundleTest extends TestCase
         $this->assertSame(ContainerInterface::IGNORE_ON_INVALID_REFERENCE, $arguments[2]->getInvalidBehavior());
     }
 
+    public function testInjectionVectorizerAliasIsRegistered()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'vectorizer' => [
+                    'test' => [
+                        'model' => 'text-embedding-3-small?dimensions=512',
+                    ],
+                    'another' => [
+                        'model' => 'text-embedding-3-small?dimensions=512',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasAlias(VectorizerInterface::class.' $test'));
+        $this->assertTrue($container->hasAlias(VectorizerInterface::class.' $another'));
+    }
+
     public function testIndexerWithConfiguredVectorizer()
     {
         $container = $this->buildContainer([
@@ -2260,6 +2281,36 @@ class AiBundleTest extends TestCase
 
         $this->assertInstanceOf(Reference::class, $arguments[6]); // logger
         $this->assertSame('logger', (string) $arguments[6]);
+    }
+
+    public function testInjectionIndexerAliasIsRegistered()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'memory' => [
+                        'my_store' => [],
+                    ],
+                ],
+                'indexer' => [
+                    'my_indexer' => [
+                        'loader' => InMemoryLoader::class,
+                        'transformers' => [],
+                        'vectorizer' => 'my_vectorizer_service',
+                        'store' => 'ai.store.memory.my_store',
+                    ],
+                    'another' => [
+                        'loader' => InMemoryLoader::class,
+                        'transformers' => [],
+                        'vectorizer' => 'my_vectorizer_service',
+                        'store' => 'ai.store.memory.my_store',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasAlias(IndexerInterface::class.' $myIndexer'));
+        $this->assertTrue($container->hasAlias(IndexerInterface::class.' $another'));
     }
 
     public function testValidMultiAgentConfiguration()
