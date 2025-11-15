@@ -28,6 +28,7 @@ use Symfony\AI\Store\Document\Loader\InMemoryLoader;
 use Symfony\AI\Store\Document\Transformer\TextTrimTransformer;
 use Symfony\AI\Store\Document\Vectorizer;
 use Symfony\AI\Store\StoreInterface;
+use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -423,11 +424,12 @@ class AiBundleTest extends TestCase
 
         $definition = $container->getDefinition('ai.store.cache.my_cache_store_with_custom_strategy');
 
-        $this->assertCount(2, $definition->getArguments());
+        $this->assertCount(3, $definition->getArguments());
         $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
         $this->assertSame('cache.system', (string) $definition->getArgument(0));
         $this->assertInstanceOf(Reference::class, $definition->getArgument(1));
         $this->assertSame('ai.store.distance_calculator.my_cache_store_with_custom_strategy', (string) $definition->getArgument(1));
+        $this->assertSame('my_cache_store_with_custom_strategy', $definition->getArgument(2));
     }
 
     public function testCacheStoreWithCustomStrategyAndKeyCanBeConfigured()
@@ -454,9 +456,9 @@ class AiBundleTest extends TestCase
         $this->assertCount(3, $definition->getArguments());
         $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
         $this->assertSame('cache.system', (string) $definition->getArgument(0));
-        $this->assertSame('random', $definition->getArgument(2));
         $this->assertInstanceOf(Reference::class, $definition->getArgument(1));
         $this->assertSame('ai.store.distance_calculator.my_cache_store_with_custom_strategy', (string) $definition->getArgument(1));
+        $this->assertSame('random', $definition->getArgument(2));
     }
 
     public function testInMemoryStoreWithoutCustomStrategyCanBeConfigured()
@@ -2793,6 +2795,234 @@ class AiBundleTest extends TestCase
         $this->assertSame('text-embedding-3-small?normalize=false&cache=true&nested%5Bbool%5D=false', $vectorizerDefinition->getArgument(1));
     }
 
+    public function testCacheMessageStoreCanBeConfiguredWithCustomKey()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'cache' => [
+                        'custom' => [
+                            'service' => 'cache.app',
+                            'key' => 'custom',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $cacheMessageStoreDefinition = $container->getDefinition('ai.message_store.cache.custom');
+
+        $this->assertInstanceOf(Reference::class, $cacheMessageStoreDefinition->getArgument(0));
+        $this->assertSame('cache.app', (string) $cacheMessageStoreDefinition->getArgument(0));
+
+        $this->assertSame('custom', (string) $cacheMessageStoreDefinition->getArgument(1));
+
+        $this->assertTrue($cacheMessageStoreDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => MessageStoreInterface::class]], $cacheMessageStoreDefinition->getTag('proxy'));
+        $this->assertTrue($cacheMessageStoreDefinition->hasTag('ai.message_store'));
+    }
+
+    public function testCacheMessageStoreCanBeConfiguredWithCustomTtl()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'cache' => [
+                        'custom' => [
+                            'service' => 'cache.app',
+                            'ttl' => 3600,
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $cacheMessageStoreDefinition = $container->getDefinition('ai.message_store.cache.custom');
+
+        $this->assertTrue($cacheMessageStoreDefinition->isLazy());
+        $this->assertInstanceOf(Reference::class, $cacheMessageStoreDefinition->getArgument(0));
+        $this->assertSame('cache.app', (string) $cacheMessageStoreDefinition->getArgument(0));
+
+        $this->assertSame('custom', (string) $cacheMessageStoreDefinition->getArgument(1));
+        $this->assertSame(3600, (int) $cacheMessageStoreDefinition->getArgument(2));
+
+        $this->assertTrue($cacheMessageStoreDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => MessageStoreInterface::class]], $cacheMessageStoreDefinition->getTag('proxy'));
+        $this->assertTrue($cacheMessageStoreDefinition->hasTag('ai.message_store'));
+    }
+
+    public function testMeilisearchMessageStoreIsConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'meilisearch' => [
+                        'custom' => [
+                            'endpoint' => 'http://127.0.0.1:7700',
+                            'api_key' => 'foo',
+                            'index_name' => 'test',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $meilisearchMessageStoreDefinition = $container->getDefinition('ai.message_store.meilisearch.custom');
+
+        $this->assertTrue($meilisearchMessageStoreDefinition->isLazy());
+        $this->assertSame('http://127.0.0.1:7700', $meilisearchMessageStoreDefinition->getArgument(0));
+        $this->assertSame('foo', $meilisearchMessageStoreDefinition->getArgument(1));
+        $this->assertInstanceOf(Reference::class, $meilisearchMessageStoreDefinition->getArgument(2));
+        $this->assertSame(ClockInterface::class, (string) $meilisearchMessageStoreDefinition->getArgument(2));
+        $this->assertSame('test', $meilisearchMessageStoreDefinition->getArgument(3));
+
+        $this->assertTrue($meilisearchMessageStoreDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => MessageStoreInterface::class]], $meilisearchMessageStoreDefinition->getTag('proxy'));
+        $this->assertTrue($meilisearchMessageStoreDefinition->hasTag('ai.message_store'));
+    }
+
+    public function testMemoryMessageStoreCanBeConfiguredWithCustomKey()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'memory' => [
+                        'custom' => [
+                            'identifier' => 'foo',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $memoryMessageStoreDefinition = $container->getDefinition('ai.message_store.memory.custom');
+
+        $this->assertTrue($memoryMessageStoreDefinition->isLazy());
+        $this->assertSame('foo', $memoryMessageStoreDefinition->getArgument(0));
+
+        $this->assertTrue($memoryMessageStoreDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => MessageStoreInterface::class]], $memoryMessageStoreDefinition->getTag('proxy'));
+        $this->assertTrue($memoryMessageStoreDefinition->hasTag('ai.message_store'));
+    }
+
+    public function testPogocacheMessageStoreIsConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'pogocache' => [
+                        'custom' => [
+                            'endpoint' => 'http://127.0.0.1:9401',
+                            'password' => 'foo',
+                            'key' => 'bar',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $pogocacheMessageStoreDefinition = $container->getDefinition('ai.message_store.pogocache.custom');
+
+        $this->assertTrue($pogocacheMessageStoreDefinition->isLazy());
+        $this->assertInstanceOf(Reference::class, $pogocacheMessageStoreDefinition->getArgument(0));
+        $this->assertSame('http_client', (string) $pogocacheMessageStoreDefinition->getArgument(0));
+        $this->assertSame('http://127.0.0.1:9401', $pogocacheMessageStoreDefinition->getArgument(1));
+        $this->assertSame('foo', $pogocacheMessageStoreDefinition->getArgument(2));
+        $this->assertSame('bar', $pogocacheMessageStoreDefinition->getArgument(3));
+
+        $this->assertTrue($pogocacheMessageStoreDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => MessageStoreInterface::class]], $pogocacheMessageStoreDefinition->getTag('proxy'));
+        $this->assertTrue($pogocacheMessageStoreDefinition->hasTag('ai.message_store'));
+    }
+
+    public function testRedisMessageStoreIsConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'redis' => [
+                        'custom' => [
+                            'endpoint' => 'http://127.0.0.1:9401',
+                            'index_name' => 'foo',
+                            'connection_parameters' => [
+                                'foo' => 'bar',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $redisMessageStoreDefinition = $container->getDefinition('ai.message_store.redis.custom');
+
+        $this->assertTrue($redisMessageStoreDefinition->isLazy());
+        $this->assertInstanceOf(Definition::class, $redisMessageStoreDefinition->getArgument(0));
+        $this->assertSame(\Redis::class, $redisMessageStoreDefinition->getArgument(0)->getClass());
+        $this->assertSame('foo', $redisMessageStoreDefinition->getArgument(1));
+        $this->assertInstanceOf(Reference::class, $redisMessageStoreDefinition->getArgument(2));
+        $this->assertSame('serializer', (string) $redisMessageStoreDefinition->getArgument(2));
+
+        $this->assertTrue($redisMessageStoreDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => MessageStoreInterface::class]], $redisMessageStoreDefinition->getTag('proxy'));
+        $this->assertTrue($redisMessageStoreDefinition->hasTag('ai.message_store'));
+    }
+
+    public function testRedisMessageStoreIsConfiguredWithCustomClient()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'redis' => [
+                        'custom' => [
+                            'endpoint' => 'http://127.0.0.1:9401',
+                            'index_name' => 'foo',
+                            'client' => 'custom.redis',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $redisMessageStoreDefinition = $container->getDefinition('ai.message_store.redis.custom');
+
+        $this->assertTrue($redisMessageStoreDefinition->isLazy());
+        $this->assertInstanceOf(Reference::class, $redisMessageStoreDefinition->getArgument(0));
+        $this->assertSame('custom.redis', (string) $redisMessageStoreDefinition->getArgument(0));
+        $this->assertSame('foo', $redisMessageStoreDefinition->getArgument(1));
+        $this->assertInstanceOf(Reference::class, $redisMessageStoreDefinition->getArgument(2));
+        $this->assertSame('serializer', (string) $redisMessageStoreDefinition->getArgument(2));
+
+        $this->assertTrue($redisMessageStoreDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => MessageStoreInterface::class]], $redisMessageStoreDefinition->getTag('proxy'));
+        $this->assertTrue($redisMessageStoreDefinition->hasTag('ai.message_store'));
+    }
+
+    public function testSessionMessageStoreIsConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'session' => [
+                        'custom' => [
+                            'identifier' => 'foo',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $sessionMessageStoreDefinition = $container->getDefinition('ai.message_store.session.custom');
+
+        $this->assertTrue($sessionMessageStoreDefinition->isLazy());
+        $this->assertInstanceOf(Reference::class, $sessionMessageStoreDefinition->getArgument(0));
+        $this->assertSame('request_stack', (string) $sessionMessageStoreDefinition->getArgument(0));
+        $this->assertSame('foo', (string) $sessionMessageStoreDefinition->getArgument(1));
+
+        $this->assertTrue($sessionMessageStoreDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => MessageStoreInterface::class]], $sessionMessageStoreDefinition->getTag('proxy'));
+        $this->assertTrue($sessionMessageStoreDefinition->hasTag('ai.message_store'));
+    }
+
     private function buildContainer(array $configuration): ContainerBuilder
     {
         $container = new ContainerBuilder();
@@ -3030,6 +3260,24 @@ class AiBundleTest extends TestCase
                             'collection_name' => 'foo',
                             'dimensions' => 768,
                             'distance' => 'Cosine',
+                            'async' => false,
+                        ],
+                        'my_custom_dimensions_qdrant_store' => [
+                            'endpoint' => 'http://127.0.0.1:8000',
+                            'api_key' => 'test',
+                            'collection_name' => 'foo',
+                            'dimensions' => 768,
+                        ],
+                        'my_custom_distance_qdrant_store' => [
+                            'endpoint' => 'http://127.0.0.1:8000',
+                            'api_key' => 'test',
+                            'collection_name' => 'foo',
+                            'distance' => 'Cosine',
+                        ],
+                        'my_async_qdrant_store' => [
+                            'endpoint' => 'http://127.0.0.1:8000',
+                            'api_key' => 'test',
+                            'collection_name' => 'foo',
                             'async' => false,
                         ],
                     ],
