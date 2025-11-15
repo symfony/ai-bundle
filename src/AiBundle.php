@@ -37,6 +37,7 @@ use Symfony\AI\AiBundle\Profiler\TraceablePlatform;
 use Symfony\AI\AiBundle\Profiler\TraceableToolbox;
 use Symfony\AI\AiBundle\Security\Attribute\IsGrantedTool;
 use Symfony\AI\Chat\Bridge\HttpFoundation\SessionStore;
+use Symfony\AI\Chat\Bridge\Local\CacheStore as CacheMessageStore;
 use Symfony\AI\Chat\Bridge\Meilisearch\MessageStore as MeilisearchMessageStore;
 use Symfony\AI\Chat\Bridge\Pogocache\MessageStore as PogocacheMessageStore;
 use Symfony\AI\Chat\Bridge\Redis\MessageStore as RedisMessageStore;
@@ -917,10 +918,6 @@ final class AiBundle extends AbstractBundle
                     new Definition(DistanceCalculator::class),
                 ];
 
-                if (\array_key_exists('cache_key', $store) && null !== $store['cache_key']) {
-                    $arguments[2] = $store['cache_key'];
-                }
-
                 if (\array_key_exists('strategy', $store) && null !== $store['strategy']) {
                     if (!$container->hasDefinition('ai.store.distance_calculator.'.$name)) {
                         $distanceCalculatorDefinition = new Definition(DistanceCalculator::class);
@@ -932,10 +929,14 @@ final class AiBundle extends AbstractBundle
                     $arguments[1] = new Reference('ai.store.distance_calculator.'.$name);
                 }
 
+                $arguments[2] = \array_key_exists('cache_key', $store) && null !== $store['cache_key']
+                    ? $store['cache_key']
+                    : $name;
+
                 $definition = new Definition(CacheStore::class);
                 $definition
-                    ->addTag('ai.store')
-                    ->setArguments($arguments);
+                    ->setArguments($arguments)
+                    ->addTag('ai.store');
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
                 $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
@@ -1470,32 +1471,22 @@ final class AiBundle extends AbstractBundle
      */
     private function processMessageStoreConfig(string $type, array $messageStores, ContainerBuilder $container): void
     {
-        if ('memory' === $type) {
-            foreach ($messageStores as $name => $messageStore) {
-                $definition = new Definition(InMemoryStore::class);
-                $definition
-                    ->setArgument(0, $messageStore['identifier'])
-                    ->addTag('ai.message_store');
-
-                $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $type.'_'.$name);
-            }
-        }
-
         if ('cache' === $type) {
             foreach ($messageStores as $name => $messageStore) {
                 $arguments = [
                     new Reference($messageStore['service']),
+                    $messageStore['key'] ?? $name,
                 ];
 
-                if (\array_key_exists('key', $messageStore)) {
-                    $arguments['key'] = $messageStore['key'];
+                if (\array_key_exists('ttl', $messageStore)) {
+                    $arguments[2] = $messageStore['ttl'];
                 }
 
-                $definition = new Definition(CacheStore::class);
+                $definition = new Definition(CacheMessageStore::class);
                 $definition
+                    ->setLazy(true)
                     ->setArguments($arguments)
+                    ->addTag('proxy', ['interface' => MessageStoreInterface::class])
                     ->addTag('ai.message_store');
 
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
@@ -1508,12 +1499,29 @@ final class AiBundle extends AbstractBundle
             foreach ($messageStores as $name => $messageStore) {
                 $definition = new Definition(MeilisearchMessageStore::class);
                 $definition
+                    ->setLazy(true)
                     ->setArguments([
                         $messageStore['endpoint'],
                         $messageStore['api_key'],
                         new Reference(ClockInterface::class),
                         $messageStore['index_name'],
                     ])
+                    ->addTag('proxy', ['interface' => MessageStoreInterface::class])
+                    ->addTag('ai.message_store');
+
+                $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $type.'_'.$name);
+            }
+        }
+
+        if ('memory' === $type) {
+            foreach ($messageStores as $name => $messageStore) {
+                $definition = new Definition(InMemoryStore::class);
+                $definition
+                    ->setLazy(true)
+                    ->setArgument(0, $messageStore['identifier'])
+                    ->addTag('proxy', ['interface' => MessageStoreInterface::class])
                     ->addTag('ai.message_store');
 
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
@@ -1526,12 +1534,14 @@ final class AiBundle extends AbstractBundle
             foreach ($messageStores as $name => $messageStore) {
                 $definition = new Definition(PogocacheMessageStore::class);
                 $definition
+                    ->setLazy(true)
                     ->setArguments([
                         new Reference('http_client'),
                         $messageStore['endpoint'],
                         $messageStore['password'],
                         $messageStore['key'],
                     ])
+                    ->addTag('proxy', ['interface' => MessageStoreInterface::class])
                     ->addTag('ai.message_store');
 
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
@@ -1551,11 +1561,13 @@ final class AiBundle extends AbstractBundle
 
                 $definition = new Definition(RedisMessageStore::class);
                 $definition
+                    ->setLazy(true)
                     ->setArguments([
                         $redisClient,
                         $messageStore['index_name'],
                         new Reference('serializer'),
                     ])
+                    ->addTag('proxy', ['interface' => MessageStoreInterface::class])
                     ->addTag('ai.message_store');
 
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
@@ -1568,10 +1580,12 @@ final class AiBundle extends AbstractBundle
             foreach ($messageStores as $name => $messageStore) {
                 $definition = new Definition(SessionStore::class);
                 $definition
+                    ->setLazy(true)
                     ->setArguments([
                         new Reference('request_stack'),
                         $messageStore['identifier'],
                     ])
+                    ->addTag('proxy', ['interface' => MessageStoreInterface::class])
                     ->addTag('ai.message_store');
 
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
