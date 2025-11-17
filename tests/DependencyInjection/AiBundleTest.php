@@ -2942,6 +2942,67 @@ class AiBundleTest extends TestCase
         $this->assertTrue($cacheMessageStoreDefinition->hasTag('ai.message_store'));
     }
 
+    public function testDoctrineDbalMessageStoreCanBeConfiguredWithCustomKey()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'doctrine' => [
+                        'dbal' => [
+                            'default' => [
+                                'connection' => 'default',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $doctrineDbalDefaultMessageStoreDefinition = $container->getDefinition('ai.message_store.doctrine.dbal.default');
+
+        $this->assertSame('default', (string) $doctrineDbalDefaultMessageStoreDefinition->getArgument(0));
+        $this->assertSame('default', (string) $doctrineDbalDefaultMessageStoreDefinition->getArgument(1));
+        $this->assertInstanceOf(Reference::class, $doctrineDbalDefaultMessageStoreDefinition->getArgument(2));
+        $this->assertSame('doctrine.dbal.default_connection', (string) $doctrineDbalDefaultMessageStoreDefinition->getArgument(2));
+        $this->assertInstanceOf(Reference::class, $doctrineDbalDefaultMessageStoreDefinition->getArgument(3));
+        $this->assertSame('serializer', (string) $doctrineDbalDefaultMessageStoreDefinition->getArgument(3));
+
+        $this->assertTrue($doctrineDbalDefaultMessageStoreDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => MessageStoreInterface::class]], $doctrineDbalDefaultMessageStoreDefinition->getTag('proxy'));
+        $this->assertTrue($doctrineDbalDefaultMessageStoreDefinition->hasTag('ai.message_store'));
+    }
+
+    public function testDoctrineDbalMessageStoreWithCustomTableNameCanBeConfiguredWithCustomKey()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'doctrine' => [
+                        'dbal' => [
+                            'default' => [
+                                'connection' => 'default',
+                                'table_name' => 'foo',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $doctrineDbalDefaultMessageStoreDefinition = $container->getDefinition('ai.message_store.doctrine.dbal.default');
+
+        $this->assertSame('default', (string) $doctrineDbalDefaultMessageStoreDefinition->getArgument(0));
+        $this->assertSame('foo', (string) $doctrineDbalDefaultMessageStoreDefinition->getArgument(1));
+        $this->assertInstanceOf(Reference::class, $doctrineDbalDefaultMessageStoreDefinition->getArgument(2));
+        $this->assertSame('doctrine.dbal.default_connection', (string) $doctrineDbalDefaultMessageStoreDefinition->getArgument(2));
+        $this->assertInstanceOf(Reference::class, $doctrineDbalDefaultMessageStoreDefinition->getArgument(3));
+        $this->assertSame('serializer', (string) $doctrineDbalDefaultMessageStoreDefinition->getArgument(3));
+
+        $this->assertTrue($doctrineDbalDefaultMessageStoreDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => MessageStoreInterface::class]], $doctrineDbalDefaultMessageStoreDefinition->getTag('proxy'));
+        $this->assertTrue($doctrineDbalDefaultMessageStoreDefinition->hasTag('ai.message_store'));
+    }
+
     public function testMeilisearchMessageStoreIsConfigured()
     {
         $container = $this->buildContainer([
@@ -3595,6 +3656,14 @@ class AiBundleTest extends TestCase
                         'my_cache_message_store_with_custom_cache_key' => [
                             'service' => 'cache.system',
                             'key' => 'foo',
+                        ],
+                    ],
+                    'doctrine' => [
+                        'dbal' => [
+                            'default' => [
+                                'connection' => 'default',
+                                'table_name' => 'foo',
+                            ],
                         ],
                     ],
                     'memory' => [

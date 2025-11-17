@@ -36,6 +36,7 @@ use Symfony\AI\AiBundle\Profiler\TraceableMessageStore;
 use Symfony\AI\AiBundle\Profiler\TraceablePlatform;
 use Symfony\AI\AiBundle\Profiler\TraceableToolbox;
 use Symfony\AI\AiBundle\Security\Attribute\IsGrantedTool;
+use Symfony\AI\Chat\Bridge\Doctrine\DoctrineDbalMessageStore;
 use Symfony\AI\Chat\Bridge\HttpFoundation\SessionStore;
 use Symfony\AI\Chat\Bridge\Local\CacheStore as CacheMessageStore;
 use Symfony\AI\Chat\Bridge\Meilisearch\MessageStore as MeilisearchMessageStore;
@@ -1530,6 +1531,26 @@ final class AiBundle extends AbstractBundle
                     ->addTag('ai.message_store');
 
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $type.'_'.$name);
+            }
+        }
+
+        if ('doctrine' === $type) {
+            foreach ($messageStores['dbal'] ?? [] as $name => $dbalMessageStore) {
+                $definition = new Definition(DoctrineDbalMessageStore::class);
+                $definition
+                    ->setLazy(true)
+                    ->setArguments([
+                        $dbalMessageStore['connection'],
+                        $dbalMessageStore['table_name'] ?? $name,
+                        new Reference(\sprintf('doctrine.dbal.%s_connection', $dbalMessageStore['connection'])),
+                        new Reference('serializer'),
+                    ])
+                    ->addTag('proxy', ['interface' => MessageStoreInterface::class])
+                    ->addTag('ai.message_store');
+
+                $container->setDefinition('ai.message_store.'.$type.'.dbal.'.$name, $definition);
                 $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $name);
                 $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $type.'_'.$name);
             }
