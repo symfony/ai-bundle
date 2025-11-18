@@ -2924,11 +2924,14 @@ class AiBundleTest extends TestCase
         $pogocacheMessageStoreDefinition = $container->getDefinition('ai.message_store.pogocache.custom');
 
         $this->assertTrue($pogocacheMessageStoreDefinition->isLazy());
+        $this->assertCount(5, $pogocacheMessageStoreDefinition->getArguments());
         $this->assertInstanceOf(Reference::class, $pogocacheMessageStoreDefinition->getArgument(0));
         $this->assertSame('http_client', (string) $pogocacheMessageStoreDefinition->getArgument(0));
         $this->assertSame('http://127.0.0.1:9401', $pogocacheMessageStoreDefinition->getArgument(1));
         $this->assertSame('foo', $pogocacheMessageStoreDefinition->getArgument(2));
         $this->assertSame('bar', $pogocacheMessageStoreDefinition->getArgument(3));
+        $this->assertInstanceOf(Reference::class, $pogocacheMessageStoreDefinition->getArgument(4));
+        $this->assertSame('serializer', (string) $pogocacheMessageStoreDefinition->getArgument(4));
 
         $this->assertTrue($pogocacheMessageStoreDefinition->hasTag('proxy'));
         $this->assertSame([['interface' => MessageStoreInterface::class]], $pogocacheMessageStoreDefinition->getTag('proxy'));

@@ -1540,6 +1540,7 @@ final class AiBundle extends AbstractBundle
                         $messageStore['endpoint'],
                         $messageStore['password'],
                         $messageStore['key'],
+                        new Reference('serializer'),
                     ])
                     ->addTag('proxy', ['interface' => MessageStoreInterface::class])
                     ->addTag('ai.message_store');
