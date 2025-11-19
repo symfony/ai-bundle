@@ -2921,11 +2921,14 @@ class AiBundleTest extends TestCase
         $meilisearchMessageStoreDefinition = $container->getDefinition('ai.message_store.meilisearch.custom');
 
         $this->assertTrue($meilisearchMessageStoreDefinition->isLazy());
+        $this->assertCount(5, $meilisearchMessageStoreDefinition->getArguments());
         $this->assertSame('http://127.0.0.1:7700', $meilisearchMessageStoreDefinition->getArgument(0));
         $this->assertSame('foo', $meilisearchMessageStoreDefinition->getArgument(1));
         $this->assertInstanceOf(Reference::class, $meilisearchMessageStoreDefinition->getArgument(2));
         $this->assertSame(ClockInterface::class, (string) $meilisearchMessageStoreDefinition->getArgument(2));
         $this->assertSame('test', $meilisearchMessageStoreDefinition->getArgument(3));
+        $this->assertInstanceOf(Reference::class, $meilisearchMessageStoreDefinition->getArgument(4));
+        $this->assertSame('serializer', (string) $meilisearchMessageStoreDefinition->getArgument(4));
 
         $this->assertTrue($meilisearchMessageStoreDefinition->hasTag('proxy'));
         $this->assertSame([['interface' => MessageStoreInterface::class]], $meilisearchMessageStoreDefinition->getTag('proxy'));
