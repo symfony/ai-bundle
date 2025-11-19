@@ -1505,6 +1505,7 @@ final class AiBundle extends AbstractBundle
                         $messageStore['api_key'],
                         new Reference(ClockInterface::class),
                         $messageStore['index_name'],
+                        new Reference('serializer'),
                     ])
                     ->addTag('proxy', ['interface' => MessageStoreInterface::class])
                     ->addTag('ai.message_store');
