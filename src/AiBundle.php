@@ -78,6 +78,7 @@ use Symfony\AI\Store\Bridge\Local\DistanceCalculator;
 use Symfony\AI\Store\Bridge\Local\DistanceStrategy;
 use Symfony\AI\Store\Bridge\Local\InMemoryStore;
 use Symfony\AI\Store\Bridge\Manticore\Store as ManticoreStore;
+use Symfony\AI\Store\Bridge\MariaDb\Store as MariaDbStore;
 use Symfony\AI\Store\Bridge\Meilisearch\Store as MeilisearchStore;
 use Symfony\AI\Store\Bridge\Milvus\Store as MilvusStore;
 use Symfony\AI\Store\Bridge\MongoDb\Store as MongoDbStore;
@@ -1057,6 +1058,28 @@ final class AiBundle extends AbstractBundle
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
                 $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
                 $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
+            }
+        }
+
+        if ('mariadb' === $type) {
+            foreach ($stores as $name => $store) {
+                $arguments = [
+                    new Reference(\sprintf('doctrine.dbal.%s_connection', $store['connection'])),
+                    $store['table_name'],
+                    $store['index_name'],
+                    $store['vector_field_name'],
+                ];
+
+                $definition = new Definition(MariaDbStore::class);
+                $definition->setFactory([MariaDbStore::class, 'fromDbal']);
+                $definition
+                    ->addTag('ai.store')
+                    ->setArguments($arguments);
+
+                $serviceId = 'ai.store.'.$type.'.'.$name;
+                $container->setDefinition($serviceId, $definition);
+                $container->registerAliasForArgument($serviceId, StoreInterface::class, $name);
+                $container->registerAliasForArgument($serviceId, StoreInterface::class, $type.'_'.$name);
             }
         }
 

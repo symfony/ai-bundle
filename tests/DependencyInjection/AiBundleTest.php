@@ -3254,6 +3254,14 @@ class AiBundleTest extends TestCase
                             'quantization' => '1bit',
                         ],
                     ],
+                    'mariadb' => [
+                        'my_mariadb_store' => [
+                            'connection' => 'default',
+                            'table_name' => 'vector_table',
+                            'index_name' => 'vector_idx',
+                            'vector_field_name' => 'vector',
+                        ],
+                    ],
                     'meilisearch' => [
                         'my_meilisearch_store' => [
                             'endpoint' => 'http://127.0.0.1:7700',
