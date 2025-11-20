@@ -3104,6 +3104,123 @@ class AiBundleTest extends TestCase
         $this->assertTrue($sessionMessageStoreDefinition->hasTag('ai.message_store'));
     }
 
+    public function testSurrealDbMessageStoreIsConfiguredWithoutCustomTable()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'surreal_db' => [
+                        'custom' => [
+                            'endpoint' => 'http://127.0.0.1:8000',
+                            'username' => 'test',
+                            'password' => 'test',
+                            'namespace' => 'foo',
+                            'database' => 'bar',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $surrealDbMessageStoreDefinition = $container->getDefinition('ai.message_store.surreal_db.custom');
+
+        $this->assertTrue($surrealDbMessageStoreDefinition->isLazy());
+        $this->assertCount(8, $surrealDbMessageStoreDefinition->getArguments());
+        $this->assertInstanceOf(Reference::class, $surrealDbMessageStoreDefinition->getArgument(0));
+        $this->assertSame('http_client', (string) $surrealDbMessageStoreDefinition->getArgument(0));
+        $this->assertSame('http://127.0.0.1:8000', (string) $surrealDbMessageStoreDefinition->getArgument(1));
+        $this->assertSame('test', (string) $surrealDbMessageStoreDefinition->getArgument(2));
+        $this->assertSame('test', (string) $surrealDbMessageStoreDefinition->getArgument(3));
+        $this->assertSame('foo', (string) $surrealDbMessageStoreDefinition->getArgument(4));
+        $this->assertSame('bar', (string) $surrealDbMessageStoreDefinition->getArgument(5));
+        $this->assertInstanceOf(Reference::class, $surrealDbMessageStoreDefinition->getArgument(6));
+        $this->assertSame('serializer', (string) $surrealDbMessageStoreDefinition->getArgument(6));
+        $this->assertSame('custom', (string) $surrealDbMessageStoreDefinition->getArgument(7));
+
+        $this->assertTrue($surrealDbMessageStoreDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => MessageStoreInterface::class]], $surrealDbMessageStoreDefinition->getTag('proxy'));
+        $this->assertTrue($surrealDbMessageStoreDefinition->hasTag('ai.message_store'));
+    }
+
+    public function testSurrealDbMessageStoreIsConfiguredWithCustomTable()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'surreal_db' => [
+                        'custom' => [
+                            'endpoint' => 'http://127.0.0.1:8000',
+                            'username' => 'test',
+                            'password' => 'test',
+                            'namespace' => 'foo',
+                            'database' => 'bar',
+                            'table' => 'random',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $surrealDbMessageStoreDefinition = $container->getDefinition('ai.message_store.surreal_db.custom');
+
+        $this->assertTrue($surrealDbMessageStoreDefinition->isLazy());
+        $this->assertCount(8, $surrealDbMessageStoreDefinition->getArguments());
+        $this->assertInstanceOf(Reference::class, $surrealDbMessageStoreDefinition->getArgument(0));
+        $this->assertSame('http_client', (string) $surrealDbMessageStoreDefinition->getArgument(0));
+        $this->assertSame('http://127.0.0.1:8000', (string) $surrealDbMessageStoreDefinition->getArgument(1));
+        $this->assertSame('test', (string) $surrealDbMessageStoreDefinition->getArgument(2));
+        $this->assertSame('test', (string) $surrealDbMessageStoreDefinition->getArgument(3));
+        $this->assertSame('foo', (string) $surrealDbMessageStoreDefinition->getArgument(4));
+        $this->assertSame('bar', (string) $surrealDbMessageStoreDefinition->getArgument(5));
+        $this->assertInstanceOf(Reference::class, $surrealDbMessageStoreDefinition->getArgument(6));
+        $this->assertSame('serializer', (string) $surrealDbMessageStoreDefinition->getArgument(6));
+        $this->assertSame('random', (string) $surrealDbMessageStoreDefinition->getArgument(7));
+
+        $this->assertTrue($surrealDbMessageStoreDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => MessageStoreInterface::class]], $surrealDbMessageStoreDefinition->getTag('proxy'));
+        $this->assertTrue($surrealDbMessageStoreDefinition->hasTag('ai.message_store'));
+    }
+
+    public function testSurrealDbMessageStoreIsConfiguredWithNamespacedUser()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'surreal_db' => [
+                        'custom' => [
+                            'endpoint' => 'http://127.0.0.1:8000',
+                            'username' => 'test',
+                            'password' => 'test',
+                            'namespace' => 'foo',
+                            'database' => 'bar',
+                            'namespaced_user' => true,
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $surrealDbMessageStoreDefinition = $container->getDefinition('ai.message_store.surreal_db.custom');
+
+        $this->assertTrue($surrealDbMessageStoreDefinition->isLazy());
+        $this->assertCount(9, $surrealDbMessageStoreDefinition->getArguments());
+        $this->assertInstanceOf(Reference::class, $surrealDbMessageStoreDefinition->getArgument(0));
+        $this->assertSame('http_client', (string) $surrealDbMessageStoreDefinition->getArgument(0));
+        $this->assertSame('http://127.0.0.1:8000', (string) $surrealDbMessageStoreDefinition->getArgument(1));
+        $this->assertSame('test', (string) $surrealDbMessageStoreDefinition->getArgument(2));
+        $this->assertSame('test', (string) $surrealDbMessageStoreDefinition->getArgument(3));
+        $this->assertSame('foo', (string) $surrealDbMessageStoreDefinition->getArgument(4));
+        $this->assertSame('bar', (string) $surrealDbMessageStoreDefinition->getArgument(5));
+        $this->assertInstanceOf(Reference::class, $surrealDbMessageStoreDefinition->getArgument(6));
+        $this->assertSame('serializer', (string) $surrealDbMessageStoreDefinition->getArgument(6));
+        $this->assertSame('custom', (string) $surrealDbMessageStoreDefinition->getArgument(7));
+        $this->assertTrue($surrealDbMessageStoreDefinition->getArgument(8));
+
+        $this->assertTrue($surrealDbMessageStoreDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => MessageStoreInterface::class]], $surrealDbMessageStoreDefinition->getTag('proxy'));
+        $this->assertTrue($surrealDbMessageStoreDefinition->hasTag('ai.message_store'));
+    }
+
     private function buildContainer(array $configuration): ContainerBuilder
     {
         $container = new ContainerBuilder();
@@ -3471,6 +3588,25 @@ class AiBundleTest extends TestCase
                     'session' => [
                         'my_session_message_store' => [
                             'identifier' => 'session',
+                        ],
+                    ],
+                    'surreal_db' => [
+                        'my_surreal_db_message_store' => [
+                            'endpoint' => 'http://127.0.0.1:8000',
+                            'username' => 'test',
+                            'password' => 'test',
+                            'namespace' => 'foo',
+                            'database' => 'bar',
+                            'namespaced_user' => true,
+                        ],
+                        'my_surreal_db_message_store_with_custom_table' => [
+                            'endpoint' => 'http://127.0.0.1:8000',
+                            'username' => 'test',
+                            'password' => 'test',
+                            'namespace' => 'foo',
+                            'database' => 'bar',
+                            'table' => 'bar',
+                            'namespaced_user' => true,
                         ],
                     ],
                 ],
