@@ -62,6 +62,7 @@ use Symfony\AI\Platform\Bridge\Voyage\ModelCatalog as VoyageModelCatalog;
 use Symfony\AI\Platform\Contract;
 use Symfony\AI\Platform\Contract\JsonSchema\DescriptionParser;
 use Symfony\AI\Platform\Contract\JsonSchema\Factory as SchemaFactory;
+use Symfony\AI\Platform\Serializer\StructuredOutputSerializer;
 use Symfony\AI\Platform\StructuredOutput\PlatformSubscriber;
 use Symfony\AI\Platform\StructuredOutput\ResponseFormatFactory;
 use Symfony\AI\Platform\StructuredOutput\ResponseFormatFactoryInterface;
@@ -122,10 +123,11 @@ return static function (ContainerConfigurator $container): void {
                 service('type_info.resolver')->nullOnInvalid(),
             ])
         ->alias(ResponseFormatFactoryInterface::class, 'ai.platform.response_format_factory')
+        ->set('ai.platform.structured_output_serializer', StructuredOutputSerializer::class)
         ->set('ai.platform.structured_output_subscriber', PlatformSubscriber::class)
             ->args([
                 service('ai.agent.response_format_factory'),
-                service('serializer'),
+                service('ai.platform.structured_output_serializer'),
             ])
             ->tag('kernel.event_subscriber')
 
