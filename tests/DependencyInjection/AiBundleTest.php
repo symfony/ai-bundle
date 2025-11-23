@@ -27,6 +27,7 @@ use Symfony\AI\Chat\MessageStoreInterface;
 use Symfony\AI\Platform\Bridge\Ollama\OllamaApiCatalog;
 use Symfony\AI\Platform\Capability;
 use Symfony\AI\Platform\Model;
+use Symfony\AI\Store\Bridge\Local\DistanceCalculator;
 use Symfony\AI\Store\Document\Filter\TextContainsFilter;
 use Symfony\AI\Store\Document\Loader\InMemoryLoader;
 use Symfony\AI\Store\Document\Transformer\TextTrimTransformer;
@@ -483,7 +484,9 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.store.memory.my_memory_store_with_custom_strategy'));
 
         $definition = $container->getDefinition('ai.store.memory.my_memory_store_with_custom_strategy');
-        $this->assertCount(0, $definition->getArguments());
+        $this->assertCount(1, $definition->getArguments());
+        $this->assertInstanceOf(Definition::class, $definition->getArgument(0));
+        $this->assertSame(DistanceCalculator::class, $definition->getArgument(0)->getClass());
     }
 
     public function testInMemoryStoreWithCustomStrategyCanBeConfigured()

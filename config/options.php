@@ -442,7 +442,7 @@ return static function (DefinitionConfigurator $configurator): void {
                             ->treatNullLike(['enabled' => true])
                             ->beforeNormalization()
                                 ->ifArray()
-                                ->then(function (array $v) {
+                                ->then(function (array $v): array {
                                     return [
                                         'enabled' => $v['enabled'] ?? true,
                                         'services' => $v['services'] ?? $v,
@@ -564,7 +564,7 @@ return static function (DefinitionConfigurator $configurator): void {
                                 ->stringNode('table')->isRequired()->cannotBeEmpty()->end()
                             ->end()
                             ->validate()
-                                ->ifTrue(static fn ($v) => !isset($v['dsn']) && !isset($v['http_client']))
+                                ->ifTrue(static fn ($v): bool => !isset($v['dsn']) && !isset($v['http_client']))
                                 ->thenInvalid('Either "dsn" or "http_client" must be configured.')
                             ->end()
                         ->end()
@@ -819,11 +819,11 @@ return static function (DefinitionConfigurator $configurator): void {
                                 ->stringNode('dbal_connection')->cannotBeEmpty()->end()
                             ->end()
                             ->validate()
-                                ->ifTrue(static fn ($v) => !isset($v['dsn']) && !isset($v['dbal_connection']))
+                                ->ifTrue(static fn (array $v): bool => !isset($v['dsn']) && !isset($v['dbal_connection']))
                                 ->thenInvalid('Either "dsn" or "dbal_connection" must be configured.')
                             ->end()
                             ->validate()
-                                ->ifTrue(static fn ($v) => isset($v['dsn'], $v['dbal_connection']))
+                                ->ifTrue(static fn (array $v): bool => isset($v['dsn'], $v['dbal_connection']))
                                 ->thenInvalid('Either "dsn" or "dbal_connection" can be configured, but not both.')
                             ->end()
                         ->end()
