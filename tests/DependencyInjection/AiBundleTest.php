@@ -46,7 +46,6 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class AiBundleTest extends TestCase
 {
-    #[DoesNotPerformAssertions]
     public function testExtensionLoadDoesNotThrow()
     {
         $container = $this->buildContainer($this->getFullConfig());
@@ -58,6 +57,15 @@ class AiBundleTest extends TestCase
         $platforms = $container->findTaggedServiceIds('ai.platform');
 
         foreach (array_keys($platforms) as $platformId) {
+            $def = $container->getDefinition($platformId);
+            $factor = $def->getFactory();
+
+            if (\is_array($factor)) {
+                $ref = new \ReflectionClass($factor[0]);
+                $numArgs = $ref->getMethod($factor[1])->getNumberOfParameters();
+                $this->assertGreaterThanOrEqual($numArgs, \count($def->getArguments()));
+            }
+
             try {
                 $platformService = $container->get($platformId);
                 $platformService->getModelCatalog();
