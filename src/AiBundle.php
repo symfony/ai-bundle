@@ -507,7 +507,6 @@ final class AiBundle extends AbstractBundle
                     $httpClient,
                     new Reference('ai.platform.model_catalog.vertexai.gemini'),
                     new Reference('ai.platform.contract.vertexai.gemini'),
-                    null,
                     new Reference('event_dispatcher'),
                 ])
                 ->addTag('ai.platform', ['name' => 'vertexai']);
