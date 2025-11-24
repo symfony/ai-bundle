@@ -46,6 +46,7 @@ use Symfony\AI\Chat\Bridge\Redis\MessageStore as RedisMessageStore;
 use Symfony\AI\Chat\Bridge\SurrealDb\MessageStore as SurrealDbMessageStore;
 use Symfony\AI\Chat\Chat;
 use Symfony\AI\Chat\ChatInterface;
+use Symfony\AI\Chat\ManagedStoreInterface as ManagedMessageStoreInterface;
 use Symfony\AI\Chat\MessageStoreInterface;
 use Symfony\AI\Platform\Bridge\Albert\PlatformFactory as AlbertPlatformFactory;
 use Symfony\AI\Platform\Bridge\Anthropic\PlatformFactory as AnthropicPlatformFactory;
@@ -1598,6 +1599,7 @@ final class AiBundle extends AbstractBundle
                     ->setLazy(true)
                     ->setArguments($arguments)
                     ->addTag('proxy', ['interface' => MessageStoreInterface::class])
+                    ->addTag('proxy', ['interface' => ManagedMessageStoreInterface::class])
                     ->addTag('ai.message_store');
 
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
@@ -1618,6 +1620,7 @@ final class AiBundle extends AbstractBundle
                         new Reference('serializer'),
                     ])
                     ->addTag('proxy', ['interface' => MessageStoreInterface::class])
+                    ->addTag('proxy', ['interface' => ManagedMessageStoreInterface::class])
                     ->addTag('ai.message_store');
 
                 $container->setDefinition('ai.message_store.'.$type.'.dbal.'.$name, $definition);
@@ -1639,6 +1642,7 @@ final class AiBundle extends AbstractBundle
                         new Reference('serializer'),
                     ])
                     ->addTag('proxy', ['interface' => MessageStoreInterface::class])
+                    ->addTag('proxy', ['interface' => ManagedMessageStoreInterface::class])
                     ->addTag('ai.message_store');
 
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
@@ -1654,6 +1658,7 @@ final class AiBundle extends AbstractBundle
                     ->setLazy(true)
                     ->setArgument(0, $messageStore['identifier'])
                     ->addTag('proxy', ['interface' => MessageStoreInterface::class])
+                    ->addTag('proxy', ['interface' => ManagedMessageStoreInterface::class])
                     ->addTag('ai.message_store');
 
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
@@ -1674,6 +1679,7 @@ final class AiBundle extends AbstractBundle
                         new Reference('serializer'),
                     ])
                     ->addTag('proxy', ['interface' => MessageStoreInterface::class])
+                    ->addTag('proxy', ['interface' => ManagedMessageStoreInterface::class])
                     ->addTag('ai.message_store');
 
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
@@ -1695,6 +1701,7 @@ final class AiBundle extends AbstractBundle
                         new Reference('serializer'),
                     ])
                     ->addTag('proxy', ['interface' => MessageStoreInterface::class])
+                    ->addTag('proxy', ['interface' => ManagedMessageStoreInterface::class])
                     ->addTag('ai.message_store');
 
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
@@ -1721,6 +1728,7 @@ final class AiBundle extends AbstractBundle
                         new Reference('serializer'),
                     ])
                     ->addTag('proxy', ['interface' => MessageStoreInterface::class])
+                    ->addTag('proxy', ['interface' => ManagedMessageStoreInterface::class])
                     ->addTag('ai.message_store');
 
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
@@ -1739,6 +1747,7 @@ final class AiBundle extends AbstractBundle
                         $messageStore['identifier'],
                     ])
                     ->addTag('proxy', ['interface' => MessageStoreInterface::class])
+                    ->addTag('proxy', ['interface' => ManagedMessageStoreInterface::class])
                     ->addTag('ai.message_store');
 
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
@@ -1768,6 +1777,7 @@ final class AiBundle extends AbstractBundle
                 $definition
                     ->setLazy(true)
                     ->addTag('proxy', ['interface' => MessageStoreInterface::class])
+                    ->addTag('proxy', ['interface' => ManagedMessageStoreInterface::class])
                     ->addTag('ai.message_store')
                     ->setArguments($arguments);
 
