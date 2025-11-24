@@ -1050,18 +1050,12 @@ final class AiBundle extends AbstractBundle
                     $store['account_id'],
                     $store['api_key'],
                     $store['index_name'],
+                    $store['dimensions'],
+                    $store['metric'],
                 ];
 
-                if (\array_key_exists('dimensions', $store)) {
-                    $arguments[4] = $store['dimensions'];
-                }
-
-                if (\array_key_exists('metric', $store)) {
-                    $arguments[5] = $store['metric'];
-                }
-
-                if (\array_key_exists('endpoint', $store)) {
-                    $arguments[6] = $store['endpoint'];
+                if (\array_key_exists('endpoint_url', $store)) {
+                    $arguments[6] = $store['endpoint_url'];
                 }
 
                 $definition = new Definition(CloudflareStore::class);
@@ -1084,23 +1078,11 @@ final class AiBundle extends AbstractBundle
                     new Reference('http_client'),
                     $store['endpoint'],
                     $store['table'],
+                    $store['field'],
+                    $store['type'],
+                    $store['similarity'],
+                    $store['dimensions'],
                 ];
-
-                if (\array_key_exists('field', $store)) {
-                    $arguments[3] = $store['field'];
-                }
-
-                if (\array_key_exists('type', $store)) {
-                    $arguments[4] = $store['type'];
-                }
-
-                if (\array_key_exists('similarity', $store)) {
-                    $arguments[5] = $store['similarity'];
-                }
-
-                if (\array_key_exists('dimensions', $store)) {
-                    $arguments[6] = $store['dimensions'];
-                }
 
                 if (\array_key_exists('quantization', $store)) {
                     $arguments[7] = $store['quantization'];
@@ -1109,10 +1091,10 @@ final class AiBundle extends AbstractBundle
                 $definition = new Definition(ManticoreStore::class);
                 $definition
                     ->setLazy(true)
-                    ->addTag('ai.store')
+                    ->setArguments($arguments)
                     ->addTag('proxy', ['interface' => StoreInterface::class])
                     ->addTag('proxy', ['interface' => ManagedStoreInterface::class])
-                    ->setArguments($arguments);
+                    ->addTag('ai.store');
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
                 $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
@@ -1122,18 +1104,16 @@ final class AiBundle extends AbstractBundle
 
         if ('mariadb' === $type) {
             foreach ($stores as $name => $store) {
-                $arguments = [
-                    new Reference(\sprintf('doctrine.dbal.%s_connection', $store['connection'])),
-                    $store['table_name'],
-                    $store['index_name'],
-                    $store['vector_field_name'],
-                ];
-
                 $definition = new Definition(MariaDbStore::class);
                 $definition->setFactory([MariaDbStore::class, 'fromDbal']);
                 $definition
                     ->setLazy(true)
-                    ->setArguments($arguments)
+                    ->setArguments([
+                        new Reference(\sprintf('doctrine.dbal.%s_connection', $store['connection'])),
+                        $store['table_name'],
+                        $store['index_name'],
+                        $store['vector_field_name'],
+                    ])
                     ->addTag('proxy', ['interface' => StoreInterface::class])
                     ->addTag('proxy', ['interface' => ManagedStoreInterface::class])
                     ->addTag('ai.store');
@@ -1154,19 +1134,10 @@ final class AiBundle extends AbstractBundle
                     $store['endpoint'],
                     $store['api_key'],
                     $store['index_name'],
+                    $store['embedder'],
+                    $store['vector_field'],
+                    $store['dimensions'],
                 ];
-
-                if (\array_key_exists('embedder', $store)) {
-                    $arguments[4] = $store['embedder'];
-                }
-
-                if (\array_key_exists('vector_field', $store)) {
-                    $arguments[5] = $store['vector_field'];
-                }
-
-                if (\array_key_exists('dimensions', $store)) {
-                    $arguments[6] = $store['dimensions'];
-                }
 
                 if (\array_key_exists('semantic_ratio', $store)) {
                     $arguments[7] = $store['semantic_ratio'];
@@ -1193,12 +1164,10 @@ final class AiBundle extends AbstractBundle
                 ];
 
                 if (\array_key_exists('strategy', $store) && null !== $store['strategy']) {
-                    if (!$container->hasDefinition('ai.store.distance_calculator.'.$name)) {
-                        $distanceCalculatorDefinition = new Definition(DistanceCalculator::class);
-                        $distanceCalculatorDefinition->setArgument(0, DistanceStrategy::from($store['strategy']));
+                    $distanceCalculatorDefinition = new Definition(DistanceCalculator::class);
+                    $distanceCalculatorDefinition->setArgument(0, DistanceStrategy::from($store['strategy']));
 
-                        $container->setDefinition('ai.store.distance_calculator.'.$name, $distanceCalculatorDefinition);
-                    }
+                    $container->setDefinition('ai.store.distance_calculator.'.$name, $distanceCalculatorDefinition);
 
                     $arguments[0] = new Reference('ai.store.distance_calculator.'.$name);
                 }
@@ -1225,15 +1194,9 @@ final class AiBundle extends AbstractBundle
                     $store['api_key'],
                     $store['database'],
                     $store['collection'],
+                    $store['vector_field'],
+                    $store['dimensions'],
                 ];
-
-                if (\array_key_exists('vector_field', $store)) {
-                    $arguments[5] = $store['vector_field'];
-                }
-
-                if (\array_key_exists('dimensions', $store)) {
-                    $arguments[6] = $store['dimensions'];
-                }
 
                 if (\array_key_exists('metric_type', $store)) {
                     $arguments[7] = $store['metric_type'];
