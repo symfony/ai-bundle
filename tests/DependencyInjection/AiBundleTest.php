@@ -41,6 +41,7 @@ use Symfony\AI\Store\Document\Transformer\TextTrimTransformer;
 use Symfony\AI\Store\Document\Vectorizer;
 use Symfony\AI\Store\Document\VectorizerInterface;
 use Symfony\AI\Store\IndexerInterface;
+use Symfony\AI\Store\ManagedStoreInterface;
 use Symfony\AI\Store\StoreInterface;
 use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -516,7 +517,10 @@ class AiBundleTest extends TestCase
         $this->assertTrue($strategyDefinition->isLazy());
 
         $this->assertTrue($definition->hasTag('proxy'));
-        $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
+        $this->assertSame([
+            ['interface' => StoreInterface::class],
+            ['interface' => ManagedStoreInterface::class],
+        ], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.store'));
 
         $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_cache_store'));
@@ -554,7 +558,10 @@ class AiBundleTest extends TestCase
         $this->assertTrue($strategyDefinition->isLazy());
 
         $this->assertTrue($definition->hasTag('proxy'));
-        $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
+        $this->assertSame([
+            ['interface' => StoreInterface::class],
+            ['interface' => ManagedStoreInterface::class],
+        ], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.store'));
 
         $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $cache_my_cache_store_with_custom_key'));
@@ -597,7 +604,10 @@ class AiBundleTest extends TestCase
         $this->assertSame(DistanceStrategy::CHEBYSHEV_DISTANCE, $strategyDefinition->getArgument(0));
 
         $this->assertTrue($definition->hasTag('proxy'));
-        $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
+        $this->assertSame([
+            ['interface' => StoreInterface::class],
+            ['interface' => ManagedStoreInterface::class],
+        ], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.store'));
 
         $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $cache_my_cache_store_with_custom_strategy'));
@@ -641,7 +651,10 @@ class AiBundleTest extends TestCase
         $this->assertSame(DistanceStrategy::CHEBYSHEV_DISTANCE, $strategyDefinition->getArgument(0));
 
         $this->assertTrue($definition->hasTag('proxy'));
-        $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
+        $this->assertSame([
+            ['interface' => StoreInterface::class],
+            ['interface' => ManagedStoreInterface::class],
+        ], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.store'));
 
         $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $cache_my_cache_store_with_custom_strategy_and_custom_key'));
@@ -750,7 +763,10 @@ class AiBundleTest extends TestCase
         $this->assertSame('my_table', (string) $definition->getArgument(2));
 
         $this->assertTrue($definition->hasTag('proxy'));
-        $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
+        $this->assertSame([
+            ['interface' => StoreInterface::class],
+            ['interface' => ManagedStoreInterface::class],
+        ], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.store'));
 
         $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_clickhouse_store'));
@@ -790,7 +806,10 @@ class AiBundleTest extends TestCase
         $this->assertSame('my_table', (string) $definition->getArgument(2));
 
         $this->assertTrue($definition->hasTag('proxy'));
-        $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
+        $this->assertSame([
+            ['interface' => StoreInterface::class],
+            ['interface' => ManagedStoreInterface::class],
+        ], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.store'));
 
         $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_clickhouse_store'));
