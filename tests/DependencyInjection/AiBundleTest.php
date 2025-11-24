@@ -11,6 +11,7 @@
 
 namespace Symfony\AI\AiBundle\Tests\DependencyInjection;
 
+use Codewithkyrian\ChromaDB\Client;
 use MongoDB\Client as MongoDbClient;
 use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\Attributes\TestDox;
@@ -27,7 +28,12 @@ use Symfony\AI\Chat\MessageStoreInterface;
 use Symfony\AI\Platform\Bridge\Ollama\OllamaApiCatalog;
 use Symfony\AI\Platform\Capability;
 use Symfony\AI\Platform\Model;
+use Symfony\AI\Store\Bridge\Azure\SearchStore as AzureStore;
+use Symfony\AI\Store\Bridge\ChromaDb\Store as ChromaDbStore;
+use Symfony\AI\Store\Bridge\ClickHouse\Store as ClickhouseStore;
+use Symfony\AI\Store\Bridge\Local\CacheStore;
 use Symfony\AI\Store\Bridge\Local\DistanceCalculator;
+use Symfony\AI\Store\Bridge\Local\DistanceStrategy;
 use Symfony\AI\Store\Document\Filter\TextContainsFilter;
 use Symfony\AI\Store\Document\Loader\InMemoryLoader;
 use Symfony\AI\Store\Document\Transformer\TextTrimTransformer;
@@ -42,6 +48,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\HttpClient\HttpClient;
 use Symfony\Component\Translation\TranslatableMessage;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
@@ -394,13 +401,136 @@ class AiBundleTest extends TestCase
         ]);
     }
 
+    public function testAzureStoreCanBeConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'azure_search' => [
+                        'my_azure_search_store' => [
+                            'endpoint' => 'https://mysearch.search.windows.net',
+                            'api_key' => 'azure_search_key',
+                            'index_name' => 'my-documents',
+                            'api_version' => '2023-11-01',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.store.azure_search.my_azure_search_store'));
+
+        $definition = $container->getDefinition('ai.store.azure_search.my_azure_search_store');
+        $this->assertSame(AzureStore::class, $definition->getClass());
+
+        $this->assertTrue($definition->isLazy());
+        $this->assertCount(5, $definition->getArguments());
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
+        $this->assertSame('http_client', (string) $definition->getArgument(0));
+        $this->assertSame('https://mysearch.search.windows.net', $definition->getArgument(1));
+        $this->assertSame('azure_search_key', $definition->getArgument(2));
+        $this->assertSame('my-documents', $definition->getArgument(3));
+        $this->assertSame('2023-11-01', $definition->getArgument(4));
+
+        $this->assertTrue($definition->hasTag('proxy'));
+        $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.store'));
+
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_azure_search_store'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myAzureSearchStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $azureSearchMyAzureSearchStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
+    }
+
+    public function testAzureStoreCanBeConfiguredWithCustomVectorField()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'azure_search' => [
+                        'my_azure_search_store' => [
+                            'endpoint' => 'https://mysearch.search.windows.net',
+                            'api_key' => 'azure_search_key',
+                            'index_name' => 'my-documents',
+                            'api_version' => '2023-11-01',
+                            'vector_field' => 'foo',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.store.azure_search.my_azure_search_store'));
+
+        $definition = $container->getDefinition('ai.store.azure_search.my_azure_search_store');
+        $this->assertSame(AzureStore::class, $definition->getClass());
+
+        $this->assertTrue($definition->isLazy());
+        $this->assertCount(6, $definition->getArguments());
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
+        $this->assertSame('http_client', (string) $definition->getArgument(0));
+        $this->assertSame('https://mysearch.search.windows.net', $definition->getArgument(1));
+        $this->assertSame('azure_search_key', $definition->getArgument(2));
+        $this->assertSame('my-documents', $definition->getArgument(3));
+        $this->assertSame('2023-11-01', $definition->getArgument(4));
+        $this->assertSame('foo', $definition->getArgument(5));
+
+        $this->assertTrue($definition->hasTag('proxy'));
+        $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.store'));
+
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_azure_search_store'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myAzureSearchStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $azureSearchMyAzureSearchStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
+    }
+
+    public function testCacheStoreCanBeConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'cache' => [
+                        'my_cache_store' => [
+                            'service' => 'cache.system',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.store.cache.my_cache_store'));
+        $this->assertTrue($container->hasDefinition('ai.store.distance_calculator.my_cache_store'));
+
+        $definition = $container->getDefinition('ai.store.cache.my_cache_store');
+        $this->assertSame(CacheStore::class, $definition->getClass());
+
+        $this->assertTrue($definition->isLazy());
+        $this->assertCount(3, $definition->getArguments());
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
+        $this->assertSame('cache.system', (string) $definition->getArgument(0));
+        $this->assertSame('my_cache_store', $definition->getArgument(2));
+
+        $strategyDefinition = $container->getDefinition('ai.store.distance_calculator.my_cache_store');
+        $this->assertTrue($strategyDefinition->isLazy());
+
+        $this->assertTrue($definition->hasTag('proxy'));
+        $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.store'));
+
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_cache_store'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myCacheStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $cacheMyCacheStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
+    }
+
     public function testCacheStoreWithCustomKeyCanBeConfigured()
     {
         $container = $this->buildContainer([
             'ai' => [
                 'store' => [
                     'cache' => [
-                        'my_cache_store_with_custom_strategy' => [
+                        'my_cache_store_with_custom_key' => [
                             'service' => 'cache.system',
                             'cache_key' => 'random',
                         ],
@@ -409,15 +539,27 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $this->assertTrue($container->hasDefinition('ai.store.cache.my_cache_store_with_custom_strategy'));
-        $this->assertFalse($container->hasDefinition('ai.store.distance_calculator.my_cache_store_with_custom_strategy'));
+        $this->assertTrue($container->hasDefinition('ai.store.cache.my_cache_store_with_custom_key'));
+        $this->assertTrue($container->hasDefinition('ai.store.distance_calculator.my_cache_store_with_custom_key'));
 
-        $definition = $container->getDefinition('ai.store.cache.my_cache_store_with_custom_strategy');
+        $definition = $container->getDefinition('ai.store.cache.my_cache_store_with_custom_key');
 
         $this->assertCount(3, $definition->getArguments());
         $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
         $this->assertSame('cache.system', (string) $definition->getArgument(0));
         $this->assertSame('random', $definition->getArgument(2));
+
+        $strategyDefinition = $container->getDefinition('ai.store.distance_calculator.my_cache_store_with_custom_key');
+        $this->assertTrue($strategyDefinition->isLazy());
+
+        $this->assertTrue($definition->hasTag('proxy'));
+        $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.store'));
+
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $cache_my_cache_store_with_custom_key'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myCacheStoreWithCustomKey'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $cacheMyCacheStoreWithCustomKey'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
     }
 
     public function testCacheStoreWithCustomStrategyCanBeConfigured()
@@ -439,13 +581,28 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.store.distance_calculator.my_cache_store_with_custom_strategy'));
 
         $definition = $container->getDefinition('ai.store.cache.my_cache_store_with_custom_strategy');
+        $this->assertSame(CacheStore::class, $definition->getClass());
 
+        $this->assertTrue($definition->isLazy());
         $this->assertCount(3, $definition->getArguments());
         $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
         $this->assertSame('cache.system', (string) $definition->getArgument(0));
         $this->assertInstanceOf(Reference::class, $definition->getArgument(1));
         $this->assertSame('ai.store.distance_calculator.my_cache_store_with_custom_strategy', (string) $definition->getArgument(1));
         $this->assertSame('my_cache_store_with_custom_strategy', $definition->getArgument(2));
+
+        $strategyDefinition = $container->getDefinition('ai.store.distance_calculator.my_cache_store_with_custom_strategy');
+        $this->assertTrue($strategyDefinition->isLazy());
+        $this->assertSame(DistanceStrategy::CHEBYSHEV_DISTANCE, $strategyDefinition->getArgument(0));
+
+        $this->assertTrue($definition->hasTag('proxy'));
+        $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.store'));
+
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $cache_my_cache_store_with_custom_strategy'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myCacheStoreWithCustomStrategy'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $cacheMyCacheStoreWithCustomStrategy'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
     }
 
     public function testCacheStoreWithCustomStrategyAndKeyCanBeConfigured()
@@ -454,7 +611,7 @@ class AiBundleTest extends TestCase
             'ai' => [
                 'store' => [
                     'cache' => [
-                        'my_cache_store_with_custom_strategy' => [
+                        'my_cache_store_with_custom_strategy_and_custom_key' => [
                             'service' => 'cache.system',
                             'cache_key' => 'random',
                             'strategy' => 'chebyshev',
@@ -464,17 +621,181 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $this->assertTrue($container->hasDefinition('ai.store.cache.my_cache_store_with_custom_strategy'));
-        $this->assertTrue($container->hasDefinition('ai.store.distance_calculator.my_cache_store_with_custom_strategy'));
+        $this->assertTrue($container->hasDefinition('ai.store.cache.my_cache_store_with_custom_strategy_and_custom_key'));
+        $this->assertTrue($container->hasDefinition('ai.store.distance_calculator.my_cache_store_with_custom_strategy_and_custom_key'));
 
-        $definition = $container->getDefinition('ai.store.cache.my_cache_store_with_custom_strategy');
+        $definition = $container->getDefinition('ai.store.cache.my_cache_store_with_custom_strategy_and_custom_key');
+        $this->assertSame(CacheStore::class, $definition->getClass());
 
+        $this->assertTrue($definition->isLazy());
         $this->assertCount(3, $definition->getArguments());
         $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
         $this->assertSame('cache.system', (string) $definition->getArgument(0));
         $this->assertInstanceOf(Reference::class, $definition->getArgument(1));
-        $this->assertSame('ai.store.distance_calculator.my_cache_store_with_custom_strategy', (string) $definition->getArgument(1));
+        $this->assertSame('ai.store.distance_calculator.my_cache_store_with_custom_strategy_and_custom_key', (string) $definition->getArgument(1));
         $this->assertSame('random', $definition->getArgument(2));
+
+        $strategyDefinition = $container->getDefinition('ai.store.distance_calculator.my_cache_store_with_custom_strategy_and_custom_key');
+        $this->assertTrue($strategyDefinition->isLazy());
+        $this->assertSame(DistanceStrategy::CHEBYSHEV_DISTANCE, $strategyDefinition->getArgument(0));
+
+        $this->assertTrue($definition->hasTag('proxy'));
+        $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.store'));
+
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $cache_my_cache_store_with_custom_strategy_and_custom_key'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myCacheStoreWithCustomStrategyAndCustomKey'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $cacheMyCacheStoreWithCustomStrategyAndCustomKey'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
+    }
+
+    public function testChromaDbStoreCanBeConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'chroma_db' => [
+                        'my_chroma_db_store' => [
+                            'collection' => 'foo',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.store.chroma_db.my_chroma_db_store'));
+
+        $definition = $container->getDefinition('ai.store.chroma_db.my_chroma_db_store');
+        $this->assertSame(ChromaDbStore::class, $definition->getClass());
+
+        $this->assertTrue($definition->isLazy());
+        $this->assertCount(2, $definition->getArguments());
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
+        $this->assertSame(Client::class, (string) $definition->getArgument(0));
+        $this->assertSame('foo', (string) $definition->getArgument(1));
+
+        $this->assertTrue($definition->hasTag('proxy'));
+        $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.store'));
+
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $chroma_db_my_chroma_db_store'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myChromaDbStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $chromaDbMyChromaDbStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
+    }
+
+    public function testChromaDbStoreWithCustomClientCanBeConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'chroma_db' => [
+                        'my_chroma_db_store_with_custom_client' => [
+                            'client' => 'bar',
+                            'collection' => 'foo',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.store.chroma_db.my_chroma_db_store_with_custom_client'));
+
+        $definition = $container->getDefinition('ai.store.chroma_db.my_chroma_db_store_with_custom_client');
+        $this->assertSame(ChromaDbStore::class, $definition->getClass());
+
+        $this->assertTrue($definition->isLazy());
+        $this->assertCount(2, $definition->getArguments());
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
+        $this->assertSame('bar', (string) $definition->getArgument(0));
+        $this->assertSame('foo', (string) $definition->getArgument(1));
+
+        $this->assertTrue($definition->hasTag('proxy'));
+        $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.store'));
+
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $chroma_db_my_chroma_db_store_with_custom_client'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myChromaDbStoreWithCustomClient'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $chromaDbMyChromaDbStoreWithCustomClient'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
+    }
+
+    public function testClickhouseStoreWithCustomHttpClientCanBeConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'clickhouse' => [
+                        'my_clickhouse_store' => [
+                            'http_client' => 'clickhouse.http_client',
+                            'database' => 'my_db',
+                            'table' => 'my_table',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.store.clickhouse.my_clickhouse_store'));
+
+        $definition = $container->getDefinition('ai.store.clickhouse.my_clickhouse_store');
+        $this->assertSame(ClickhouseStore::class, $definition->getClass());
+
+        $this->assertTrue($definition->isLazy());
+        $this->assertCount(3, $definition->getArguments());
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
+        $this->assertSame('clickhouse.http_client', (string) $definition->getArgument(0));
+        $this->assertSame('my_db', (string) $definition->getArgument(1));
+        $this->assertSame('my_table', (string) $definition->getArgument(2));
+
+        $this->assertTrue($definition->hasTag('proxy'));
+        $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.store'));
+
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_clickhouse_store'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myClickhouseStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $clickhouseMyClickhouseStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
+    }
+
+    public function testClickhouseStoreWithCustomDsnCanBeConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'clickhouse' => [
+                        'my_clickhouse_store' => [
+                            'dsn' => 'http://foo:bar@1.2.3.4:9999',
+                            'database' => 'my_db',
+                            'table' => 'my_table',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.store.clickhouse.my_clickhouse_store'));
+
+        $definition = $container->getDefinition('ai.store.clickhouse.my_clickhouse_store');
+        $this->assertSame(ClickhouseStore::class, $definition->getClass());
+
+        $this->assertTrue($definition->isLazy());
+        $this->assertCount(3, $definition->getArguments());
+        $this->assertInstanceOf(Definition::class, $definition->getArgument(0));
+        $this->assertSame(HttpClientInterface::class, $definition->getArgument(0)->getClass());
+        $this->assertSame([HttpClient::class, 'createForBaseUri'], $definition->getArgument(0)->getFactory());
+        $this->assertSame(['http://foo:bar@1.2.3.4:9999'], $definition->getArgument(0)->getArguments());
+        $this->assertSame('my_db', (string) $definition->getArgument(1));
+        $this->assertSame('my_table', (string) $definition->getArgument(2));
+
+        $this->assertTrue($definition->hasTag('proxy'));
+        $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.store'));
+
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_clickhouse_store'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myClickhouseStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $clickhouseMyClickhouseStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
     }
 
     public function testInMemoryStoreWithoutCustomStrategyCanBeConfigured()
@@ -3750,6 +4071,10 @@ class AiBundleTest extends TestCase
                     'chroma_db' => [
                         'my_chroma_store' => [
                             'collection' => 'my_collection',
+                        ],
+                        'my_chroma_db_store_with_custom_client' => [
+                            'client' => 'bar',
+                            'collection' => 'foo',
                         ],
                     ],
                     'clickhouse' => [
