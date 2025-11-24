@@ -959,19 +959,23 @@ final class AiBundle extends AbstractBundle
 
         if ('cache' === $type) {
             foreach ($stores as $name => $store) {
+                $distanceCalculatorDefinition = new Definition(DistanceCalculator::class);
+                $distanceCalculatorDefinition->setLazy(true);
+
+                $container->setDefinition('ai.store.distance_calculator.'.$name, $distanceCalculatorDefinition);
+
                 $arguments = [
                     new Reference($store['service']),
-                    new Definition(DistanceCalculator::class),
+                    new Reference('ai.store.distance_calculator.'.$name),
                     $store['cache_key'] ?? $name,
                 ];
 
                 if (\array_key_exists('strategy', $store) && null !== $store['strategy']) {
-                    if (!$container->hasDefinition('ai.store.distance_calculator.'.$name)) {
-                        $distanceCalculatorDefinition = new Definition(DistanceCalculator::class);
-                        $distanceCalculatorDefinition->setArgument(0, DistanceStrategy::from($store['strategy']));
+                    $distanceCalculatorDefinition = new Definition(DistanceCalculator::class);
+                    $distanceCalculatorDefinition->setLazy(true);
+                    $distanceCalculatorDefinition->setArgument(0, DistanceStrategy::from($store['strategy']));
 
-                        $container->setDefinition('ai.store.distance_calculator.'.$name, $distanceCalculatorDefinition);
-                    }
+                    $container->setDefinition('ai.store.distance_calculator.'.$name, $distanceCalculatorDefinition);
 
                     $arguments[1] = new Reference('ai.store.distance_calculator.'.$name);
                 }
@@ -1015,8 +1019,7 @@ final class AiBundle extends AbstractBundle
                     $httpClient = new Definition(HttpClientInterface::class);
                     $httpClient
                         ->setFactory([HttpClient::class, 'createForBaseUri'])
-                        ->setArguments([$store['dsn']])
-                    ;
+                        ->setArguments([$store['dsn']]);
                 }
 
                 $definition = new Definition(ClickHouseStore::class);
@@ -1028,8 +1031,7 @@ final class AiBundle extends AbstractBundle
                         $store['table'],
                     ])
                     ->addTag('proxy', ['interface' => StoreInterface::class])
-                    ->addTag('ai.store')
-                ;
+                    ->addTag('ai.store');
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
                 $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
