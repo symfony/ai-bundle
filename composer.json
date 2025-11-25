@@ -40,6 +40,7 @@
     "conflict": {
         "mongodb/mongodb": "<1.21"
     },
+    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
             "Symfony\\AI\\AiBundle\\": "src/"
@@ -62,6 +63,5 @@
             "name": "symfony/ai",
             "url": "https://github.com/symfony/ai"
         }
-    },
-    "minimum-stability": "dev"
+    }
 }
