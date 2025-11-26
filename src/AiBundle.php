@@ -36,6 +36,7 @@ use Symfony\AI\AiBundle\Profiler\TraceableMessageStore;
 use Symfony\AI\AiBundle\Profiler\TraceablePlatform;
 use Symfony\AI\AiBundle\Profiler\TraceableToolbox;
 use Symfony\AI\AiBundle\Security\Attribute\IsGrantedTool;
+use Symfony\AI\Chat\Bridge\Cloudflare\MessageStore as CloudflareMessageStore;
 use Symfony\AI\Chat\Bridge\Doctrine\DoctrineDbalMessageStore;
 use Symfony\AI\Chat\Bridge\HttpFoundation\SessionStore;
 use Symfony\AI\Chat\Bridge\Local\CacheStore as CacheMessageStore;
@@ -1575,6 +1576,34 @@ final class AiBundle extends AbstractBundle
                 }
 
                 $definition = new Definition(CacheMessageStore::class);
+                $definition
+                    ->setLazy(true)
+                    ->setArguments($arguments)
+                    ->addTag('proxy', ['interface' => MessageStoreInterface::class])
+                    ->addTag('proxy', ['interface' => ManagedMessageStoreInterface::class])
+                    ->addTag('ai.message_store');
+
+                $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $type.'_'.$name);
+            }
+        }
+
+        if ('cloudflare' === $type) {
+            foreach ($messageStores as $name => $messageStore) {
+                $arguments = [
+                    new Reference('http_client'),
+                    $messageStore['namespace'],
+                    $messageStore['account_id'],
+                    $messageStore['api_key'],
+                    new Reference('serializer'),
+                ];
+
+                if (\array_key_exists('endpoint_url', $messageStore)) {
+                    $arguments[5] = $messageStore['endpoint_url'];
+                }
+
+                $definition = new Definition(CloudflareMessageStore::class);
                 $definition
                     ->setLazy(true)
                     ->setArguments($arguments)
