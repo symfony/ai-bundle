@@ -3837,6 +3837,78 @@ class AiBundleTest extends TestCase
         $this->assertTrue($definition->hasTag('ai.message_store'));
     }
 
+    public function testCloudflareMessageStoreIsConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'cloudflare' => [
+                        'my_cloudflare_message_store' => [
+                            'account_id' => 'foo',
+                            'api_key' => 'bar',
+                            'namespace' => 'random',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $definition = $container->getDefinition('ai.message_store.cloudflare.my_cloudflare_message_store');
+
+        $this->assertTrue($definition->isLazy());
+        $this->assertCount(5, $definition->getArguments());
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
+        $this->assertSame('http_client', (string) $definition->getArgument(0));
+        $this->assertSame('random', $definition->getArgument(1));
+        $this->assertSame('foo', $definition->getArgument(2));
+        $this->assertSame('bar', $definition->getArgument(3));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(4));
+        $this->assertSame('serializer', (string) $definition->getArgument(4));
+
+        $this->assertSame([
+            ['interface' => MessageStoreInterface::class],
+            ['interface' => ManagedMessageStoreInterface::class],
+        ], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.message_store'));
+    }
+
+    public function testCloudflareMessageStoreWithCustomEndpointIsConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'message_store' => [
+                    'cloudflare' => [
+                        'my_cloudflare_message_store_with_new_endpoint' => [
+                            'account_id' => 'foo',
+                            'api_key' => 'bar',
+                            'namespace' => 'random',
+                            'endpoint_url' => 'https://api.cloudflare.com/client/v6/accounts',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $definition = $container->getDefinition('ai.message_store.cloudflare.my_cloudflare_message_store_with_new_endpoint');
+
+        $this->assertTrue($definition->isLazy());
+        $this->assertCount(6, $definition->getArguments());
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
+        $this->assertSame('http_client', (string) $definition->getArgument(0));
+        $this->assertSame('random', $definition->getArgument(1));
+        $this->assertSame('foo', $definition->getArgument(2));
+        $this->assertSame('bar', $definition->getArgument(3));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(4));
+        $this->assertSame('serializer', (string) $definition->getArgument(4));
+        $this->assertSame('https://api.cloudflare.com/client/v6/accounts', $definition->getArgument(5));
+
+        $this->assertSame([
+            ['interface' => MessageStoreInterface::class],
+            ['interface' => ManagedMessageStoreInterface::class],
+        ], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.message_store'));
+    }
+
     public function testDoctrineDbalMessageStoreCanBeConfiguredWithCustomKey()
     {
         $container = $this->buildContainer([
@@ -4779,6 +4851,19 @@ class AiBundleTest extends TestCase
                         'my_cache_message_store_with_custom_cache_key' => [
                             'service' => 'cache.system',
                             'key' => 'foo',
+                        ],
+                    ],
+                    'cloudflare' => [
+                        'my_cloudflare_message_store' => [
+                            'account_id' => 'foo',
+                            'api_key' => 'bar',
+                            'namespace' => 'random',
+                        ],
+                        'my_cloudflare_message_store_with_new_endpoint' => [
+                            'account_id' => 'foo',
+                            'api_key' => 'bar',
+                            'namespace' => 'random',
+                            'endpoint_url' => 'https://api.cloudflare.com/client/v6/accounts',
                         ],
                     ],
                     'doctrine' => [
