@@ -33,6 +33,10 @@ use Symfony\AI\Platform\Bridge\ElevenLabs\ModelCatalog as ElevenLabsModelCatalog
 use Symfony\AI\Platform\Bridge\ElevenLabs\PlatformFactory as ElevenLabsPlatformFactory;
 use Symfony\AI\Platform\Bridge\Ollama\OllamaApiCatalog;
 use Symfony\AI\Platform\Capability;
+use Symfony\AI\Platform\EventListener\TemplateRendererListener;
+use Symfony\AI\Platform\Message\TemplateRenderer\ExpressionLanguageTemplateRenderer;
+use Symfony\AI\Platform\Message\TemplateRenderer\StringTemplateRenderer;
+use Symfony\AI\Platform\Message\TemplateRenderer\TemplateRendererRegistry;
 use Symfony\AI\Platform\Model;
 use Symfony\AI\Platform\ModelCatalog\ModelCatalogInterface;
 use Symfony\AI\Platform\PlatformInterface;
@@ -6976,6 +6980,42 @@ class AiBundleTest extends TestCase
         // The model catalog for openai should not have been modified
         $definition = $container->getDefinition('ai.platform.model_catalog.openai');
         $this->assertSame([], $definition->getArguments());
+    }
+
+    public function testTemplateRendererServicesAreRegistered()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'anthropic' => [
+                        'api_key' => 'test_key',
+                    ],
+                ],
+            ],
+        ]);
+
+        // Verify string template renderer is registered
+        $this->assertTrue($container->hasDefinition('ai.platform.template_renderer.string'));
+        $stringRendererDefinition = $container->getDefinition('ai.platform.template_renderer.string');
+        $this->assertSame(StringTemplateRenderer::class, $stringRendererDefinition->getClass());
+        $this->assertTrue($stringRendererDefinition->hasTag('ai.platform.template_renderer'));
+
+        // Verify expression template renderer is registered
+        $this->assertTrue($container->hasDefinition('ai.platform.template_renderer.expression'));
+        $expressionRendererDefinition = $container->getDefinition('ai.platform.template_renderer.expression');
+        $this->assertSame(ExpressionLanguageTemplateRenderer::class, $expressionRendererDefinition->getClass());
+        $this->assertTrue($expressionRendererDefinition->hasTag('ai.platform.template_renderer'));
+
+        // Verify template renderer registry is registered
+        $this->assertTrue($container->hasDefinition('ai.platform.template_renderer_registry'));
+        $registryDefinition = $container->getDefinition('ai.platform.template_renderer_registry');
+        $this->assertSame(TemplateRendererRegistry::class, $registryDefinition->getClass());
+
+        // Verify template renderer listener is registered as event subscriber
+        $this->assertTrue($container->hasDefinition('ai.platform.template_renderer_listener'));
+        $listenerDefinition = $container->getDefinition('ai.platform.template_renderer_listener');
+        $this->assertSame(TemplateRendererListener::class, $listenerDefinition->getClass());
+        $this->assertTrue($listenerDefinition->hasTag('kernel.event_subscriber'));
     }
 
     private function buildContainer(array $configuration): ContainerBuilder
