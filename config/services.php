@@ -64,6 +64,10 @@ use Symfony\AI\Platform\Bridge\Voyage\ModelCatalog as VoyageModelCatalog;
 use Symfony\AI\Platform\Contract;
 use Symfony\AI\Platform\Contract\JsonSchema\DescriptionParser;
 use Symfony\AI\Platform\Contract\JsonSchema\Factory as SchemaFactory;
+use Symfony\AI\Platform\EventListener\TemplateRendererListener;
+use Symfony\AI\Platform\Message\TemplateRenderer\ExpressionLanguageTemplateRenderer;
+use Symfony\AI\Platform\Message\TemplateRenderer\StringTemplateRenderer;
+use Symfony\AI\Platform\Message\TemplateRenderer\TemplateRendererRegistry;
 use Symfony\AI\Platform\ModelCatalog\ModelCatalogInterface;
 use Symfony\AI\Platform\Serializer\StructuredOutputSerializer;
 use Symfony\AI\Platform\StructuredOutput\PlatformSubscriber;
@@ -73,6 +77,7 @@ use Symfony\AI\Store\Command\DropStoreCommand;
 use Symfony\AI\Store\Command\IndexCommand;
 use Symfony\AI\Store\Command\RetrieveCommand;
 use Symfony\AI\Store\Command\SetupStoreCommand;
+use Symfony\Component\ExpressionLanguage\ExpressionLanguage;
 
 return static function (ContainerConfigurator $container): void {
     $container->services()
@@ -118,6 +123,30 @@ return static function (ContainerConfigurator $container): void {
         ->set('ai.platform.model_catalog.scaleway', ScalewayModelCatalog::class)
         ->set('ai.platform.model_catalog.vertexai.gemini', VertexAiModelCatalog::class)
         ->set('ai.platform.model_catalog.voyage', VoyageModelCatalog::class)
+
+        // message templates
+        ->set('ai.platform.template_renderer.string', StringTemplateRenderer::class)
+            ->tag('ai.platform.template_renderer');
+
+    if (class_exists(ExpressionLanguage::class)) {
+        $container->services()
+            ->set('ai.platform.template_renderer.expression', ExpressionLanguageTemplateRenderer::class)
+                ->args([
+                    service('expression_language'),
+                ])
+                ->tag('ai.platform.template_renderer');
+    }
+
+    $container->services()
+        ->set('ai.platform.template_renderer_registry', TemplateRendererRegistry::class)
+            ->args([
+                tagged_iterator('ai.platform.template_renderer'),
+            ])
+        ->set('ai.platform.template_renderer_listener', TemplateRendererListener::class)
+            ->args([
+                service('ai.platform.template_renderer_registry'),
+            ])
+            ->tag('kernel.event_subscriber')
 
         // structured output
         ->set('ai.agent.response_format_factory', ResponseFormatFactory::class)
