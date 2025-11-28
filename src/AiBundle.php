@@ -415,23 +415,23 @@ final class AiBundle extends AbstractBundle
             return;
         }
 
-        if ('eleven_labs' === $type) {
-            $platformId = 'ai.platform.eleven_labs';
+        if ('elevenlabs' === $type) {
             $definition = (new Definition(Platform::class))
                 ->setFactory(ElevenLabsPlatformFactory::class.'::create')
                 ->setLazy(true)
-                ->addTag('proxy', ['interface' => PlatformInterface::class])
                 ->setArguments([
                     $platform['api_key'],
                     $platform['host'],
                     new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
-                    new Reference('ai.platform.model_catalog.elevenlabs'),
+                    new Reference('ai.platform.model_catalog.'.$type),
                     null,
                     new Reference('event_dispatcher'),
                 ])
-                ->addTag('ai.platform', ['name' => 'eleven_labs']);
+                ->addTag('proxy', ['interface' => PlatformInterface::class])
+                ->addTag('ai.platform', ['name' => $type]);
 
-            $container->setDefinition($platformId, $definition);
+            $container->setDefinition('ai.platform.'.$type, $definition);
+            $container->registerAliasForArgument('ai.platform.'.$type, PlatformInterface::class, $type);
 
             return;
         }
