@@ -48,6 +48,7 @@ use Symfony\AI\Store\Document\Vectorizer;
 use Symfony\AI\Store\Document\VectorizerInterface;
 use Symfony\AI\Store\IndexerInterface;
 use Symfony\AI\Store\ManagedStoreInterface;
+use Symfony\AI\Store\RetrieverInterface;
 use Symfony\AI\Store\StoreInterface;
 use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -3291,6 +3292,94 @@ class AiBundleTest extends TestCase
 
         $this->assertTrue($container->hasAlias(IndexerInterface::class.' $myIndexer'));
         $this->assertTrue($container->hasAlias(IndexerInterface::class.' $another'));
+    }
+
+    public function testRetrieverWithConfiguredVectorizer()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'memory' => [
+                        'my_store' => [],
+                    ],
+                ],
+                'vectorizer' => [
+                    'my_vectorizer' => [
+                        'platform' => 'my_platform_service_id',
+                        'model' => 'text-embedding-3-small',
+                    ],
+                ],
+                'retriever' => [
+                    'my_retriever' => [
+                        'vectorizer' => 'ai.vectorizer.my_vectorizer',
+                        'store' => 'ai.store.memory.my_store',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.retriever.my_retriever'));
+        $this->assertTrue($container->hasDefinition('ai.vectorizer.my_vectorizer'));
+
+        $retrieverDefinition = $container->getDefinition('ai.retriever.my_retriever');
+        $arguments = $retrieverDefinition->getArguments();
+
+        $this->assertInstanceOf(Reference::class, $arguments[0]);
+        $this->assertSame('ai.vectorizer.my_vectorizer', (string) $arguments[0]);
+
+        $this->assertInstanceOf(Reference::class, $arguments[1]);
+        $this->assertSame('ai.store.memory.my_store', (string) $arguments[1]);
+
+        $this->assertInstanceOf(Reference::class, $arguments[2]); // logger
+        $this->assertSame('logger', (string) $arguments[2]);
+    }
+
+    public function testRetrieverAliasIsRegistered()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'memory' => [
+                        'my_store' => [],
+                    ],
+                ],
+                'retriever' => [
+                    'my_retriever' => [
+                        'vectorizer' => 'my_vectorizer_service',
+                        'store' => 'ai.store.memory.my_store',
+                    ],
+                    'another' => [
+                        'vectorizer' => 'my_vectorizer_service',
+                        'store' => 'ai.store.memory.my_store',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasAlias(RetrieverInterface::class.' $myRetriever'));
+        $this->assertTrue($container->hasAlias(RetrieverInterface::class.' $another'));
+    }
+
+    public function testSingleRetrieverCreatesDefaultAlias()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'memory' => [
+                        'my_store' => [],
+                    ],
+                ],
+                'retriever' => [
+                    'default' => [
+                        'vectorizer' => 'my_vectorizer_service',
+                        'store' => 'ai.store.memory.my_store',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.retriever.default'));
+        $this->assertTrue($container->hasAlias(RetrieverInterface::class));
     }
 
     public function testValidMultiAgentConfiguration()

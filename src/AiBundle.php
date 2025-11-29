@@ -104,6 +104,8 @@ use Symfony\AI\Store\Document\VectorizerInterface;
 use Symfony\AI\Store\Indexer;
 use Symfony\AI\Store\IndexerInterface;
 use Symfony\AI\Store\ManagedStoreInterface;
+use Symfony\AI\Store\Retriever;
+use Symfony\AI\Store\RetrieverInterface;
 use Symfony\AI\Store\StoreInterface;
 use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
@@ -260,6 +262,13 @@ final class AiBundle extends AbstractBundle
         }
         if (1 === \count($config['indexer']) && isset($indexerName)) {
             $builder->setAlias(IndexerInterface::class, 'ai.indexer.'.$indexerName);
+        }
+
+        foreach ($config['retriever'] ?? [] as $retrieverName => $retriever) {
+            $this->processRetrieverConfig($retrieverName, $retriever, $builder);
+        }
+        if (1 === \count($config['retriever'] ?? []) && isset($retrieverName)) {
+            $builder->setAlias(RetrieverInterface::class, 'ai.retriever.'.$retrieverName);
         }
 
         $builder->registerAttributeForAutoconfiguration(AsTool::class, static function (ChildDefinition $definition, AsTool $attribute): void {
@@ -1864,6 +1873,23 @@ final class AiBundle extends AbstractBundle
         $serviceId = 'ai.indexer.'.$name;
         $container->setDefinition($serviceId, $definition);
         $container->registerAliasForArgument($serviceId, IndexerInterface::class, (new Target((string) $name))->getParsedName());
+    }
+
+    /**
+     * @param array<string, mixed> $config
+     */
+    private function processRetrieverConfig(int|string $name, array $config, ContainerBuilder $container): void
+    {
+        $definition = new Definition(Retriever::class, [
+            new Reference($config['vectorizer']),
+            new Reference($config['store']),
+            new Reference('logger', ContainerInterface::IGNORE_ON_INVALID_REFERENCE),
+        ]);
+        $definition->addTag('ai.retriever', ['name' => $name]);
+
+        $serviceId = 'ai.retriever.'.$name;
+        $container->setDefinition($serviceId, $definition);
+        $container->registerAliasForArgument($serviceId, RetrieverInterface::class, (new Target((string) $name))->getParsedName());
     }
 
     /**
