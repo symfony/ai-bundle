@@ -73,7 +73,6 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpClient\HttpClient;
-use Symfony\Component\Translation\TranslatableMessage;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class AiBundleTest extends TestCase
@@ -2957,11 +2956,18 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
+        $this->assertTrue($container->hasDefinition('ai.agent.prompt.test_agent'));
+        $definition = $container->getDefinition('ai.agent.prompt.test_agent');
+        $arguments = $definition->getArguments();
+        $this->assertEquals('You are a helpful assistant.', $arguments[0]);
+        $this->assertEquals([], $arguments[1]);
+        $this->assertEquals('prompts', $arguments[2]);
+
         $this->assertTrue($container->hasDefinition('ai.agent.test_agent.system_prompt_processor'));
         $definition = $container->getDefinition('ai.agent.test_agent.system_prompt_processor');
         $arguments = $definition->getArguments();
 
-        $this->assertEquals(new TranslatableMessage('You are a helpful assistant.', domain: 'prompts'), $arguments[0]);
+        $this->assertEquals(new Reference('ai.agent.prompt.test_agent'), $arguments[0]);
         $this->assertNull($arguments[1]); // include_tools is false, so null reference
     }
 

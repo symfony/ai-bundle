@@ -881,7 +881,12 @@ final class AiBundle extends AbstractBundle
                         throw new RuntimeException('For using prompt translataion, symfony/translation package is required. Try running "composer require symfony/translation".');
                     }
 
-                    $prompt = new TranslatableMessage($promptText, domain: $config['prompt']['translation_domain']);
+                    $promptId = 'ai.agent.prompt.'.$name;
+                    $translatableDefinition = (new Definition(TranslatableMessage::class))
+                        ->setArguments([$promptText, [], $config['prompt']['translation_domain']]);
+
+                    $container->setDefinition($promptId, $translatableDefinition);
+                    $prompt = new Reference($promptId);
                 } else {
                     $prompt = $promptText;
                 }
