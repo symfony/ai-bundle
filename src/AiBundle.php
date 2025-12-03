@@ -1049,26 +1049,24 @@ final class AiBundle extends AbstractBundle
 
         if ('cloudflare' === $type) {
             foreach ($stores as $name => $store) {
-                $arguments = [
-                    new Reference('http_client'),
-                    $store['account_id'],
-                    $store['api_key'],
-                    $store['index_name'],
-                    $store['dimensions'],
-                    $store['metric'],
-                ];
-
-                if (\array_key_exists('endpoint_url', $store)) {
-                    $arguments[6] = $store['endpoint_url'];
-                }
-
                 $definition = new Definition(CloudflareStore::class);
                 $definition
                     ->setLazy(true)
-                    ->setArguments($arguments)
+                    ->setArguments([
+                        new Reference('http_client'),
+                        $store['account_id'],
+                        $store['api_key'],
+                        $store['index_name'] ?? $name,
+                        $store['dimensions'],
+                        $store['metric'],
+                    ])
                     ->addTag('proxy', ['interface' => StoreInterface::class])
                     ->addTag('proxy', ['interface' => ManagedStoreInterface::class])
                     ->addTag('ai.store');
+
+                if (\array_key_exists('endpoint', $store)) {
+                    $definition->setArgument(6, $store['endpoint']);
+                }
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
                 $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
@@ -1078,27 +1076,25 @@ final class AiBundle extends AbstractBundle
 
         if ('manticore' === $type) {
             foreach ($stores as $name => $store) {
-                $arguments = [
-                    new Reference('http_client'),
-                    $store['endpoint'],
-                    $store['table'],
-                    $store['field'],
-                    $store['type'],
-                    $store['similarity'],
-                    $store['dimensions'],
-                ];
-
-                if (\array_key_exists('quantization', $store)) {
-                    $arguments[7] = $store['quantization'];
-                }
-
                 $definition = new Definition(ManticoreStore::class);
                 $definition
                     ->setLazy(true)
-                    ->setArguments($arguments)
+                    ->setArguments([
+                        new Reference('http_client'),
+                        $store['endpoint'],
+                        $store['table'] ?? $name,
+                        $store['field'],
+                        $store['type'],
+                        $store['similarity'],
+                        $store['dimensions'],
+                    ])
                     ->addTag('proxy', ['interface' => StoreInterface::class])
                     ->addTag('proxy', ['interface' => ManagedStoreInterface::class])
                     ->addTag('ai.store');
+
+                if (\array_key_exists('quantization', $store)) {
+                    $definition->setArgument(7, $store['quantization']);
+                }
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
                 $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
@@ -1114,7 +1110,7 @@ final class AiBundle extends AbstractBundle
                     ->setFactory([MariaDbStore::class, 'fromDbal'])
                     ->setArguments([
                         new Reference(\sprintf('doctrine.dbal.%s_connection', $store['connection'])),
-                        $store['table_name'],
+                        $store['table_name'] ?? $name,
                         $store['index_name'],
                         $store['vector_field_name'],
                     ])
@@ -1132,24 +1128,19 @@ final class AiBundle extends AbstractBundle
 
         if ('meilisearch' === $type) {
             foreach ($stores as $name => $store) {
-                $arguments = [
-                    new Reference('http_client'),
-                    $store['endpoint'],
-                    $store['api_key'],
-                    $store['index_name'],
-                    $store['embedder'],
-                    $store['vector_field'],
-                    $store['dimensions'],
-                ];
-
-                if (\array_key_exists('semantic_ratio', $store)) {
-                    $arguments[7] = $store['semantic_ratio'];
-                }
-
                 $definition = new Definition(MeilisearchStore::class);
                 $definition
                     ->setLazy(true)
-                    ->setArguments($arguments)
+                    ->setArguments([
+                        new Reference('http_client'),
+                        $store['endpoint'],
+                        $store['api_key'],
+                        $store['index_name'] ?? $name,
+                        $store['embedder'],
+                        $store['vector_field'],
+                        $store['dimensions'],
+                        $store['semantic_ratio'],
+                    ])
                     ->addTag('proxy', ['interface' => StoreInterface::class])
                     ->addTag('proxy', ['interface' => ManagedStoreInterface::class])
                     ->addTag('ai.store');
@@ -1196,7 +1187,7 @@ final class AiBundle extends AbstractBundle
                     new Reference('http_client'),
                     $store['endpoint'],
                     $store['api_key'],
-                    $store['database'],
+                    $store['database'] ?? $name,
                     $store['collection'],
                     $store['vector_field'],
                     $store['dimensions'],
@@ -1225,7 +1216,7 @@ final class AiBundle extends AbstractBundle
                 $arguments = [
                     new Reference($store['client']),
                     $store['database'],
-                    $store['collection'],
+                    $store['collection'] ?? $name,
                     $store['index_name'],
                     $store['vector_field'],
                 ];
@@ -1255,7 +1246,7 @@ final class AiBundle extends AbstractBundle
                     $store['endpoint'],
                     $store['username'],
                     $store['password'],
-                    $store['database'],
+                    $store['database'] ?? $name,
                     $store['vector_index_name'],
                     $store['node_name'],
                     $store['vector_field'],
@@ -1285,7 +1276,7 @@ final class AiBundle extends AbstractBundle
             foreach ($stores as $name => $store) {
                 $arguments = [
                     new Reference($store['client']),
-                    $store['namespace'],
+                    $store['namespace'] ?? $name,
                     $store['filter'],
                 ];
 
@@ -1314,7 +1305,7 @@ final class AiBundle extends AbstractBundle
                     $definition->setFactory([PostgresStore::class, 'fromDbal']);
                     $arguments = [
                         new Reference($store['dbal_connection']),
-                        $store['table_name'],
+                        $store['table_name'] ?? $name,
                         $store['vector_field'],
                     ];
                 } else {
@@ -1327,7 +1318,7 @@ final class AiBundle extends AbstractBundle
 
                     $arguments = [
                         $pdo,
-                        $store['table_name'],
+                        $store['table_name'] ?? $name,
                         $store['vector_field'],
                     ];
                 }
@@ -1355,7 +1346,7 @@ final class AiBundle extends AbstractBundle
                     new Reference('http_client'),
                     $store['endpoint'],
                     $store['api_key'],
-                    $store['collection_name'],
+                    $store['collection_name'] ?? $name,
                     $store['dimensions'],
                     $store['distance'],
                 ];
@@ -1392,7 +1383,7 @@ final class AiBundle extends AbstractBundle
                     ->setLazy(true)
                     ->setArguments([
                         $redisClient,
-                        $store['index_name'],
+                        $store['index_name'] ?? $name,
                         $store['key_prefix'],
                         $store['distance'],
                     ])
@@ -1476,7 +1467,7 @@ final class AiBundle extends AbstractBundle
                         new Reference('http_client'),
                         $store['endpoint'],
                         $store['api_key'],
-                        $store['collection'],
+                        $store['collection'] ?? $name,
                         $store['vector_field'],
                         $store['dimensions'],
                     ])
@@ -1499,7 +1490,7 @@ final class AiBundle extends AbstractBundle
                         new Reference('http_client'),
                         $store['endpoint'],
                         $store['api_key'],
-                        $store['collection'],
+                        $store['collection'] ?? $name,
                     ])
                     ->addTag('proxy', ['interface' => StoreInterface::class])
                     ->addTag('proxy', ['interface' => ManagedStoreInterface::class])
