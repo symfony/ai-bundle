@@ -1033,6 +1033,10 @@ final class AiBundle extends AbstractBundle
         }
 
         if ('chromadb' === $type) {
+            if (!ContainerBuilder::willBeAvailable('symfony/ai-chroma-db-store', ChromaDbStore::class, ['symfony/ai-bundle'])) {
+                throw new RuntimeException('ChromaDB store configuration requires "symfony/ai-chroma-db-store" package. Try running "composer require symfony/ai-chroma-db-store".');
+            }
+
             foreach ($stores as $name => $store) {
                 $definition = new Definition(ChromaDbStore::class);
                 $definition
