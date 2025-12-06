@@ -58,6 +58,7 @@ use Symfony\AI\Platform\Bridge\DeepSeek\PlatformFactory as DeepSeekPlatformFacto
 use Symfony\AI\Platform\Bridge\DockerModelRunner\PlatformFactory as DockerModelRunnerPlatformFactory;
 use Symfony\AI\Platform\Bridge\ElevenLabs\PlatformFactory as ElevenLabsPlatformFactory;
 use Symfony\AI\Platform\Bridge\Gemini\PlatformFactory as GeminiPlatformFactory;
+use Symfony\AI\Platform\Bridge\Generic\PlatformFactory as GenericPlatformFactory;
 use Symfony\AI\Platform\Bridge\HuggingFace\PlatformFactory as HuggingFacePlatformFactory;
 use Symfony\AI\Platform\Bridge\LmStudio\PlatformFactory as LmStudioPlatformFactory;
 use Symfony\AI\Platform\Bridge\Mistral\PlatformFactory as MistralPlatformFactory;
@@ -462,6 +463,33 @@ final class AiBundle extends AbstractBundle
                 ->addTag('ai.platform', ['name' => 'gemini']);
 
             $container->setDefinition($platformId, $definition);
+
+            return;
+        }
+
+        if ('generic' === $type) {
+            foreach ($platform as $name => $config) {
+                $platformId = 'ai.platform.generic.'.$name;
+                $definition = (new Definition(Platform::class))
+                    ->setFactory(GenericPlatformFactory::class.'::create')
+                    ->setLazy(true)
+                    ->addTag('proxy', ['interface' => PlatformInterface::class])
+                    ->setArguments([
+                        $config['base_url'],
+                        $config['api_key'],
+                        new Reference($config['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                        new Reference($config['model_catalog'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                        null,
+                        new Reference('event_dispatcher'),
+                        $config['supports_completions'],
+                        $config['supports_embeddings'],
+                        $config['completions_path'],
+                        $config['embeddings_path'],
+                    ])
+                    ->addTag('ai.platform', ['name' => 'generic.'.$name]);
+
+                $container->setDefinition($platformId, $definition);
+            }
 
             return;
         }
