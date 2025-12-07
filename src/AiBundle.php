@@ -86,7 +86,7 @@ use Symfony\AI\Store\Bridge\Local\CacheStore as LocalCacheStore;
 use Symfony\AI\Store\Bridge\Local\DistanceCalculator;
 use Symfony\AI\Store\Bridge\Local\DistanceStrategy;
 use Symfony\AI\Store\Bridge\Local\InMemoryStore as LocalInMemoryStore;
-use Symfony\AI\Store\Bridge\Manticore\Store as ManticoreStore;
+use Symfony\AI\Store\Bridge\ManticoreSearch\Store as ManticoreSearchStore;
 use Symfony\AI\Store\Bridge\MariaDb\Store as MariaDbStore;
 use Symfony\AI\Store\Bridge\Meilisearch\Store as MeilisearchStore;
 use Symfony\AI\Store\Bridge\Milvus\Store as MilvusStore;
@@ -1112,9 +1112,9 @@ final class AiBundle extends AbstractBundle
             }
         }
 
-        if ('manticore' === $type) {
+        if ('manticoresearch' === $type) {
             foreach ($stores as $name => $store) {
-                $definition = new Definition(ManticoreStore::class);
+                $definition = new Definition(ManticoreSearchStore::class);
                 $definition
                     ->setLazy(true)
                     ->setArguments([

@@ -41,7 +41,7 @@ use Symfony\AI\Store\Bridge\Local\CacheStore as LocalCacheStore;
 use Symfony\AI\Store\Bridge\Local\DistanceCalculator;
 use Symfony\AI\Store\Bridge\Local\DistanceStrategy;
 use Symfony\AI\Store\Bridge\Local\InMemoryStore as LocalInMemoryStore;
-use Symfony\AI\Store\Bridge\Manticore\Store as ManticoreStore;
+use Symfony\AI\Store\Bridge\ManticoreSearch\Store as ManticoreSearchStore;
 use Symfony\AI\Store\Bridge\MariaDb\Store as MariaDbStore;
 use Symfony\AI\Store\Bridge\Meilisearch\Store as MeilisearchStore;
 use Symfony\AI\Store\Bridge\Milvus\Store as MilvusStore;
@@ -1017,13 +1017,13 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
     }
 
-    public function testManticoreStoreCanBeConfigured()
+    public function testManticoreSearchStoreCanBeConfigured()
     {
         $container = $this->buildContainer([
             'ai' => [
                 'store' => [
-                    'manticore' => [
-                        'my_manticore_store' => [
+                    'manticoresearch' => [
+                        'my_manticoresearch_store' => [
                             'endpoint' => 'http://127.0.0.1:9306',
                         ],
                     ],
@@ -1031,17 +1031,17 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $this->assertTrue($container->hasDefinition('ai.store.manticore.my_manticore_store'));
+        $this->assertTrue($container->hasDefinition('ai.store.manticoresearch.my_manticoresearch_store'));
 
-        $definition = $container->getDefinition('ai.store.manticore.my_manticore_store');
-        $this->assertSame(ManticoreStore::class, $definition->getClass());
+        $definition = $container->getDefinition('ai.store.manticoresearch.my_manticoresearch_store');
+        $this->assertSame(ManticoreSearchStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
         $this->assertCount(7, $definition->getArguments());
         $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
         $this->assertSame('http_client', (string) $definition->getArgument(0));
         $this->assertSame('http://127.0.0.1:9306', $definition->getArgument(1));
-        $this->assertSame('my_manticore_store', $definition->getArgument(2));
+        $this->assertSame('my_manticoresearch_store', $definition->getArgument(2));
         $this->assertSame('_vectors', $definition->getArgument(3));
         $this->assertSame('hnsw', $definition->getArgument(4));
         $this->assertSame('cosine', $definition->getArgument(5));
@@ -1054,19 +1054,19 @@ class AiBundleTest extends TestCase
         ], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.store'));
 
-        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_manticore_store'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myManticoreStore'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $manticoreMyManticoreStore'));
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_manticoresearch_store'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myManticoresearchStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $manticoresearchMyManticoresearchStore'));
         $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
     }
 
-    public function testManticoreStoreWithCustomTableCanBeConfigured()
+    public function testManticoreSearchStoreWithCustomTableCanBeConfigured()
     {
         $container = $this->buildContainer([
             'ai' => [
                 'store' => [
-                    'manticore' => [
-                        'my_manticore_store' => [
+                    'manticoresearch' => [
+                        'my_manticoresearch_store' => [
                             'endpoint' => 'http://127.0.0.1:9306',
                             'table' => 'test',
                         ],
@@ -1075,10 +1075,10 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $this->assertTrue($container->hasDefinition('ai.store.manticore.my_manticore_store'));
+        $this->assertTrue($container->hasDefinition('ai.store.manticoresearch.my_manticoresearch_store'));
 
-        $definition = $container->getDefinition('ai.store.manticore.my_manticore_store');
-        $this->assertSame(ManticoreStore::class, $definition->getClass());
+        $definition = $container->getDefinition('ai.store.manticoresearch.my_manticoresearch_store');
+        $this->assertSame(ManticoreSearchStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
         $this->assertCount(7, $definition->getArguments());
@@ -1098,19 +1098,19 @@ class AiBundleTest extends TestCase
         ], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.store'));
 
-        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_manticore_store'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myManticoreStore'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $manticoreMyManticoreStore'));
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_manticoresearch_store'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myManticoresearchStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $manticoresearchMyManticoresearchStore'));
         $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
     }
 
-    public function testManticoreStoreWithCustomFieldCanBeConfigured()
+    public function testManticoreSearchStoreWithCustomFieldCanBeConfigured()
     {
         $container = $this->buildContainer([
             'ai' => [
                 'store' => [
-                    'manticore' => [
-                        'my_manticore_store' => [
+                    'manticoresearch' => [
+                        'my_manticoresearch_store' => [
                             'endpoint' => 'http://127.0.0.1:9306',
                             'field' => '_foo',
                         ],
@@ -1119,17 +1119,17 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $this->assertTrue($container->hasDefinition('ai.store.manticore.my_manticore_store'));
+        $this->assertTrue($container->hasDefinition('ai.store.manticoresearch.my_manticoresearch_store'));
 
-        $definition = $container->getDefinition('ai.store.manticore.my_manticore_store');
-        $this->assertSame(ManticoreStore::class, $definition->getClass());
+        $definition = $container->getDefinition('ai.store.manticoresearch.my_manticoresearch_store');
+        $this->assertSame(ManticoreSearchStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
         $this->assertCount(7, $definition->getArguments());
         $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
         $this->assertSame('http_client', (string) $definition->getArgument(0));
         $this->assertSame('http://127.0.0.1:9306', $definition->getArgument(1));
-        $this->assertSame('my_manticore_store', $definition->getArgument(2));
+        $this->assertSame('my_manticoresearch_store', $definition->getArgument(2));
         $this->assertSame('_foo', $definition->getArgument(3));
         $this->assertSame('hnsw', $definition->getArgument(4));
         $this->assertSame('cosine', $definition->getArgument(5));
@@ -1142,19 +1142,19 @@ class AiBundleTest extends TestCase
         ], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.store'));
 
-        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_manticore_store'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myManticoreStore'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $manticoreMyManticoreStore'));
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_manticoresearch_store'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myManticoresearchStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $manticoresearchMyManticoresearchStore'));
         $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
     }
 
-    public function testManticoreStoreWithCustomDimensionsCanBeConfigured()
+    public function testManticoreSearchStoreWithCustomDimensionsCanBeConfigured()
     {
         $container = $this->buildContainer([
             'ai' => [
                 'store' => [
-                    'manticore' => [
-                        'my_manticore_store' => [
+                    'manticoresearch' => [
+                        'my_manticoresearch_store' => [
                             'endpoint' => 'http://127.0.0.1:9306',
                             'dimensions' => 768,
                         ],
@@ -1163,17 +1163,17 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $this->assertTrue($container->hasDefinition('ai.store.manticore.my_manticore_store'));
+        $this->assertTrue($container->hasDefinition('ai.store.manticoresearch.my_manticoresearch_store'));
 
-        $definition = $container->getDefinition('ai.store.manticore.my_manticore_store');
-        $this->assertSame(ManticoreStore::class, $definition->getClass());
+        $definition = $container->getDefinition('ai.store.manticoresearch.my_manticoresearch_store');
+        $this->assertSame(ManticoreSearchStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
         $this->assertCount(7, $definition->getArguments());
         $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
         $this->assertSame('http_client', (string) $definition->getArgument(0));
         $this->assertSame('http://127.0.0.1:9306', $definition->getArgument(1));
-        $this->assertSame('my_manticore_store', $definition->getArgument(2));
+        $this->assertSame('my_manticoresearch_store', $definition->getArgument(2));
         $this->assertSame('_vectors', $definition->getArgument(3));
         $this->assertSame('hnsw', $definition->getArgument(4));
         $this->assertSame('cosine', $definition->getArgument(5));
@@ -1186,19 +1186,19 @@ class AiBundleTest extends TestCase
         ], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.store'));
 
-        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_manticore_store'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myManticoreStore'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $manticoreMyManticoreStore'));
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_manticoresearch_store'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myManticoresearchStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $manticoresearchMyManticoresearchStore'));
         $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
     }
 
-    public function testManticoreStoreWithQuantizationCanBeConfigured()
+    public function testManticoreSearchStoreWithQuantizationCanBeConfigured()
     {
         $container = $this->buildContainer([
             'ai' => [
                 'store' => [
-                    'manticore' => [
-                        'my_manticore_store' => [
+                    'manticoresearch' => [
+                        'my_manticoresearch_store' => [
                             'endpoint' => 'http://127.0.0.1:9306',
                             'field' => 'foo_vector',
                             'type' => 'hnsw',
@@ -1211,17 +1211,17 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $this->assertTrue($container->hasDefinition('ai.store.manticore.my_manticore_store'));
+        $this->assertTrue($container->hasDefinition('ai.store.manticoresearch.my_manticoresearch_store'));
 
-        $definition = $container->getDefinition('ai.store.manticore.my_manticore_store');
-        $this->assertSame(ManticoreStore::class, $definition->getClass());
+        $definition = $container->getDefinition('ai.store.manticoresearch.my_manticoresearch_store');
+        $this->assertSame(ManticoreSearchStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
         $this->assertCount(8, $definition->getArguments());
         $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
         $this->assertSame('http_client', (string) $definition->getArgument(0));
         $this->assertSame('http://127.0.0.1:9306', $definition->getArgument(1));
-        $this->assertSame('my_manticore_store', $definition->getArgument(2));
+        $this->assertSame('my_manticoresearch_store', $definition->getArgument(2));
         $this->assertSame('foo_vector', $definition->getArgument(3));
         $this->assertSame('hnsw', $definition->getArgument(4));
         $this->assertSame('cosine', $definition->getArgument(5));
@@ -1235,9 +1235,9 @@ class AiBundleTest extends TestCase
         ], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.store'));
 
-        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_manticore_store'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myManticoreStore'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $manticoreMyManticoreStore'));
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_manticoresearch_store'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myManticoresearchStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $manticoresearchMyManticoresearchStore'));
         $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
     }
 
@@ -7032,8 +7032,8 @@ class AiBundleTest extends TestCase
                             'endpoint' => 'https://api.cloudflare.com/client/v6/accounts',
                         ],
                     ],
-                    'manticore' => [
-                        'my_manticore_store' => [
+                    'manticoresearch' => [
+                        'my_manticoresearch_store' => [
                             'endpoint' => 'http://127.0.0.1:9306',
                             'table' => 'test',
                             'field' => 'foo_vector',
@@ -7041,7 +7041,7 @@ class AiBundleTest extends TestCase
                             'similarity' => 'cosine',
                             'dimensions' => 768,
                         ],
-                        'my_manticore_store_with_quantization' => [
+                        'my_manticoresearch_store_with_quantization' => [
                             'endpoint' => 'http://127.0.0.1:9306',
                             'table' => 'test',
                             'field' => 'foo_vector',
