@@ -14,7 +14,7 @@ namespace Symfony\AI\AiBundle\Tests\Profiler;
 use PHPUnit\Framework\TestCase;
 use Symfony\AI\Agent\AgentInterface;
 use Symfony\AI\AiBundle\Profiler\TraceableChat;
-use Symfony\AI\Chat\Bridge\Local\InMemoryStore;
+use Symfony\AI\Chat\Bridge\Memory\Store as InMemoryStore;
 use Symfony\AI\Chat\Chat;
 use Symfony\AI\Platform\Message\Message;
 use Symfony\AI\Platform\Message\MessageBag;
