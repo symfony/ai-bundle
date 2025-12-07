@@ -1032,7 +1032,7 @@ final class AiBundle extends AbstractBundle
             }
         }
 
-        if ('chroma_db' === $type) {
+        if ('chromadb' === $type) {
             foreach ($stores as $name => $store) {
                 $definition = new Definition(ChromaDbStore::class);
                 $definition

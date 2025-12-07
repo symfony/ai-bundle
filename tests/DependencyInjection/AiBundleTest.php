@@ -687,8 +687,8 @@ class AiBundleTest extends TestCase
         $container = $this->buildContainer([
             'ai' => [
                 'store' => [
-                    'chroma_db' => [
-                        'my_chroma_db_store' => [
+                    'chromadb' => [
+                        'my_chromadb_store' => [
                             'collection' => 'foo',
                         ],
                     ],
@@ -696,9 +696,9 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $this->assertTrue($container->hasDefinition('ai.store.chroma_db.my_chroma_db_store'));
+        $this->assertTrue($container->hasDefinition('ai.store.chromadb.my_chromadb_store'));
 
-        $definition = $container->getDefinition('ai.store.chroma_db.my_chroma_db_store');
+        $definition = $container->getDefinition('ai.store.chromadb.my_chromadb_store');
         $this->assertSame(ChromaDbStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
@@ -711,9 +711,9 @@ class AiBundleTest extends TestCase
         $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.store'));
 
-        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $chroma_db_my_chroma_db_store'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myChromaDbStore'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $chromaDbMyChromaDbStore'));
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $chromadb_my_chromadb_store'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myChromadbStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $chromadbMyChromadbStore'));
         $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
     }
 
@@ -722,8 +722,8 @@ class AiBundleTest extends TestCase
         $container = $this->buildContainer([
             'ai' => [
                 'store' => [
-                    'chroma_db' => [
-                        'my_chroma_db_store_with_custom_client' => [
+                    'chromadb' => [
+                        'my_chromadb_store_with_custom_client' => [
                             'client' => 'bar',
                             'collection' => 'foo',
                         ],
@@ -732,9 +732,9 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $this->assertTrue($container->hasDefinition('ai.store.chroma_db.my_chroma_db_store_with_custom_client'));
+        $this->assertTrue($container->hasDefinition('ai.store.chromadb.my_chromadb_store_with_custom_client'));
 
-        $definition = $container->getDefinition('ai.store.chroma_db.my_chroma_db_store_with_custom_client');
+        $definition = $container->getDefinition('ai.store.chromadb.my_chromadb_store_with_custom_client');
         $this->assertSame(ChromaDbStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
@@ -747,9 +747,9 @@ class AiBundleTest extends TestCase
         $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.store'));
 
-        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $chroma_db_my_chroma_db_store_with_custom_client'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myChromaDbStoreWithCustomClient'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $chromaDbMyChromaDbStoreWithCustomClient'));
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $chromadb_my_chromadb_store_with_custom_client'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myChromadbStoreWithCustomClient'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $chromadbMyChromadbStoreWithCustomClient'));
         $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
     }
 
@@ -6719,11 +6719,11 @@ class AiBundleTest extends TestCase
                             'strategy' => 'chebyshev',
                         ],
                     ],
-                    'chroma_db' => [
-                        'my_chroma_store' => [
+                    'chromadb' => [
+                        'my_chromadb_store' => [
                             'collection' => 'my_collection',
                         ],
-                        'my_chroma_db_store_with_custom_client' => [
+                        'my_chromadb_store_with_custom_client' => [
                             'client' => 'bar',
                             'collection' => 'foo',
                         ],

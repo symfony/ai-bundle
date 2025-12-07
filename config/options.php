@@ -564,7 +564,7 @@ return static function (DefinitionConfigurator $configurator): void {
                             ->end()
                         ->end()
                     ->end()
-                    ->arrayNode('chroma_db')
+                    ->arrayNode('chromadb')
                         ->useAttributeAsKey('name')
                         ->arrayPrototype()
                             ->children()
