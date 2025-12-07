@@ -608,7 +608,7 @@ return static function (DefinitionConfigurator $configurator): void {
                             ->end()
                         ->end()
                     ->end()
-                    ->arrayNode('manticore')
+                    ->arrayNode('manticoresearch')
                         ->useAttributeAsKey('name')
                         ->arrayPrototype()
                             ->children()
