@@ -40,6 +40,7 @@ use Symfony\AI\Chat\Bridge\Cloudflare\MessageStore as CloudflareMessageStore;
 use Symfony\AI\Chat\Bridge\Doctrine\DoctrineDbalMessageStore;
 use Symfony\AI\Chat\Bridge\HttpFoundation\SessionStore;
 use Symfony\AI\Chat\Bridge\Local\CacheStore as CacheMessageStore;
+use Symfony\AI\Chat\Bridge\Local\InMemoryStore as InMemoryMessageStore;
 use Symfony\AI\Chat\Bridge\Meilisearch\MessageStore as MeilisearchMessageStore;
 use Symfony\AI\Chat\Bridge\MongoDb\MessageStore as MongoDbMessageStore;
 use Symfony\AI\Chat\Bridge\Pogocache\MessageStore as PogocacheMessageStore;
@@ -79,11 +80,11 @@ use Symfony\AI\Platform\Platform;
 use Symfony\AI\Platform\PlatformInterface;
 use Symfony\AI\Platform\ResultConverterInterface;
 use Symfony\AI\Store\Bridge\AzureSearch\SearchStore as AzureSearchStore;
+use Symfony\AI\Store\Bridge\Cache\Store as CacheStore;
 use Symfony\AI\Store\Bridge\ChromaDb\Store as ChromaDbStore;
 use Symfony\AI\Store\Bridge\ClickHouse\Store as ClickHouseStore;
 use Symfony\AI\Store\Bridge\Cloudflare\Store as CloudflareStore;
-use Symfony\AI\Store\Bridge\Local\CacheStore as LocalCacheStore;
-use Symfony\AI\Store\Bridge\Local\InMemoryStore as LocalInMemoryStore;
+use Symfony\AI\Store\Bridge\InMemory\Store as InMemoryStore;
 use Symfony\AI\Store\Bridge\ManticoreSearch\Store as ManticoreSearchStore;
 use Symfony\AI\Store\Bridge\MariaDb\Store as MariaDbStore;
 use Symfony\AI\Store\Bridge\Meilisearch\Store as MeilisearchStore;
@@ -1015,7 +1016,7 @@ final class AiBundle extends AbstractBundle
                     $distanceCalculatorDefinition->setArgument(0, DistanceStrategy::from($store['strategy']));
                 }
 
-                $definition = new Definition(LocalCacheStore::class);
+                $definition = new Definition(CacheStore::class);
                 $definition
                     ->setLazy(true)
                     ->setArguments([
@@ -1205,7 +1206,7 @@ final class AiBundle extends AbstractBundle
                     $arguments[0] = new Reference('ai.store.distance_calculator.'.$name);
                 }
 
-                $definition = new Definition(LocalInMemoryStore::class);
+                $definition = new Definition(InMemoryStore::class);
                 $definition
                     ->setLazy(true)
                     ->setArguments($arguments)
@@ -1667,7 +1668,7 @@ final class AiBundle extends AbstractBundle
 
         if ('memory' === $type) {
             foreach ($messageStores as $name => $messageStore) {
-                $definition = new Definition(LocalInMemoryStore::class);
+                $definition = new Definition(InMemoryMessageStore::class);
                 $definition
                     ->setLazy(true)
                     ->setArgument(0, $messageStore['identifier'])
