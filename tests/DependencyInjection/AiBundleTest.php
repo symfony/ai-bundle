@@ -33,12 +33,11 @@ use Symfony\AI\Platform\Capability;
 use Symfony\AI\Platform\Model;
 use Symfony\AI\Platform\PlatformInterface;
 use Symfony\AI\Store\Bridge\AzureSearch\SearchStore as AzureStore;
+use Symfony\AI\Store\Bridge\Cache\Store as CacheStore;
 use Symfony\AI\Store\Bridge\ChromaDb\Store as ChromaDbStore;
 use Symfony\AI\Store\Bridge\ClickHouse\Store as ClickhouseStore;
 use Symfony\AI\Store\Bridge\Cloudflare\Store as CloudflareStore;
-use Symfony\AI\Store\Bridge\Local\CacheStore;
-use Symfony\AI\Store\Bridge\Local\CacheStore as LocalCacheStore;
-use Symfony\AI\Store\Bridge\Local\InMemoryStore as LocalInMemoryStore;
+use Symfony\AI\Store\Bridge\InMemory\Store as InMemoryStore;
 use Symfony\AI\Store\Bridge\ManticoreSearch\Store as ManticoreSearchStore;
 use Symfony\AI\Store\Bridge\MariaDb\Store as MariaDbStore;
 use Symfony\AI\Store\Bridge\Meilisearch\Store as MeilisearchStore;
@@ -527,7 +526,7 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.store.distance_calculator.my_cache_store'));
 
         $definition = $container->getDefinition('ai.store.cache.my_cache_store');
-        $this->assertSame(LocalCacheStore::class, $definition->getClass());
+        $this->assertSame(CacheStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
         $this->assertCount(3, $definition->getArguments());
@@ -1489,7 +1488,7 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.store.memory.my_memory_store_with_custom_strategy'));
 
         $definition = $container->getDefinition('ai.store.memory.my_memory_store_with_custom_strategy');
-        $this->assertSame(LocalInMemoryStore::class, $definition->getClass());
+        $this->assertSame(InMemoryStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
         $this->assertCount(1, $definition->getArguments());
@@ -1528,7 +1527,7 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.store.distance_calculator.my_memory_store_with_custom_strategy'));
 
         $definition = $container->getDefinition('ai.store.memory.my_memory_store_with_custom_strategy');
-        $this->assertSame(LocalInMemoryStore::class, $definition->getClass());
+        $this->assertSame(InMemoryStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
         $this->assertCount(1, $definition->getArguments());
