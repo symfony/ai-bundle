@@ -83,8 +83,6 @@ use Symfony\AI\Store\Bridge\ChromaDb\Store as ChromaDbStore;
 use Symfony\AI\Store\Bridge\ClickHouse\Store as ClickHouseStore;
 use Symfony\AI\Store\Bridge\Cloudflare\Store as CloudflareStore;
 use Symfony\AI\Store\Bridge\Local\CacheStore as LocalCacheStore;
-use Symfony\AI\Store\Bridge\Local\DistanceCalculator;
-use Symfony\AI\Store\Bridge\Local\DistanceStrategy;
 use Symfony\AI\Store\Bridge\Local\InMemoryStore as LocalInMemoryStore;
 use Symfony\AI\Store\Bridge\ManticoreSearch\Store as ManticoreSearchStore;
 use Symfony\AI\Store\Bridge\MariaDb\Store as MariaDbStore;
@@ -101,6 +99,8 @@ use Symfony\AI\Store\Bridge\Supabase\Store as SupabaseStore;
 use Symfony\AI\Store\Bridge\SurrealDb\Store as SurrealDbStore;
 use Symfony\AI\Store\Bridge\Typesense\Store as TypesenseStore;
 use Symfony\AI\Store\Bridge\Weaviate\Store as WeaviateStore;
+use Symfony\AI\Store\Distance\DistanceCalculator;
+use Symfony\AI\Store\Distance\DistanceStrategy;
 use Symfony\AI\Store\Document\Vectorizer;
 use Symfony\AI\Store\Document\VectorizerInterface;
 use Symfony\AI\Store\Indexer;
@@ -1374,8 +1374,8 @@ final class AiBundle extends AbstractBundle
                     $pdo->setArguments([
                         $store['dsn'],
                         $store['username'] ?? null,
-                        $store['password'] ?? null],
-                    );
+                        $store['password'] ?? null,
+                    ]);
 
                     $arguments = [
                         $pdo,
