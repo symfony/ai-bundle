@@ -430,8 +430,8 @@ class AiBundleTest extends TestCase
         $container = $this->buildContainer([
             'ai' => [
                 'store' => [
-                    'azure_search' => [
-                        'my_azure_search_store' => [
+                    'azuresearch' => [
+                        'my_azuresearch_store' => [
                             'endpoint' => 'https://mysearch.search.windows.net',
                             'api_key' => 'azure_search_key',
                             'index_name' => 'my-documents',
@@ -442,9 +442,9 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $this->assertTrue($container->hasDefinition('ai.store.azure_search.my_azure_search_store'));
+        $this->assertTrue($container->hasDefinition('ai.store.azuresearch.my_azuresearch_store'));
 
-        $definition = $container->getDefinition('ai.store.azure_search.my_azure_search_store');
+        $definition = $container->getDefinition('ai.store.azuresearch.my_azuresearch_store');
         $this->assertSame(AzureStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
@@ -460,9 +460,9 @@ class AiBundleTest extends TestCase
         $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.store'));
 
-        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_azure_search_store'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myAzureSearchStore'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $azureSearchMyAzureSearchStore'));
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_azuresearch_store'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myAzuresearchStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $azuresearchMyAzuresearchStore'));
         $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
     }
 
@@ -471,8 +471,8 @@ class AiBundleTest extends TestCase
         $container = $this->buildContainer([
             'ai' => [
                 'store' => [
-                    'azure_search' => [
-                        'my_azure_search_store' => [
+                    'azuresearch' => [
+                        'my_azuresearch_store' => [
                             'endpoint' => 'https://mysearch.search.windows.net',
                             'api_key' => 'azure_search_key',
                             'index_name' => 'my-documents',
@@ -484,9 +484,9 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $this->assertTrue($container->hasDefinition('ai.store.azure_search.my_azure_search_store'));
+        $this->assertTrue($container->hasDefinition('ai.store.azuresearch.my_azuresearch_store'));
 
-        $definition = $container->getDefinition('ai.store.azure_search.my_azure_search_store');
+        $definition = $container->getDefinition('ai.store.azuresearch.my_azuresearch_store');
         $this->assertSame(AzureStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
@@ -503,9 +503,9 @@ class AiBundleTest extends TestCase
         $this->assertSame([['interface' => StoreInterface::class]], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.store'));
 
-        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_azure_search_store'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myAzureSearchStore'));
-        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $azureSearchMyAzureSearchStore'));
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Store\StoreInterface $my_azuresearch_store'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $myAzuresearchStore'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface $azuresearchMyAzuresearchStore'));
         $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
     }
 
@@ -6956,8 +6956,8 @@ class AiBundleTest extends TestCase
                     ],
                 ],
                 'store' => [
-                    'azure_search' => [
-                        'my_azure_search_store' => [
+                    'azuresearch' => [
+                        'my_azuresearch_store' => [
                             'endpoint' => 'https://mysearch.search.windows.net',
                             'api_key' => 'azure_search_key',
                             'index_name' => 'my-documents',
@@ -7392,7 +7392,7 @@ class AiBundleTest extends TestCase
                     'my_text_indexer' => [
                         'loader' => InMemoryLoader::class,
                         'vectorizer' => 'ai.vectorizer.test_vectorizer',
-                        'store' => 'my_azure_search_store_service_id',
+                        'store' => 'my_azuresearch_store_service_id',
                     ],
                 ],
             ],

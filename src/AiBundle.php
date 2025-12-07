@@ -976,7 +976,7 @@ final class AiBundle extends AbstractBundle
      */
     private function processStoreConfig(string $type, array $stores, ContainerBuilder $container, array &$setupStoresOptions): void
     {
-        if ('azure_search' === $type) {
+        if ('azuresearch' === $type) {
             foreach ($stores as $name => $store) {
                 $arguments = [
                     new Reference('http_client'),

@@ -540,7 +540,7 @@ return static function (DefinitionConfigurator $configurator): void {
             ->end()
             ->arrayNode('store')
                 ->children()
-                    ->arrayNode('azure_search')
+                    ->arrayNode('azuresearch')
                         ->useAttributeAsKey('name')
                         ->arrayPrototype()
                             ->children()
