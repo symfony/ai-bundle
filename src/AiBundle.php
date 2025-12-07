@@ -78,7 +78,7 @@ use Symfony\AI\Platform\ModelClientInterface;
 use Symfony\AI\Platform\Platform;
 use Symfony\AI\Platform\PlatformInterface;
 use Symfony\AI\Platform\ResultConverterInterface;
-use Symfony\AI\Store\Bridge\Azure\SearchStore as AzureSearchStore;
+use Symfony\AI\Store\Bridge\AzureSearch\SearchStore as AzureSearchStore;
 use Symfony\AI\Store\Bridge\ChromaDb\Store as ChromaDbStore;
 use Symfony\AI\Store\Bridge\ClickHouse\Store as ClickHouseStore;
 use Symfony\AI\Store\Bridge\Cloudflare\Store as CloudflareStore;
