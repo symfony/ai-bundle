@@ -18,8 +18,6 @@ use Symfony\AI\Platform\Bridge\OpenAi\PlatformFactory;
 use Symfony\AI\Platform\Capability;
 use Symfony\AI\Platform\Model;
 use Symfony\AI\Platform\PlatformInterface;
-use Symfony\AI\Store\Bridge\Postgres\Distance as PostgresDistance;
-use Symfony\AI\Store\Bridge\Redis\Distance;
 use Symfony\AI\Store\Document\VectorizerInterface;
 use Symfony\AI\Store\StoreInterface;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -794,8 +792,8 @@ return static function (DefinitionConfigurator $configurator): void {
                                 ->end()
                                 ->enumNode('distance')
                                     ->info('Distance metric to use for vector similarity search')
-                                    ->enumFqcn(PostgresDistance::class)
-                                    ->defaultValue(PostgresDistance::L2)
+                                    ->values(['cosine', 'inner_product', 'l1', 'l2'])
+                                    ->defaultValue('l2')
                                 ->end()
                                 ->stringNode('dbal_connection')->cannotBeEmpty()->end()
                             ->end()
@@ -844,8 +842,8 @@ return static function (DefinitionConfigurator $configurator): void {
                                 ->end()
                                 ->enumNode('distance')
                                     ->info('Distance metric to use for vector similarity search')
-                                    ->values(Distance::cases())
-                                    ->defaultValue(Distance::Cosine)
+                                    ->values(['COSINE', 'L2', 'IP'])
+                                    ->defaultValue('COSINE')
                                 ->end()
                             ->end()
                             ->validate()
