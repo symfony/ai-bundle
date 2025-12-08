@@ -717,6 +717,25 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasAlias('Symfony\AI\Store\StoreInterface'));
     }
 
+    #[TestDox('Configuring only one store type does not require packages for other store types')]
+    public function testConfiguringOnlyOneStoreTypeDoesNotRequireOtherStorePackages()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'chromadb' => [
+                        'my_store' => [
+                            'collection' => 'test_collection',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.store.chromadb.my_store'));
+        $this->assertFalse($container->hasDefinition('ai.store.azuresearch.my_store'));
+    }
+
     public function testChromaDbStoreWithCustomClientCanBeConfigured()
     {
         $container = $this->buildContainer([
