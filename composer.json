@@ -38,6 +38,8 @@
         "symfony/ai-chroma-db-store": "@dev",
         "symfony/ai-mongo-db-store": "@dev",
         "symfony/ai-pinecone-store": "@dev",
+        "symfony/ai-postgres-store": "@dev",
+        "symfony/ai-redis-store": "@dev",
         "symfony/expression-language": "^7.3|^8.0",
         "symfony/security-core": "^7.3|^8.0",
         "symfony/translation": "^7.3|^8.0"
