@@ -979,6 +979,10 @@ final class AiBundle extends AbstractBundle
      */
     private function processStoreConfig(string $type, array $stores, ContainerBuilder $container, array &$setupStoresOptions): void
     {
+        if ([] === $stores) {
+            return;
+        }
+
         if ('azuresearch' === $type) {
             if (!ContainerBuilder::willBeAvailable('symfony/ai-azure-search-store', AzureSearchStore::class, ['symfony/ai-bundle'])) {
                 throw new RuntimeException('Azure Search store configuration requires "symfony/ai-azure-search-store" package. Try running "composer require symfony/ai-azure-search-store".');
