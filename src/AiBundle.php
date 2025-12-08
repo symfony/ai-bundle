@@ -92,8 +92,10 @@ use Symfony\AI\Store\Bridge\MongoDb\Store as MongoDbStore;
 use Symfony\AI\Store\Bridge\Neo4j\Store as Neo4jStore;
 use Symfony\AI\Store\Bridge\OpenSearch\Store as OpenSearchStore;
 use Symfony\AI\Store\Bridge\Pinecone\Store as PineconeStore;
+use Symfony\AI\Store\Bridge\Postgres\Distance as PostgresDistance;
 use Symfony\AI\Store\Bridge\Postgres\Store as PostgresStore;
 use Symfony\AI\Store\Bridge\Qdrant\Store as QdrantStore;
+use Symfony\AI\Store\Bridge\Redis\Distance as RedisDistance;
 use Symfony\AI\Store\Bridge\Redis\Store as RedisStore;
 use Symfony\AI\Store\Bridge\Supabase\Store as SupabaseStore;
 use Symfony\AI\Store\Bridge\SurrealDb\Store as SurrealDbStore;
@@ -1437,9 +1439,7 @@ final class AiBundle extends AbstractBundle
                     ];
                 }
 
-                if (\array_key_exists('distance', $store)) {
-                    $arguments[3] = $store['distance'];
-                }
+                $arguments[3] = PostgresDistance::from($store['distance']);
 
                 $definition
                     ->setLazy(true)
@@ -1507,7 +1507,7 @@ final class AiBundle extends AbstractBundle
                         $redisClient,
                         $store['index_name'] ?? $name,
                         $store['key_prefix'],
-                        $store['distance'],
+                        RedisDistance::from($store['distance']),
                     ])
                     ->addTag('proxy', ['interface' => StoreInterface::class])
                     ->addTag('proxy', ['interface' => ManagedStoreInterface::class])

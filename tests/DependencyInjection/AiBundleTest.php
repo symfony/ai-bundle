@@ -45,7 +45,7 @@ use Symfony\AI\Store\Bridge\MongoDb\Store as MongoDbStore;
 use Symfony\AI\Store\Bridge\Neo4j\Store as Neo4jStore;
 use Symfony\AI\Store\Bridge\OpenSearch\Store as OpenSearchStore;
 use Symfony\AI\Store\Bridge\Pinecone\Store as PineconeStore;
-use Symfony\AI\Store\Bridge\Postgres\Distance;
+use Symfony\AI\Store\Bridge\Postgres\Distance as PostgresDistance;
 use Symfony\AI\Store\Bridge\Postgres\Store as PostgresStore;
 use Symfony\AI\Store\Bridge\Qdrant\Store as QdrantStore;
 use Symfony\AI\Store\Bridge\Redis\Distance as RedisDistance;
@@ -2588,7 +2588,7 @@ class AiBundleTest extends TestCase
         $this->assertSame('my_connection', (string) $definition->getArgument(0));
         $this->assertSame('db', $definition->getArgument(1));
         $this->assertSame('foo', $definition->getArgument(2));
-        $this->assertSame(Distance::L2, $definition->getArgument(3));
+        $this->assertSame(PostgresDistance::L2, $definition->getArgument(3));
 
         $this->assertTrue($definition->hasTag('proxy'));
         $this->assertSame([
@@ -2609,7 +2609,7 @@ class AiBundleTest extends TestCase
                         'db' => [
                             'dbal_connection' => 'my_connection',
                             'vector_field' => 'foo',
-                            'distance' => Distance::L1->value,
+                            'distance' => PostgresDistance::L1->value,
                         ],
                     ],
                 ],
@@ -2625,7 +2625,7 @@ class AiBundleTest extends TestCase
         $this->assertSame('my_connection', (string) $definition->getArgument(0));
         $this->assertSame('db', $definition->getArgument(1));
         $this->assertSame('foo', $definition->getArgument(2));
-        $this->assertSame(Distance::L1, $definition->getArgument(3));
+        $this->assertSame(PostgresDistance::L1, $definition->getArgument(3));
 
         $this->assertTrue($definition->hasTag('proxy'));
         $this->assertSame([
@@ -2647,7 +2647,7 @@ class AiBundleTest extends TestCase
                             'dbal_connection' => 'my_connection',
                             'table_name' => 'foo',
                             'vector_field' => 'foo',
-                            'distance' => Distance::L1->value,
+                            'distance' => PostgresDistance::L1->value,
                         ],
                     ],
                 ],
@@ -2663,7 +2663,7 @@ class AiBundleTest extends TestCase
         $this->assertSame('my_connection', (string) $definition->getArgument(0));
         $this->assertSame('foo', $definition->getArgument(1));
         $this->assertSame('foo', $definition->getArgument(2));
-        $this->assertSame(Distance::L1, $definition->getArgument(3));
+        $this->assertSame(PostgresDistance::L1, $definition->getArgument(3));
 
         $this->assertTrue($definition->hasTag('proxy'));
         $this->assertSame([
@@ -2997,7 +2997,7 @@ class AiBundleTest extends TestCase
                         'my_redis_store' => [
                             'client' => 'foo',
                             'index_name' => 'my_vector_index',
-                            'distance' => RedisDistance::L2,
+                            'distance' => RedisDistance::L2->value,
                         ],
                     ],
                 ],
@@ -7217,7 +7217,7 @@ class AiBundleTest extends TestCase
                         'my_redis_store_with_custom_distance' => [
                             'client' => 'foo',
                             'index_name' => 'my_vector_index',
-                            'distance' => RedisDistance::L2,
+                            'distance' => RedisDistance::L2->value,
                         ],
                     ],
                     'supabase' => [
