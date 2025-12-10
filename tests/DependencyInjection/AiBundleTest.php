@@ -28,10 +28,13 @@ use Symfony\AI\Chat\ChatInterface;
 use Symfony\AI\Chat\ManagedStoreInterface as ManagedMessageStoreInterface;
 use Symfony\AI\Chat\MessageStoreInterface;
 use Symfony\AI\Platform\Bridge\Decart\PlatformFactory as DecartPlatformFactory;
+use Symfony\AI\Platform\Bridge\ElevenLabs\ElevenLabsApiCatalog;
+use Symfony\AI\Platform\Bridge\ElevenLabs\ModelCatalog as ElevenLabsModelCatalog;
 use Symfony\AI\Platform\Bridge\ElevenLabs\PlatformFactory as ElevenLabsPlatformFactory;
 use Symfony\AI\Platform\Bridge\Ollama\OllamaApiCatalog;
 use Symfony\AI\Platform\Capability;
 use Symfony\AI\Platform\Model;
+use Symfony\AI\Platform\ModelCatalog\ModelCatalogInterface;
 use Symfony\AI\Platform\PlatformInterface;
 use Symfony\AI\Store\Bridge\AzureSearch\SearchStore as AzureStore;
 use Symfony\AI\Store\Bridge\Cache\Store as CacheStore;
@@ -3849,6 +3852,14 @@ class AiBundleTest extends TestCase
 
         $this->assertTrue($container->hasAlias('Symfony\AI\Platform\PlatformInterface $elevenlabs'));
         $this->assertTrue($container->hasAlias('Symfony\AI\Platform\PlatformInterface'));
+
+        $modelCatalogDefinition = $container->getDefinition('ai.platform.model_catalog.elevenlabs');
+
+        $this->assertSame(ElevenLabsModelCatalog::class, $modelCatalogDefinition->getClass());
+        $this->assertTrue($modelCatalogDefinition->isLazy());
+
+        $this->assertTrue($modelCatalogDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => ModelCatalogInterface::class]], $modelCatalogDefinition->getTag('proxy'));
     }
 
     public function testElevenLabsPlatformWithCustomEndpointCanBeRegistered()
@@ -3889,6 +3900,14 @@ class AiBundleTest extends TestCase
 
         $this->assertTrue($container->hasAlias('Symfony\AI\Platform\PlatformInterface $elevenlabs'));
         $this->assertTrue($container->hasAlias('Symfony\AI\Platform\PlatformInterface'));
+
+        $modelCatalogDefinition = $container->getDefinition('ai.platform.model_catalog.elevenlabs');
+
+        $this->assertSame(ElevenLabsModelCatalog::class, $modelCatalogDefinition->getClass());
+        $this->assertTrue($modelCatalogDefinition->isLazy());
+
+        $this->assertTrue($modelCatalogDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => ModelCatalogInterface::class]], $modelCatalogDefinition->getTag('proxy'));
     }
 
     public function testElevenLabsPlatformWithCustomHttpClientCanBeRegistered()
@@ -3929,6 +3948,68 @@ class AiBundleTest extends TestCase
 
         $this->assertTrue($container->hasAlias('Symfony\AI\Platform\PlatformInterface $elevenlabs'));
         $this->assertTrue($container->hasAlias('Symfony\AI\Platform\PlatformInterface'));
+
+        $modelCatalogDefinition = $container->getDefinition('ai.platform.model_catalog.elevenlabs');
+
+        $this->assertSame(ElevenLabsModelCatalog::class, $modelCatalogDefinition->getClass());
+        $this->assertTrue($modelCatalogDefinition->isLazy());
+
+        $this->assertTrue($modelCatalogDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => ModelCatalogInterface::class]], $modelCatalogDefinition->getTag('proxy'));
+    }
+
+    public function testElevenLabsPlatformWithApiCatalogCanBeRegistered()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'elevenlabs' => [
+                        'api_key' => 'foo',
+                        'api_catalog' => true,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.platform.elevenlabs'));
+        $this->assertTrue($container->hasDefinition('ai.platform.model_catalog.elevenlabs'));
+
+        $definition = $container->getDefinition('ai.platform.elevenlabs');
+
+        $this->assertTrue($definition->isLazy());
+        $this->assertSame([ElevenLabsPlatformFactory::class, 'create'], $definition->getFactory());
+
+        $this->assertCount(6, $definition->getArguments());
+        $this->assertSame('foo', $definition->getArgument(0));
+        $this->assertSame('https://api.elevenlabs.io/v1', $definition->getArgument(1));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(2));
+        $this->assertSame('http_client', (string) $definition->getArgument(2));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(3));
+        $this->assertSame('ai.platform.model_catalog.elevenlabs', (string) $definition->getArgument(3));
+        $this->assertNull($definition->getArgument(4));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(5));
+        $this->assertSame('event_dispatcher', (string) $definition->getArgument(5));
+
+        $this->assertTrue($definition->hasTag('proxy'));
+        $this->assertSame([['interface' => PlatformInterface::class]], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.platform'));
+        $this->assertSame([['name' => 'elevenlabs']], $definition->getTag('ai.platform'));
+
+        $this->assertTrue($container->hasAlias('Symfony\AI\Platform\PlatformInterface $elevenlabs'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Platform\PlatformInterface'));
+
+        $modelCatalogDefinition = $container->getDefinition('ai.platform.model_catalog.elevenlabs');
+
+        $this->assertSame(ElevenLabsApiCatalog::class, $modelCatalogDefinition->getClass());
+        $this->assertTrue($modelCatalogDefinition->isLazy());
+        $this->assertCount(3, $modelCatalogDefinition->getArguments());
+        $this->assertInstanceOf(Reference::class, $modelCatalogDefinition->getArgument(0));
+        $this->assertSame('http_client', (string) $modelCatalogDefinition->getArgument(0));
+        $this->assertSame('foo', $modelCatalogDefinition->getArgument(1));
+        $this->assertSame('https://api.elevenlabs.io/v1', $modelCatalogDefinition->getArgument(2));
+
+        $this->assertTrue($modelCatalogDefinition->hasTag('proxy'));
+        $this->assertSame([['interface' => ModelCatalogInterface::class]], $modelCatalogDefinition->getTag('proxy'));
     }
 
     #[TestDox('Token usage processor tags use the correct agent ID')]
