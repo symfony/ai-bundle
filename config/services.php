@@ -63,6 +63,7 @@ use Symfony\AI\Platform\Bridge\Voyage\ModelCatalog as VoyageModelCatalog;
 use Symfony\AI\Platform\Contract;
 use Symfony\AI\Platform\Contract\JsonSchema\DescriptionParser;
 use Symfony\AI\Platform\Contract\JsonSchema\Factory as SchemaFactory;
+use Symfony\AI\Platform\ModelCatalog\ModelCatalogInterface;
 use Symfony\AI\Platform\Serializer\StructuredOutputSerializer;
 use Symfony\AI\Platform\StructuredOutput\PlatformSubscriber;
 use Symfony\AI\Platform\StructuredOutput\ResponseFormatFactory;
@@ -100,6 +101,8 @@ return static function (ContainerConfigurator $container): void {
         ->set('ai.platform.model_catalog.deepseek', DeepSeekModelCatalog::class)
         ->set('ai.platform.model_catalog.dockermodelrunner', DockerModelRunnerModelCatalog::class)
         ->set('ai.platform.model_catalog.elevenlabs', ElevenLabsModelCatalog::class)
+            ->lazy(true)
+            ->tag('proxy', ['interface' => ModelCatalogInterface::class])
         ->set('ai.platform.model_catalog.gemini', GeminiModelCatalog::class)
         ->set('ai.platform.model_catalog.huggingface', HuggingFaceModelCatalog::class)
         ->set('ai.platform.model_catalog.lmstudio', LmStudioModelCatalog::class)

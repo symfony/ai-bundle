@@ -58,6 +58,7 @@ use Symfony\AI\Platform\Bridge\Cerebras\PlatformFactory as CerebrasPlatformFacto
 use Symfony\AI\Platform\Bridge\Decart\PlatformFactory as DecartPlatformFactory;
 use Symfony\AI\Platform\Bridge\DeepSeek\PlatformFactory as DeepSeekPlatformFactory;
 use Symfony\AI\Platform\Bridge\DockerModelRunner\PlatformFactory as DockerModelRunnerPlatformFactory;
+use Symfony\AI\Platform\Bridge\ElevenLabs\ElevenLabsApiCatalog;
 use Symfony\AI\Platform\Bridge\ElevenLabs\PlatformFactory as ElevenLabsPlatformFactory;
 use Symfony\AI\Platform\Bridge\Gemini\PlatformFactory as GeminiPlatformFactory;
 use Symfony\AI\Platform\Bridge\Generic\PlatformFactory as GenericPlatformFactory;
@@ -76,6 +77,7 @@ use Symfony\AI\Platform\CachedPlatform;
 use Symfony\AI\Platform\Capability;
 use Symfony\AI\Platform\Exception\RuntimeException;
 use Symfony\AI\Platform\Message\Content\File;
+use Symfony\AI\Platform\ModelCatalog\ModelCatalogInterface;
 use Symfony\AI\Platform\ModelClientInterface;
 use Symfony\AI\Platform\Platform;
 use Symfony\AI\Platform\PlatformInterface;
@@ -453,6 +455,19 @@ final class AiBundle extends AbstractBundle
         }
 
         if ('elevenlabs' === $type) {
+            if (\array_key_exists('api_catalog', $platform) && $platform['api_catalog']) {
+                $catalogDefinition = (new Definition(ElevenLabsApiCatalog::class))
+                    ->setLazy(true)
+                    ->setArguments([
+                        new Reference($platform['http_client']),
+                        $platform['api_key'],
+                        $platform['host'],
+                    ])
+                    ->addTag('proxy', ['interface' => ModelCatalogInterface::class]);
+
+                $container->setDefinition('ai.platform.model_catalog.'.$type, $catalogDefinition);
+            }
+
             $definition = (new Definition(Platform::class))
                 ->setFactory(ElevenLabsPlatformFactory::class.'::create')
                 ->setLazy(true)
@@ -670,7 +685,9 @@ final class AiBundle extends AbstractBundle
                     ->setArguments([
                         $platform['host_url'],
                         new Reference($platform['http_client']),
-                    ]);
+                    ])
+                    ->addTag('proxy', ['interface' => ModelCatalogInterface::class])
+                ;
 
                 $container->setDefinition('ai.platform.model_catalog.ollama', $catalogDefinition);
             }
