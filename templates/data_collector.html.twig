@@ -143,7 +143,13 @@
                                                     <li>{{ key }}:
                                                         <ul>
                                                             {% for tool in value %}
-                                                                <li>{{ tool.name }}</li>
+                                                                <li>
+                                                                    <strong>{{ tool.name }}</strong>
+                                                                    {% if tool.parameters %}
+                                                                        <button class="btn btn-sm hidden" data-clipboard-text="{{ tool.parameters|json_encode|e('html_attr') }}">Copy JSON Schema</button>
+                                                                        {{ dump(tool.parameters) }}
+                                                                    {% endif %}
+                                                                </li>
                                                             {% endfor %}
                                                         </ul>
                                                     </li>
