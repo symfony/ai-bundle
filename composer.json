@@ -34,7 +34,7 @@
         "google/auth": "^1.47",
         "phpstan/phpstan": "^2.1",
         "phpstan/phpstan-strict-rules": "^2.0",
-        "phpunit/phpunit": "^11.5",
+        "phpunit/phpunit": "^11.5.46",
         "symfony/ai-chroma-db-store": "@dev",
         "symfony/ai-mongo-db-store": "@dev",
         "symfony/ai-pinecone-store": "@dev",
