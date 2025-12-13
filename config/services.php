@@ -28,7 +28,6 @@ use Symfony\AI\Platform\Bridge\AiMlApi\ModelCatalog as AiMlApiModelCatalog;
 use Symfony\AI\Platform\Bridge\Albert\ModelCatalog as AlbertModelCatalog;
 use Symfony\AI\Platform\Bridge\Anthropic\Contract\AnthropicContract;
 use Symfony\AI\Platform\Bridge\Anthropic\ModelCatalog as AnthropicModelCatalog;
-use Symfony\AI\Platform\Bridge\Anthropic\TokenOutputProcessor as AnthropicTokenOutputProcessor;
 use Symfony\AI\Platform\Bridge\Azure\OpenAi\ModelCatalog as AzureOpenAiModelCatalog;
 use Symfony\AI\Platform\Bridge\Cartesia\ModelCatalog as CartesiaModelCatalog;
 use Symfony\AI\Platform\Bridge\Cerebras\ModelCatalog as CerebrasModelCatalog;
@@ -38,28 +37,23 @@ use Symfony\AI\Platform\Bridge\DockerModelRunner\ModelCatalog as DockerModelRunn
 use Symfony\AI\Platform\Bridge\ElevenLabs\ModelCatalog as ElevenLabsModelCatalog;
 use Symfony\AI\Platform\Bridge\Gemini\Contract\GeminiContract;
 use Symfony\AI\Platform\Bridge\Gemini\ModelCatalog as GeminiModelCatalog;
-use Symfony\AI\Platform\Bridge\Gemini\TokenOutputProcessor as GeminiTokenOutputProcessor;
 use Symfony\AI\Platform\Bridge\HuggingFace\Contract\HuggingFaceContract;
 use Symfony\AI\Platform\Bridge\HuggingFace\ModelCatalog as HuggingFaceModelCatalog;
 use Symfony\AI\Platform\Bridge\LmStudio\ModelCatalog as LmStudioModelCatalog;
 use Symfony\AI\Platform\Bridge\Meta\ModelCatalog as MetaModelCatalog;
 use Symfony\AI\Platform\Bridge\Mistral\ModelCatalog as MistralModelCatalog;
-use Symfony\AI\Platform\Bridge\Mistral\TokenOutputProcessor as MistralTokenOutputProcessor;
 use Symfony\AI\Platform\Bridge\Ollama\Contract\OllamaContract;
 use Symfony\AI\Platform\Bridge\Ollama\ModelCatalog as OllamaModelCatalog;
 use Symfony\AI\Platform\Bridge\OpenAi\Contract\OpenAiContract;
 use Symfony\AI\Platform\Bridge\OpenAi\ModelCatalog as OpenAiModelCatalog;
-use Symfony\AI\Platform\Bridge\OpenAi\TokenOutputProcessor as OpenAiTokenOutputProcessor;
 use Symfony\AI\Platform\Bridge\OpenRouter\ModelCatalog as OpenRouterModelCatalog;
 use Symfony\AI\Platform\Bridge\Perplexity\Contract\PerplexityContract;
 use Symfony\AI\Platform\Bridge\Perplexity\ModelCatalog as PerplexityModelCatalog;
 use Symfony\AI\Platform\Bridge\Perplexity\SearchResultProcessor as PerplexitySearchResultProcessor;
-use Symfony\AI\Platform\Bridge\Perplexity\TokenOutputProcessor as PerplexityTokenOutputProcessor;
 use Symfony\AI\Platform\Bridge\Replicate\ModelCatalog as ReplicateModelCatalog;
 use Symfony\AI\Platform\Bridge\Scaleway\ModelCatalog as ScalewayModelCatalog;
 use Symfony\AI\Platform\Bridge\VertexAi\Contract\GeminiContract as VertexAiGeminiContract;
 use Symfony\AI\Platform\Bridge\VertexAi\ModelCatalog as VertexAiModelCatalog;
-use Symfony\AI\Platform\Bridge\VertexAi\TokenOutputProcessor as VertexAiTokenOutputProcessor;
 use Symfony\AI\Platform\Bridge\Voyage\ModelCatalog as VoyageModelCatalog;
 use Symfony\AI\Platform\Contract;
 use Symfony\AI\Platform\Contract\JsonSchema\DescriptionParser;
@@ -219,14 +213,6 @@ return static function (ContainerConfigurator $container): void {
                 tagged_iterator('ai.traceable_chat'),
             ])
             ->tag('data_collector')
-
-        // token usage processors
-        ->set('ai.platform.token_usage_processor.anthropic', AnthropicTokenOutputProcessor::class)
-        ->set('ai.platform.token_usage_processor.gemini', GeminiTokenOutputProcessor::class)
-        ->set('ai.platform.token_usage_processor.mistral', MistralTokenOutputProcessor::class)
-        ->set('ai.platform.token_usage_processor.openai', OpenAiTokenOutputProcessor::class)
-        ->set('ai.platform.token_usage_processor.perplexity', PerplexityTokenOutputProcessor::class)
-        ->set('ai.platform.token_usage_processor.vertexai', VertexAiTokenOutputProcessor::class)
 
         // search result processors
         ->set('ai.platform.search_result_processor.perplexity', PerplexitySearchResultProcessor::class)

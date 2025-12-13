@@ -4016,43 +4016,6 @@ class AiBundleTest extends TestCase
         $this->assertSame([['interface' => ModelCatalogInterface::class]], $modelCatalogDefinition->getTag('proxy'));
     }
 
-    #[TestDox('Token usage processor tags use the correct agent ID')]
-    public function testTokenUsageProcessorTags()
-    {
-        $container = $this->buildContainer([
-            'ai' => [
-                'platform' => [
-                    'openai' => [
-                        'api_key' => 'sk-test_key',
-                    ],
-                ],
-                'agent' => [
-                    'tracked_agent' => [
-                        'platform' => 'ai.platform.openai',
-                        'model' => 'gpt-4',
-                        'track_token_usage' => true,
-                    ],
-                ],
-            ],
-        ]);
-
-        $agentId = 'ai.agent.tracked_agent';
-
-        // Token usage processor must exist for OpenAI platform
-        $tokenUsageProcessor = $container->getDefinition('ai.platform.token_usage_processor.openai');
-        $outputTags = $tokenUsageProcessor->getTag('ai.agent.output_processor');
-
-        $foundTag = false;
-        foreach ($outputTags as $tag) {
-            if (($tag['agent'] ?? '') === $agentId) {
-                $foundTag = true;
-                break;
-            }
-        }
-
-        $this->assertTrue($foundTag, 'Token usage processor should have output tag with full agent ID');
-    }
-
     public function testOpenAiPlatformWithDefaultRegion()
     {
         $container = $this->buildContainer([
@@ -7122,7 +7085,6 @@ class AiBundleTest extends TestCase
                                 'nested' => ['options' => ['work' => 'too']],
                             ],
                         ],
-                        'track_token_usage' => true,
                         'prompt' => [
                             'text' => 'You are a helpful assistant.',
                             'include_tools' => true,
