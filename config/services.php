@@ -126,7 +126,7 @@ return static function (ContainerConfigurator $container): void {
         $container->services()
             ->set('ai.platform.template_renderer.expression', ExpressionLanguageTemplateRenderer::class)
                 ->args([
-                    service('expression_language'),
+                    service('expression_language')->nullOnInvalid(),
                 ])
                 ->tag('ai.platform.template_renderer');
     }
