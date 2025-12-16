@@ -32,6 +32,7 @@ use Symfony\AI\Platform\Bridge\ElevenLabs\ElevenLabsApiCatalog;
 use Symfony\AI\Platform\Bridge\ElevenLabs\ModelCatalog as ElevenLabsModelCatalog;
 use Symfony\AI\Platform\Bridge\ElevenLabs\PlatformFactory as ElevenLabsPlatformFactory;
 use Symfony\AI\Platform\Bridge\Ollama\OllamaApiCatalog;
+use Symfony\AI\Platform\CachedPlatform;
 use Symfony\AI\Platform\Capability;
 use Symfony\AI\Platform\EventListener\TemplateRendererListener;
 use Symfony\AI\Platform\Message\TemplateRenderer\ExpressionLanguageTemplateRenderer;
@@ -74,6 +75,8 @@ use Symfony\AI\Store\InMemory\Store as InMemoryStore;
 use Symfony\AI\Store\ManagedStoreInterface;
 use Symfony\AI\Store\RetrieverInterface;
 use Symfony\AI\Store\StoreInterface;
+use Symfony\Component\Clock\ClockInterface;
+use Symfony\Component\Clock\MonotonicClock;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -6225,18 +6228,29 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.platform.cache.ollama'));
 
         $definition = $container->getDefinition('ai.platform.cache.ollama');
+
+        $this->assertSame(CachedPlatform::class, $definition->getClass());
         $this->assertTrue($definition->isLazy());
-        $this->assertCount(3, $definition->getArguments());
+        $this->assertCount(4, $definition->getArguments());
 
         $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
         $platformArgument = $definition->getArgument(0);
         $this->assertSame('ai.platform.ollama', (string) $platformArgument);
-
+        $this->assertSame(ClockInterface::class, (string) $definition->getArgument(1));
         $this->assertInstanceOf(Reference::class, $definition->getArgument(1));
-        $cacheArgument = $definition->getArgument(1);
-        $this->assertSame('cache.app', (string) $cacheArgument);
+        $this->assertSame('cache.app', (string) $definition->getArgument(2));
+        $this->assertSame('ollama', $definition->getArgument(3));
 
-        $this->assertSame('ollama', $definition->getArgument(2));
+        $this->assertSame([
+            ['interface' => PlatformInterface::class],
+        ], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.platform'));
+        $this->assertSame([
+            ['name' => 'cache.ollama'],
+        ], $definition->getTag('ai.platform'));
+
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Platform\PlatformInterface $cache_ollama'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Platform\PlatformInterface $cacheOllama'));
     }
 
     public function testCachedPlatformCanBeUsedWithoutCustomCacheKey()
@@ -6260,18 +6274,29 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.platform.cache.ollama'));
 
         $definition = $container->getDefinition('ai.platform.cache.ollama');
+
+        $this->assertSame(CachedPlatform::class, $definition->getClass());
         $this->assertTrue($definition->isLazy());
-        $this->assertCount(3, $definition->getArguments());
+        $this->assertCount(4, $definition->getArguments());
 
         $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
         $platformArgument = $definition->getArgument(0);
         $this->assertSame('ai.platform.ollama', (string) $platformArgument);
-
+        $this->assertSame(ClockInterface::class, (string) $definition->getArgument(1));
         $this->assertInstanceOf(Reference::class, $definition->getArgument(1));
-        $cacheArgument = $definition->getArgument(1);
-        $this->assertSame('cache.app', (string) $cacheArgument);
+        $this->assertSame('cache.app', (string) $definition->getArgument(2));
+        $this->assertSame('ollama', $definition->getArgument(3));
 
-        $this->assertSame('ollama', $definition->getArgument(2));
+        $this->assertSame([
+            ['interface' => PlatformInterface::class],
+        ], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.platform'));
+        $this->assertSame([
+            ['name' => 'cache.ollama'],
+        ], $definition->getTag('ai.platform'));
+
+        $this->assertTrue($container->hasAlias('.Symfony\AI\Platform\PlatformInterface $cache_ollama'));
+        $this->assertTrue($container->hasAlias('Symfony\AI\Platform\PlatformInterface $cacheOllama'));
     }
 
     public function testCacheMessageStoreCanBeConfiguredWithCustomKey()
@@ -6987,6 +7012,7 @@ class AiBundleTest extends TestCase
         $container->setParameter('kernel.debug', true);
         $container->setParameter('kernel.environment', 'dev');
         $container->setParameter('kernel.build_dir', 'public');
+        $container->setDefinition(ClockInterface::class, new Definition(MonotonicClock::class));
 
         $extension = (new AiBundle())->getContainerExtension();
         $extension->load($configuration, $container);
