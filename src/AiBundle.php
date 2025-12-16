@@ -402,13 +402,15 @@ final class AiBundle extends AbstractBundle
                     ->setLazy(true)
                     ->setArguments([
                         new Reference($cachedPlatformConfig['platform']),
+                        new Reference(ClockInterface::class),
                         new Reference($cachedPlatformConfig['service'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                         $cachedPlatformConfig['cache_key'] ?? $name,
                     ])
                     ->addTag('proxy', ['interface' => PlatformInterface::class])
-                    ->addTag('ai.platform', ['name' => 'cache'.$name]);
+                    ->addTag('ai.platform', ['name' => 'cache.'.$name]);
 
                 $container->setDefinition('ai.platform.cache.'.$name, $definition);
+                $container->registerAliasForArgument('ai.platform.'.$type, PlatformInterface::class, $type.'_'.$name);
             }
 
             return;
