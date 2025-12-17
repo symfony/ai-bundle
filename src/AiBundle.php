@@ -39,7 +39,7 @@ use Symfony\AI\AiBundle\Security\Attribute\IsGrantedTool;
 use Symfony\AI\Chat\Bridge\Cache\Store as CacheMessageStore;
 use Symfony\AI\Chat\Bridge\Cloudflare\MessageStore as CloudflareMessageStore;
 use Symfony\AI\Chat\Bridge\Doctrine\DoctrineDbalMessageStore;
-use Symfony\AI\Chat\Bridge\HttpFoundation\SessionStore;
+use Symfony\AI\Chat\Bridge\HttpFoundation\MessageStore as SessionMessageStore;
 use Symfony\AI\Chat\Bridge\Meilisearch\MessageStore as MeilisearchMessageStore;
 use Symfony\AI\Chat\Bridge\MongoDb\MessageStore as MongoDbMessageStore;
 use Symfony\AI\Chat\Bridge\Pogocache\MessageStore as PogocacheMessageStore;
@@ -1961,7 +1961,7 @@ final class AiBundle extends AbstractBundle
 
         if ('session' === $type) {
             foreach ($messageStores as $name => $messageStore) {
-                $definition = new Definition(SessionStore::class);
+                $definition = new Definition(SessionMessageStore::class);
                 $definition
                     ->setLazy(true)
                     ->setArguments([
