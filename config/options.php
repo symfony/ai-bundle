@@ -14,7 +14,6 @@ namespace Symfony\Component\Config\Definition\Configurator;
 use Codewithkyrian\ChromaDB\Client as ChromaDbClient;
 use MongoDB\Client as MongoDbClient;
 use Probots\Pinecone\Client as PineconeClient;
-use Symfony\AI\Platform\Bridge\OpenAi\PlatformFactory;
 use Symfony\AI\Platform\Capability;
 use Symfony\AI\Platform\Model;
 use Symfony\AI\Platform\PlatformInterface;
@@ -166,7 +165,7 @@ return static function (DefinitionConfigurator $configurator): void {
                             ->scalarNode('region')
                                 ->defaultNull()
                                 ->validate()
-                                    ->ifNotInArray([null, PlatformFactory::REGION_EU, PlatformFactory::REGION_US])
+                                    ->ifNotInArray([null, 'EU', 'US'])
                                     ->thenInvalid('The region must be either "EU" (https://eu.api.openai.com), "US" (https://us.api.openai.com) or null (https://api.openai.com)')
                                 ->end()
                                 ->info('The region for OpenAI API (EU, US, or null for default)')
