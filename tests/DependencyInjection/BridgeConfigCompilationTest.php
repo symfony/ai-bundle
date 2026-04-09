@@ -305,6 +305,7 @@ class BridgeConfigCompilationTest extends TestCase
         yield 'cerebras' => ['cerebras', ['api_key' => 'k'], 'ai.platform.cerebras'];
         yield 'cohere' => ['cohere', ['api_key' => 'k'], 'ai.platform.cohere'];
         yield 'decart' => ['decart', ['api_key' => 'k'], 'ai.platform.decart'];
+        yield 'deepgram' => ['deepgram', ['api_key' => 'k'], 'ai.platform.deepgram'];
         yield 'deepseek' => ['deepseek', ['api_key' => 'k'], 'ai.platform.deepseek'];
         yield 'dockermodelrunner' => ['dockermodelrunner', ['host_url' => 'http://localhost:12434'], 'ai.platform.dockermodelrunner'];
         yield 'elevenlabs' => ['elevenlabs', ['api_key' => 'k'], 'ai.platform.elevenlabs'];

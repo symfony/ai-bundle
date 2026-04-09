@@ -36,6 +36,7 @@ use Symfony\AI\Chat\ManagedStoreInterface as ManagedMessageStoreInterface;
 use Symfony\AI\Chat\MessageStoreInterface;
 use Symfony\AI\Platform\Bridge\Cache\CachePlatform;
 use Symfony\AI\Platform\Bridge\Decart\Factory as DecartFactory;
+use Symfony\AI\Platform\Bridge\Deepgram\Factory as DeepgramFactory;
 use Symfony\AI\Platform\Bridge\ElevenLabs\Factory as ElevenLabsFactory;
 use Symfony\AI\Platform\Bridge\Failover\FailoverPlatform;
 use Symfony\AI\Platform\Bridge\Failover\FailoverPlatformFactory;
@@ -4858,6 +4859,92 @@ class AiBundleTest extends TestCase
 
         $this->assertTrue($container->hasAlias(PlatformInterface::class.' $elevenlabs'));
         $this->assertTrue($container->hasAlias(PlatformInterface::class));
+    }
+
+    public function testDeepgramPlatformCanBeConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'deepgram' => [
+                        'api_key' => 'foo',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.platform.deepgram'));
+
+        $definition = $container->getDefinition('ai.platform.deepgram');
+        $this->assertSame([DeepgramFactory::class, 'createPlatform'], $definition->getFactory());
+        $this->assertTrue($definition->isLazy());
+
+        $this->assertCount(5, $definition->getArguments());
+        $this->assertSame('https://api.deepgram.com/v1/', $definition->getArgument(0));
+        $this->assertSame('foo', $definition->getArgument(1));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(2));
+        $this->assertSame('http_client', (string) $definition->getArgument(2));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(3));
+        $this->assertSame('ai.platform.contract.deepgram', (string) $definition->getArgument(3));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(4));
+        $this->assertSame('event_dispatcher', (string) $definition->getArgument(4));
+
+        $this->assertTrue($definition->hasTag('proxy'));
+        $this->assertSame([['interface' => PlatformInterface::class]], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.platform.speech'));
+        $this->assertSame([['name' => 'deepgram']], $definition->getTag('ai.platform.speech'));
+        $this->assertTrue($definition->hasTag('ai.platform'));
+        $this->assertSame([['name' => 'deepgram']], $definition->getTag('ai.platform'));
+
+        // Custom endpoint
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'deepgram' => [
+                        'api_key' => 'foo',
+                        'endpoint' => 'https://eu.api.deepgram.com/v1/',
+                    ],
+                ],
+            ],
+        ]);
+
+        $definition = $container->getDefinition('ai.platform.deepgram');
+        $this->assertSame('https://eu.api.deepgram.com/v1/', $definition->getArgument(0));
+        $this->assertSame('foo', $definition->getArgument(1));
+
+        // Scoped http client (already configured with API key)
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'deepgram' => [
+                        'http_client' => 'custom_scoped',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.platform.deepgram'));
+
+        $definition = $container->getDefinition('ai.platform.deepgram');
+        $this->assertSame([DeepgramFactory::class, 'createPlatform'], $definition->getFactory());
+        $this->assertTrue($definition->isLazy());
+
+        $this->assertCount(5, $definition->getArguments());
+        $this->assertSame('https://api.deepgram.com/v1/', $definition->getArgument(0));
+        $this->assertNull($definition->getArgument(1));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(2));
+        $this->assertSame('custom_scoped', (string) $definition->getArgument(2));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(3));
+        $this->assertSame('ai.platform.contract.deepgram', (string) $definition->getArgument(3));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(4));
+        $this->assertSame('event_dispatcher', (string) $definition->getArgument(4));
+
+        $this->assertTrue($definition->hasTag('proxy'));
+        $this->assertSame([['interface' => PlatformInterface::class]], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.platform.speech'));
+        $this->assertSame([['name' => 'deepgram']], $definition->getTag('ai.platform.speech'));
+        $this->assertTrue($definition->hasTag('ai.platform'));
+        $this->assertSame([['name' => 'deepgram']], $definition->getTag('ai.platform'));
     }
 
     public function testFailoverPlatformCanBeCreated()
