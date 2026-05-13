@@ -106,6 +106,7 @@ use Symfony\AI\Store\Bridge\ChromaDb\Store as ChromaDbStore;
 use Symfony\AI\Store\Bridge\ChromaDb\StoreFactory as ChromaDbStoreFactory;
 use Symfony\AI\Store\Bridge\ClickHouse\Store as ClickHouseStore;
 use Symfony\AI\Store\Bridge\Cloudflare\Store as CloudflareStore;
+use Symfony\AI\Store\Bridge\Cloudflare\StoreFactory as CloudflareStoreFactory;
 use Symfony\AI\Store\Bridge\Elasticsearch\Store as ElasticsearchStore;
 use Symfony\AI\Store\Bridge\ManticoreSearch\Store as ManticoreSearchStore;
 use Symfony\AI\Store\Bridge\MariaDb\Distance as MariaDbDistance;
@@ -1529,24 +1530,26 @@ final class AiBundle extends AbstractBundle
             }
 
             foreach ($stores as $name => $store) {
-                $definition = new Definition(CloudflareStore::class);
-                $definition
+                $arguments = [
+                    $store['index_name'] ?? $name,
+                    $store['account_id'] ?? null,
+                    $store['api_key'] ?? null,
+                    new Reference($store['http_client']),
+                    $store['dimensions'],
+                    $store['metric'],
+                ];
+
+                if (\array_key_exists('endpoint', $store)) {
+                    $arguments[6] = $store['endpoint'];
+                }
+
+                $definition = (new Definition(CloudflareStore::class))
+                    ->setFactory(CloudflareStoreFactory::class.'::create')
                     ->setLazy(true)
-                    ->setArguments([
-                        new Reference('http_client'),
-                        $store['account_id'],
-                        $store['api_key'],
-                        $store['index_name'] ?? $name,
-                        $store['dimensions'],
-                        $store['metric'],
-                    ])
+                    ->setArguments($arguments)
                     ->addTag('proxy', ['interface' => StoreInterface::class])
                     ->addTag('proxy', ['interface' => ManagedStoreInterface::class])
                     ->addTag('ai.store');
-
-                if (\array_key_exists('endpoint', $store)) {
-                    $definition->setArgument(6, $store['endpoint']);
-                }
 
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
                 $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
