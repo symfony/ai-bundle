@@ -9,6 +9,7 @@ CHANGELOG
  * Add support for `ScopingHttpClient` usage in `Typesense` store via `http_client` option
  * Wire `Typesense\StoreFactory` from `AiBundle`
  * Add support for `ScopingHttpClient` usage in `Cloudflare` store via `http_client` option
+ * Add support for `ScopingHttpClient` usage in `SurrealDB` store via `http_client` option
 
 0.10
 ----
