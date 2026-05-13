@@ -79,6 +79,7 @@ use Symfony\AI\Store\Bridge\Sqlite\VecStore as SqliteVecStore;
 use Symfony\AI\Store\Bridge\Supabase\Store as SupabaseStore;
 use Symfony\AI\Store\Bridge\SurrealDb\Store as SurrealDbStore;
 use Symfony\AI\Store\Bridge\Typesense\Store as TypesenseStore;
+use Symfony\AI\Store\Bridge\Typesense\StoreFactory as TypesenseStoreFactory;
 use Symfony\AI\Store\Bridge\Vektor\Store as VektorStore;
 use Symfony\AI\Store\Bridge\Weaviate\Store as WeaviateStore;
 use Symfony\AI\Store\Bridge\Weaviate\StoreFactory as WeaviateStoreFactory;
@@ -3808,15 +3809,16 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.store.typesense.my_typesense_store'));
 
         $definition = $container->getDefinition('ai.store.typesense.my_typesense_store');
+        $this->assertSame([TypesenseStoreFactory::class, 'create'], $definition->getFactory());
         $this->assertSame(TypesenseStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
         $this->assertCount(6, $definition->getArguments());
-        $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
-        $this->assertSame('http_client', (string) $definition->getArgument(0));
+        $this->assertSame('my_typesense_store', $definition->getArgument(0));
         $this->assertSame('http://localhost:8108', $definition->getArgument(1));
         $this->assertSame('foo', $definition->getArgument(2));
-        $this->assertSame('my_typesense_store', $definition->getArgument(3));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(3));
+        $this->assertSame('http_client', (string) $definition->getArgument(3));
         $this->assertSame('_vectors', $definition->getArgument(4));
         $this->assertSame(1536, $definition->getArgument(5));
 
@@ -3853,15 +3855,62 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.store.typesense.my_typesense_store'));
 
         $definition = $container->getDefinition('ai.store.typesense.my_typesense_store');
+        $this->assertSame([TypesenseStoreFactory::class, 'create'], $definition->getFactory());
         $this->assertSame(TypesenseStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
         $this->assertCount(6, $definition->getArguments());
-        $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
-        $this->assertSame('http_client', (string) $definition->getArgument(0));
+        $this->assertSame('my_collection', $definition->getArgument(0));
         $this->assertSame('http://localhost:8108', $definition->getArgument(1));
         $this->assertSame('foo', $definition->getArgument(2));
-        $this->assertSame('my_collection', $definition->getArgument(3));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(3));
+        $this->assertSame('http_client', (string) $definition->getArgument(3));
+        $this->assertSame('_vectors', $definition->getArgument(4));
+        $this->assertSame(1536, $definition->getArgument(5));
+
+        $this->assertTrue($definition->hasTag('proxy'));
+        $this->assertSame([
+            ['interface' => StoreInterface::class],
+            ['interface' => ManagedStoreInterface::class],
+        ], $definition->getTag('proxy'));
+        $this->assertTrue($definition->hasTag('ai.store'));
+
+        $this->assertTrue($container->hasAlias('.'.StoreInterface::class.' $my_typesense_store'));
+        $this->assertTrue($container->hasAlias(StoreInterface::class.' $myTypesenseStore'));
+        $this->assertTrue($container->hasAlias('.'.StoreInterface::class.' $typesense_my_typesense_store'));
+        $this->assertTrue($container->hasAlias(StoreInterface::class.' $typesenseMyTypesenseStore'));
+        $this->assertTrue($container->hasAlias(StoreInterface::class));
+    }
+
+    public function testTypesenseStoreWithCustomHttpClientCanBeConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'typesense' => [
+                        'my_typesense_store' => [
+                            'endpoint' => 'http://localhost:8108',
+                            'api_key' => 'foo',
+                            'http_client' => 'my.scoped_http_client',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.store.typesense.my_typesense_store'));
+
+        $definition = $container->getDefinition('ai.store.typesense.my_typesense_store');
+        $this->assertSame([TypesenseStoreFactory::class, 'create'], $definition->getFactory());
+        $this->assertSame(TypesenseStore::class, $definition->getClass());
+
+        $this->assertTrue($definition->isLazy());
+        $this->assertCount(6, $definition->getArguments());
+        $this->assertSame('my_typesense_store', $definition->getArgument(0));
+        $this->assertSame('http://localhost:8108', $definition->getArgument(1));
+        $this->assertSame('foo', $definition->getArgument(2));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(3));
+        $this->assertSame('my.scoped_http_client', (string) $definition->getArgument(3));
         $this->assertSame('_vectors', $definition->getArgument(4));
         $this->assertSame(1536, $definition->getArgument(5));
 

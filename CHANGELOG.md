@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+0.11
+----
+
+ * Add support for `ScopingHttpClient` usage in `Typesense` store via `http_client` option
+ * Wire `Typesense\StoreFactory` from `AiBundle`
+
 0.10
 ----
 

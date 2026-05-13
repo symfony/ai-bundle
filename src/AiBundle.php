@@ -128,6 +128,7 @@ use Symfony\AI\Store\Bridge\Sqlite\VecStore as SqliteVecStore;
 use Symfony\AI\Store\Bridge\Supabase\Store as SupabaseStore;
 use Symfony\AI\Store\Bridge\SurrealDb\Store as SurrealDbStore;
 use Symfony\AI\Store\Bridge\Typesense\Store as TypesenseStore;
+use Symfony\AI\Store\Bridge\Typesense\StoreFactory as TypesenseStoreFactory;
 use Symfony\AI\Store\Bridge\Vektor\Store as VektorStore;
 use Symfony\AI\Store\Bridge\Weaviate\Store as WeaviateStore;
 use Symfony\AI\Store\Bridge\Weaviate\StoreFactory as WeaviateStoreFactory;
@@ -2107,14 +2108,14 @@ final class AiBundle extends AbstractBundle
             }
 
             foreach ($stores as $name => $store) {
-                $definition = new Definition(TypesenseStore::class);
-                $definition
+                $definition = (new Definition(TypesenseStore::class))
+                    ->setFactory(TypesenseStoreFactory::class.'::create')
                     ->setLazy(true)
                     ->setArguments([
-                        new Reference('http_client'),
-                        $store['endpoint'],
-                        $store['api_key'],
                         $store['collection'] ?? $name,
+                        $store['endpoint'] ?? null,
+                        $store['api_key'] ?? null,
+                        new Reference($store['http_client']),
                         $store['vector_field'],
                         $store['dimensions'],
                     ])
