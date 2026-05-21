@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Config\Definition\Configurator;
 
+use Symfony\AI\AiBundle\Exception\InvalidArgumentException;
 use Symfony\AI\Platform\Capability;
 use Symfony\AI\Platform\Model;
 use Symfony\AI\Platform\PlatformInterface;
@@ -293,7 +294,12 @@ return static function (DefinitionConfigurator $configurator): void {
                                             })
                                         ->end()
                                         ->validate()
-                                            ->ifTrue(static fn ($v) => !(empty($v['agent']) xor empty($v['service'])))
+                                            ->ifTrue(static function ($v) {
+                                                $hasAgent = isset($v['agent']) && '' !== $v['agent'];
+                                                $hasService = isset($v['service']) && '' !== $v['service'];
+
+                                                return !($hasAgent xor $hasService);
+                                            })
                                             ->thenInvalid('Either "agent" or "service" must be configured, and never both.')
                                         ->end()
                                     ->end()
@@ -573,14 +579,14 @@ return static function (DefinitionConfigurator $configurator): void {
                 $multiAgentNames = array_keys($v['multi_agent']);
                 $duplicates = array_intersect($agentNames, $multiAgentNames);
 
-                return !empty($duplicates);
+                return [] !== $duplicates;
             })
             ->then(static function ($v) {
                 $agentNames = array_keys($v['agent'] ?? []);
                 $multiAgentNames = array_keys($v['multi_agent'] ?? []);
                 $duplicates = array_intersect($agentNames, $multiAgentNames);
 
-                throw new \InvalidArgumentException(\sprintf('Agent names and multi-agent names must be unique. Duplicate name(s) found: "%s"', implode(', ', $duplicates)));
+                throw new InvalidArgumentException(\sprintf('Agent names and multi-agent names must be unique. Duplicate name(s) found: "%s"', implode(', ', $duplicates)));
             })
         ->end()
         ->validate()
@@ -617,16 +623,16 @@ return static function (DefinitionConfigurator $configurator): void {
 
                 foreach ($v['multi_agent'] as $multiAgentName => $multiAgent) {
                     if (!\in_array($multiAgent['orchestrator'], $agentNames, true)) {
-                        throw new \InvalidArgumentException(\sprintf('The agent "%s" referenced in multi-agent "%s" as orchestrator does not exist', $multiAgent['orchestrator'], $multiAgentName));
+                        throw new InvalidArgumentException(\sprintf('The agent "%s" referenced in multi-agent "%s" as orchestrator does not exist', $multiAgent['orchestrator'], $multiAgentName));
                     }
 
                     if (!\in_array($multiAgent['fallback'], $agentNames, true)) {
-                        throw new \InvalidArgumentException(\sprintf('The agent "%s" referenced in multi-agent "%s" as fallback does not exist', $multiAgent['fallback'], $multiAgentName));
+                        throw new InvalidArgumentException(\sprintf('The agent "%s" referenced in multi-agent "%s" as fallback does not exist', $multiAgent['fallback'], $multiAgentName));
                     }
 
                     foreach (array_keys($multiAgent['handoffs']) as $handoffAgent) {
                         if (!\in_array($handoffAgent, $agentNames, true)) {
-                            throw new \InvalidArgumentException(\sprintf('The agent "%s" referenced in multi-agent "%s" as handoff target does not exist', $handoffAgent, $multiAgentName));
+                            throw new InvalidArgumentException(\sprintf('The agent "%s" referenced in multi-agent "%s" as handoff target does not exist', $handoffAgent, $multiAgentName));
                         }
                     }
                 }
