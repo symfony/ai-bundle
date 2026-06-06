@@ -14,6 +14,7 @@ namespace Symfony\AI\AiBundle\Tests\DependencyInjection;
 use AsyncAws\BedrockRuntime\BedrockRuntimeClient;
 use Codewithkyrian\ChromaDB\Client;
 use MongoDB\Client as MongoDbClient;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\DoesNotPerformAssertions;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\Attributes\TestWith;
@@ -4379,6 +4380,53 @@ class AiBundleTest extends TestCase
         $secondSystemTags = $secondSystemPrompt->getTag('ai.agent.input_processor');
         $this->assertSame($secondAgentId, $secondSystemTags[0]['agent']);
         $this->assertCount(3, array_filter($secondSystemPrompt->getArguments()));
+    }
+
+    public function testMaxToolCallsDefaultsToFifty()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => 'gpt-4',
+                        'tools' => true,
+                    ],
+                ],
+            ],
+        ]);
+
+        $toolProcessor = $container->getDefinition('ai.tool.agent_processor.test_agent');
+
+        $this->assertSame(50, $toolProcessor->getArguments()['index_5']);
+    }
+
+    /**
+     * @return iterable<string, array{int|null}>
+     */
+    public static function provideMaxToolCalls(): iterable
+    {
+        yield 'custom limit' => [25];
+        yield 'unbounded' => [null];
+    }
+
+    #[DataProvider('provideMaxToolCalls')]
+    public function testMaxToolCallsCanBeConfigured(?int $maxToolCalls)
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => 'gpt-4',
+                        'tools' => true,
+                        'max_tool_calls' => $maxToolCalls,
+                    ],
+                ],
+            ],
+        ]);
+
+        $toolProcessor = $container->getDefinition('ai.tool.agent_processor.test_agent');
+
+        $this->assertSame($maxToolCalls, $toolProcessor->getArguments()['index_5']);
     }
 
     #[TestDox('Processors work correctly when using the default toolbox')]
