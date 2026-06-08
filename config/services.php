@@ -45,6 +45,8 @@ use Symfony\AI\Platform\Bridge\HuggingFace\Contract\HuggingFaceContract;
 use Symfony\AI\Platform\Bridge\HuggingFace\ModelCatalog as HuggingFaceModelCatalog;
 use Symfony\AI\Platform\Bridge\LmStudio\ModelCatalog as LmStudioModelCatalog;
 use Symfony\AI\Platform\Bridge\Meta\ModelCatalog as MetaModelCatalog;
+use Symfony\AI\Platform\Bridge\MiniMax\Contract\MiniMaxContract;
+use Symfony\AI\Platform\Bridge\MiniMax\ModelCatalog as MiniMaxModelCatalog;
 use Symfony\AI\Platform\Bridge\Mistral\ModelCatalog as MistralModelCatalog;
 use Symfony\AI\Platform\Bridge\Ollama\Contract\OllamaContract;
 use Symfony\AI\Platform\Bridge\OpenAi\Contract\OpenAiContract;
@@ -96,6 +98,8 @@ return static function (ContainerConfigurator $container): void {
             ->factory([GeminiContract::class, 'create'])
         ->set('ai.platform.contract.huggingface', Contract::class)
             ->factory([HuggingFaceContract::class, 'create'])
+        ->set('ai.platform.contract.minimax', Contract::class)
+            ->factory([MiniMaxContract::class, 'create'])
         ->set('ai.platform.contract.vertexai.gemini', Contract::class)
             ->factory([VertexAiGeminiContract::class, 'create'])
         ->set('ai.platform.contract.ollama', Contract::class)
@@ -120,6 +124,7 @@ return static function (ContainerConfigurator $container): void {
         ->set('ai.platform.model_catalog.huggingface', HuggingFaceModelCatalog::class)
         ->set('ai.platform.model_catalog.lmstudio', LmStudioModelCatalog::class)
         ->set('ai.platform.model_catalog.meta', MetaModelCatalog::class)
+        ->set('ai.platform.model_catalog.minimax', MiniMaxModelCatalog::class)
         ->set('ai.platform.model_catalog.mistral', MistralModelCatalog::class)
         ->set('ai.platform.model_catalog.openai', OpenAiModelCatalog::class)
         ->set('ai.platform.model_catalog.openrouter', OpenRouterModelCatalog::class)

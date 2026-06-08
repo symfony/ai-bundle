@@ -74,6 +74,7 @@ use Symfony\AI\Platform\Bridge\Generic\Factory as GenericFactory;
 use Symfony\AI\Platform\Bridge\Generic\FallbackModelCatalog as GenericFallbackModelCatalog;
 use Symfony\AI\Platform\Bridge\HuggingFace\Factory as HuggingFaceFactory;
 use Symfony\AI\Platform\Bridge\LmStudio\Factory as LmStudioFactory;
+use Symfony\AI\Platform\Bridge\MiniMax\Factory as MiniMaxFactory;
 use Symfony\AI\Platform\Bridge\Mistral\Factory as MistralFactory;
 use Symfony\AI\Platform\Bridge\Ollama\Factory as OllamaFactory;
 use Symfony\AI\Platform\Bridge\Ollama\ModelCatalog;
@@ -960,6 +961,32 @@ final class AiBundle extends AbstractBundle
                 ->addTag('ai.platform', ['name' => 'ollama']);
 
             $container->setDefinition('ai.platform.ollama', $definition);
+
+            return;
+        }
+
+        if ('minimax' === $type) {
+            if (!ContainerBuilder::willBeAvailable('symfony/ai-mini-max-platform', MiniMaxFactory::class, ['symfony/ai-bundle'])) {
+                throw new RuntimeException('MiniMax platform configuration requires "symfony/ai-mini-max-platform" package. Try running "composer require symfony/ai-mini-max-platform".');
+            }
+
+            $platformId = 'ai.platform.minimax';
+            $definition = (new Definition(Platform::class))
+                ->setFactory(MiniMaxFactory::class.'::createPlatform')
+                ->setLazy(true)
+                ->addTag('proxy', ['interface' => PlatformInterface::class])
+                ->setArguments([
+                    $platform['api_key'],
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    $platform['endpoint'],
+                    new Reference('ai.platform.model_catalog.minimax'),
+                    new Reference('ai.platform.contract.minimax'),
+                    new Reference('event_dispatcher'),
+                ])
+                ->addTag('ai.platform', ['name' => 'minimax']);
+
+            $container->setDefinition($platformId, $definition);
+            $container->registerAliasForArgument($platformId, PlatformInterface::class, 'minimax');
 
             return;
         }
