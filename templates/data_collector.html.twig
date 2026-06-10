@@ -257,7 +257,7 @@
                                             {%- if parameter.type is defined -%}
                                                 {{ parameter.type is iterable ? parameter.type|join(', ') : parameter.type }}
                                             {%- elseif parameter.anyOf is defined -%}
-                                                {{ parameter.anyOf|map(p => p.type is iterable ? p.type|join(', ') : p.type)|join(', ') }}
+                                                {{ parameter.anyOf|map(p => p.type)|join(', ') }}
                                             {%- endif -%}
                                         {% endset %}
                                         <li>
