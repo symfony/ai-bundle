@@ -9,6 +9,7 @@ CHANGELOG
  * Add an `mcp_server` tool entry to `ai.agent.<name>.tools`, exposing the tools of a remote MCP server to an agent by referencing a connection configured under `mcp.clients`
  * Add an `api` option to the `bedrock` platform configuration, selecting the SDK-based InvokeModel API or one of the Bedrock Mantle routes (Chat Completions, Responses, Anthropic Messages)
  * Add `fireworks` platform configuration for OpenAI-compatible chat, embeddings and reranking
+ * Add `together` platform configuration for chat, embeddings, image generation, text-to-speech, speech-to-text and reranking
 
 0.13
 ----

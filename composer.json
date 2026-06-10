@@ -100,6 +100,7 @@
         "symfony/ai-supabase-store": "^0.13",
         "symfony/ai-surreal-db-message-store": "^0.13",
         "symfony/ai-surreal-db-store": "^0.13",
+        "symfony/ai-together-platform": "^0.13",
         "symfony/ai-transformers-php-platform": "^0.13",
         "symfony/ai-typesense-store": "^0.13",
         "symfony/ai-vektor-store": "^0.13",
