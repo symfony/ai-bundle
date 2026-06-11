@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+0.10
+----
+
+ * [BC BREAK] Agent tools are now opt-in: when the `tools` option is not configured (or set to `null` or
+   an empty list), no toolbox is registered for the agent. Set `tools: true` to restore the previous
+   behavior of injecting all services tagged with `ai.tool`
+ * Throw an exception when `prompt.include_tools` is enabled for an agent without configured tools
+
 0.9
 ---
 

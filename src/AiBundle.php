@@ -1247,6 +1247,10 @@ final class AiBundle extends AbstractBundle
         if (isset($config['prompt'])) {
             $includeTools = isset($config['prompt']['include_tools']) && $config['prompt']['include_tools'];
 
+            if ($includeTools && !$config['tools']['enabled']) {
+                throw new InvalidArgumentException(\sprintf('Agent "%s" has "prompt.include_tools" enabled, but no tools are configured. Enable tools with "tools: true" or configure an explicit list of tools.', $name));
+            }
+
             // Create prompt from file if configured, otherwise use text
             if (isset($config['prompt']['file'])) {
                 $filePath = $config['prompt']['file'];

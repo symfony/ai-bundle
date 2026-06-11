@@ -263,21 +263,25 @@ return static function (DefinitionConfigurator $configurator): void {
                             ->end()
                         ->end()
                         ->arrayNode('tools')
+                            ->info('Tools are opt-in: set to true to inject all services tagged with "ai.tool", or configure an explicit list of tools. When the option is omitted (or set to null or false), no tools are registered.')
                             ->addDefaultsIfNotSet()
                             ->treatFalseLike(['enabled' => false])
                             ->treatTrueLike(['enabled' => true])
-                            ->treatNullLike(['enabled' => true])
+                            ->treatNullLike(['enabled' => false])
                             ->beforeNormalization()
                                 ->ifArray()
                                 ->then(static function (array $v): array {
+                                    $services = $v['services'] ?? $v;
+                                    unset($services['enabled']);
+
                                     return [
-                                        'enabled' => $v['enabled'] ?? true,
-                                        'services' => $v['services'] ?? $v,
+                                        'enabled' => $v['enabled'] ?? [] !== $services,
+                                        'services' => $services,
                                     ];
                                 })
                             ->end()
                             ->children()
-                                ->booleanNode('enabled')->defaultTrue()->end()
+                                ->booleanNode('enabled')->defaultFalse()->end()
                                 ->arrayNode('services')
                                     ->arrayPrototype()
                                         ->children()

@@ -99,6 +99,7 @@ use Symfony\AI\Store\StoreInterface;
 use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Clock\MonotonicClock;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
@@ -4423,6 +4424,156 @@ class AiBundleTest extends TestCase
         $this->assertTrue($foundOutput, 'Default tool processor should have output tag with full agent ID');
     }
 
+    public function testAgentWithoutToolsConfigDoesNotRegisterToolbox()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'my_agent' => [
+                        'model' => 'gpt-4',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertFalse($container->hasDefinition('ai.toolbox.my_agent'));
+        $this->assertFalse($container->hasDefinition('ai.tool.agent_processor.my_agent'));
+        $this->assertFalse($container->hasDefinition('ai.toolbox.my_agent.memory_factory'));
+        $this->assertFalse($container->hasDefinition('ai.toolbox.my_agent.chain_factory'));
+        $this->assertFalse($container->hasDefinition('ai.fault_tolerant_toolbox.my_agent'));
+    }
+
+    public function testToolsNullDoesNotRegisterToolbox()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'my_agent' => [
+                        'model' => 'gpt-4',
+                        'tools' => null,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertFalse($container->hasDefinition('ai.toolbox.my_agent'));
+        $this->assertFalse($container->hasDefinition('ai.tool.agent_processor.my_agent'));
+    }
+
+    public function testToolsFalseDoesNotRegisterToolbox()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'my_agent' => [
+                        'model' => 'gpt-4',
+                        'tools' => false,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertFalse($container->hasDefinition('ai.toolbox.my_agent'));
+        $this->assertFalse($container->hasDefinition('ai.tool.agent_processor.my_agent'));
+    }
+
+    public function testToolsEmptyListDoesNotRegisterToolbox()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'my_agent' => [
+                        'model' => 'gpt-4',
+                        'tools' => [],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertFalse($container->hasDefinition('ai.toolbox.my_agent'));
+        $this->assertFalse($container->hasDefinition('ai.tool.agent_processor.my_agent'));
+    }
+
+    public function testToolsTrueRegistersToolboxWithAllTaggedTools()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'my_agent' => [
+                        'model' => 'gpt-4',
+                        'tools' => true,
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.toolbox.my_agent'));
+        $this->assertTrue($container->hasDefinition('ai.tool.agent_processor.my_agent'));
+
+        $toolboxDefinition = $container->getDefinition('ai.toolbox.my_agent');
+        $this->assertInstanceOf(ChildDefinition::class, $toolboxDefinition);
+        $this->assertSame('ai.toolbox.abstract', $toolboxDefinition->getParent());
+        $this->assertArrayNotHasKey('index_0', $toolboxDefinition->getArguments(), 'Tools argument should not be replaced, so the tagged iterator of the abstract definition applies');
+    }
+
+    public function testToolsEnabledArrayFormRegistersToolbox()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'my_agent' => [
+                        'model' => 'gpt-4',
+                        'tools' => ['enabled' => true],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.toolbox.my_agent'));
+
+        $toolboxDefinition = $container->getDefinition('ai.toolbox.my_agent');
+        $this->assertArrayNotHasKey('index_0', $toolboxDefinition->getArguments(), 'Tools argument should not be replaced, so the tagged iterator of the abstract definition applies');
+    }
+
+    public function testToolsExplicitListRegistersOnlyConfiguredTools()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'my_agent' => [
+                        'model' => 'gpt-4',
+                        'tools' => ['some_service'],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.toolbox.my_agent'));
+
+        $toolboxDefinition = $container->getDefinition('ai.toolbox.my_agent');
+        $this->assertEquals([new Reference('some_service')], $toolboxDefinition->getArgument(0));
+    }
+
+    public function testIncludeToolsWithoutToolsThrowsException()
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Agent "my_agent" has "prompt.include_tools" enabled, but no tools are configured.');
+
+        $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'my_agent' => [
+                        'model' => 'gpt-4',
+                        'prompt' => [
+                            'text' => 'You are a helpful assistant.',
+                            'include_tools' => true,
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
     public function testElevenLabsPlatformCanBeConfigured()
     {
         $container = $this->buildContainer([
@@ -7993,6 +8144,7 @@ class AiBundleTest extends TestCase
                 'agent' => [
                     'my_agent' => [
                         'model' => 'gpt-4',
+                        'tools' => true,
                         'fault_tolerant_toolbox' => true,
                     ],
                 ],
