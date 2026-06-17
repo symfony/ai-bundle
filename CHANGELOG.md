@@ -8,6 +8,7 @@ CHANGELOG
  * Add support for configuring a tool execution strategy per agent via the `execution_strategy` option under `tools` (`sequential`, `fiber`, or a custom service ID)
  * Add an `mcp_server` tool entry to `ai.agent.<name>.tools`, exposing the tools of a remote MCP server to an agent by referencing a connection configured under `mcp.clients`
  * Add an `api` option to the `bedrock` platform configuration, selecting the SDK-based InvokeModel API or one of the Bedrock Mantle routes (Chat Completions, Responses, Anthropic Messages)
+ * Add `fireworks` platform configuration for OpenAI-compatible chat, embeddings and reranking
 
 0.13
 ----
