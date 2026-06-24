@@ -139,7 +139,13 @@
                                                             {% endfor %}
                                                         {% elseif 'tool' == message.role.value %}
                                                             <i>Result of tool call with ID {{ message.toolCall.id }}</i><br />
-                                                            {{ message.content|nl2br }}
+                                                            {% for item in message.content %}
+                                                                {% if item.text is defined %}
+                                                                    {{ item.text|nl2br }}
+                                                                {% else %}
+                                                                    {{ item }}
+                                                                {% endif %}
+                                                            {% endfor %}
                                                         {% elseif 'user' == message.role.value %}
                                                             {% for item in message.content %}
                                                                 {% if item.text is defined %}
