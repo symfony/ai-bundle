@@ -1245,8 +1245,8 @@ final class AiBundle extends AbstractBundle
         $agentId = 'ai.agent.'.$name;
         $agentDefinition = (new Definition(Agent::class))
             ->addTag('ai.agent', ['name' => $name])
-            ->setArgument(0, new Reference($config['platform']))
-            ->setArgument(1, $config['model']);
+            ->setArgument('$platform', new Reference($config['platform']))
+            ->setArgument('$model', $config['model']);
 
         // TOOLBOX
         if ($config['tools']['enabled']) {
@@ -1271,15 +1271,12 @@ final class AiBundle extends AbstractBundle
                     ->setDecoratedService('ai.toolbox.'.$name, priority: -1024);
             }
 
-            $toolProcessorDefinition = (new ChildDefinition('ai.tool.agent_processor.abstract'))
-                ->replaceArgument(0, new Reference('ai.toolbox.'.$name))
-                ->replaceArgument(3, $config['exclude_tool_messages'])
-                ->replaceArgument(4, $config['include_sources'])
-                ->replaceArgument(5, $config['max_tool_calls']);
-
-            $container->setDefinition('ai.tool.agent_processor.'.$name, $toolProcessorDefinition)
-                ->addTag('ai.agent.input_processor', ['agent' => $agentId, 'priority' => -10])
-                ->addTag('ai.agent.output_processor', ['agent' => $agentId, 'priority' => -10]);
+            $agentDefinition
+                ->setArgument('$toolbox', new Reference('ai.toolbox.'.$name))
+                ->setArgument('$maxToolCalls', $config['max_tool_calls'])
+                ->setArgument('$excludeToolMessages', $config['exclude_tool_messages'])
+                ->setArgument('$includeSources', $config['include_sources'])
+                ->setArgument('$eventDispatcher', new Reference('event_dispatcher', ContainerInterface::NULL_ON_INVALID_REFERENCE));
 
             // Define specific list of tools if are explicitly defined
             if ([] !== $config['tools']['services']) {
@@ -1380,9 +1377,9 @@ final class AiBundle extends AbstractBundle
         }
 
         $agentDefinition
-            ->setArgument(2, []) // placeholder until ProcessorCompilerPass process.
-            ->setArgument(3, []) // placeholder until ProcessorCompilerPass process.
-            ->setArgument(4, $name)
+            ->setArgument('$inputProcessors', []) // placeholder until ProcessorCompilerPass process.
+            ->setArgument('$outputProcessors', []) // placeholder until ProcessorCompilerPass process.
+            ->setArgument('$name', $name)
         ;
 
         $container->setDefinition($agentId, $agentDefinition);

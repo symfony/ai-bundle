@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-use Symfony\AI\Agent\Toolbox\AgentProcessor as ToolProcessor;
 use Symfony\AI\Agent\Toolbox\Event\ToolCallArgumentsResolved;
 use Symfony\AI\Agent\Toolbox\EventListener\ValidateToolCallArgumentsListener;
 use Symfony\AI\Agent\Toolbox\Toolbox;
@@ -248,16 +247,6 @@ return static function (ContainerConfigurator $container): void {
             ->args([
                 service('serializer'),
                 service('type_info.resolver')->nullOnInvalid(),
-            ])
-        ->set('ai.tool.agent_processor.abstract', ToolProcessor::class)
-            ->abstract()
-            ->args([
-                abstract_arg('Toolbox'),
-                service('ai.tool_result_converter'),
-                service('event_dispatcher')->nullOnInvalid(),
-                false,
-                false,
-                abstract_arg('Maximum tool calls'),
             ])
         ->set('ai.tool.validate_tool_call_arguments_listener', ValidateToolCallArgumentsListener::class)
             ->args([

@@ -428,9 +428,9 @@ class AiBundleTest extends TestCase
         $agentDefinition = $container->getDefinition('ai.agent.my_custom_agent');
         $arguments = $agentDefinition->getArguments();
 
-        // The 5th argument (index 4) should be the config key as agent name
-        $this->assertArrayHasKey(4, $arguments, 'Agent definition should have argument at index 4 for name');
-        $this->assertSame('my_custom_agent', $arguments[4]);
+        // The name argument should be the config key as agent name
+        $this->assertArrayHasKey('$name', $arguments, 'Agent definition should have the name argument');
+        $this->assertSame('my_custom_agent', $arguments['$name']);
 
         // Check that the tag uses the config key as name
         $tags = $agentDefinition->getTag('ai.agent');
@@ -4516,6 +4516,7 @@ class AiBundleTest extends TestCase
                 'agent' => [
                     'test_agent' => [
                         'model' => 'gpt-4',
+                        'tools' => true,
                     ],
                 ],
             ],
@@ -4523,11 +4524,18 @@ class AiBundleTest extends TestCase
 
         $arguments = $container->getDefinition('ai.agent.test_agent')->getArguments();
 
-        $this->assertCount(
-            (new \ReflectionMethod(Agent::class, '__construct'))->getNumberOfParameters(),
-            $arguments,
-        );
-        $this->assertSame('test_agent', $arguments[4]);
+        // The agent is wired with named arguments, so every argument key must map to a real
+        // constructor parameter - this catches stale, renamed or misspelled arguments.
+        $parameters = [];
+        foreach ((new \ReflectionMethod(Agent::class, '__construct'))->getParameters() as $parameter) {
+            $parameters['$'.$parameter->getName()] = true;
+        }
+
+        foreach (array_keys($arguments) as $key) {
+            $this->assertArrayHasKey($key, $parameters, \sprintf('Argument "%s" does not match any Agent constructor parameter.', $key));
+        }
+
+        $this->assertSame('test_agent', $arguments['$name']);
     }
 
     /**
@@ -4553,15 +4561,9 @@ class AiBundleTest extends TestCase
 
         $agentId = 'ai.agent.test_agent';
 
-        // Test tool processor tags
-        $toolProcessorDefinition = $container->getDefinition('ai.tool.agent_processor.test_agent');
-        $toolProcessorTags = $toolProcessorDefinition->getTag('ai.agent.input_processor');
-        $this->assertNotEmpty($toolProcessorTags, 'Tool processor should have input processor tags');
-        $this->assertSame($agentId, $toolProcessorTags[0]['agent'], 'Tool input processor tag should use full agent ID');
-
-        $outputTags = $toolProcessorDefinition->getTag('ai.agent.output_processor');
-        $this->assertNotEmpty($outputTags, 'Tool processor should have output processor tags');
-        $this->assertSame($agentId, $outputTags[0]['agent'], 'Tool output processor tag should use full agent ID');
+        // The toolbox is passed to the agent itself instead of being registered as a processor
+        $agentDefinition = $container->getDefinition($agentId);
+        $this->assertSame('ai.toolbox.test_agent', (string) $agentDefinition->getArgument('$toolbox'));
 
         // Test system prompt processor tags
         $systemPromptDefinition = $container->getDefinition('ai.agent.test_agent.system_prompt_processor');
@@ -4598,15 +4600,9 @@ class AiBundleTest extends TestCase
         $firstAgentId = 'ai.agent.first_agent';
         $secondAgentId = 'ai.agent.second_agent';
 
-        // First agent tool processor
-        $firstToolProcessor = $container->getDefinition('ai.tool.agent_processor.first_agent');
-        $firstToolTags = $firstToolProcessor->getTag('ai.agent.input_processor');
-        $this->assertSame($firstAgentId, $firstToolTags[0]['agent']);
-
-        // Second agent tool processor
-        $secondToolProcessor = $container->getDefinition('ai.tool.agent_processor.second_agent');
-        $secondToolTags = $secondToolProcessor->getTag('ai.agent.input_processor');
-        $this->assertSame($secondAgentId, $secondToolTags[0]['agent']);
+        // Each agent receives its own toolbox
+        $this->assertSame('ai.toolbox.first_agent', (string) $container->getDefinition($firstAgentId)->getArgument('$toolbox'));
+        $this->assertSame('ai.toolbox.second_agent', (string) $container->getDefinition($secondAgentId)->getArgument('$toolbox'));
 
         // First agent system prompt processor
         $firstSystemPrompt = $container->getDefinition('ai.agent.first_agent.system_prompt_processor');
@@ -4634,9 +4630,9 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $toolProcessor = $container->getDefinition('ai.tool.agent_processor.test_agent');
+        $agentDefinition = $container->getDefinition('ai.agent.test_agent');
 
-        $this->assertFalse($toolProcessor->getArguments()['index_3']);
+        $this->assertFalse($agentDefinition->getArgument('$excludeToolMessages'));
     }
 
     /**
@@ -4649,7 +4645,7 @@ class AiBundleTest extends TestCase
     }
 
     #[DataProvider('provideExcludeToolMessages')]
-    public function testExcludeToolMessagesIsPassedToAgentProcessor(bool $excludeToolMessages)
+    public function testExcludeToolMessagesIsPassedToAgent(bool $excludeToolMessages)
     {
         $container = $this->buildContainer([
             'ai' => [
@@ -4663,9 +4659,9 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $toolProcessor = $container->getDefinition('ai.tool.agent_processor.test_agent');
+        $agentDefinition = $container->getDefinition('ai.agent.test_agent');
 
-        $this->assertSame($excludeToolMessages, $toolProcessor->getArguments()['index_3']);
+        $this->assertSame($excludeToolMessages, $agentDefinition->getArgument('$excludeToolMessages'));
     }
 
     public function testMaxToolCallsDefaultsToFifty()
@@ -4681,9 +4677,9 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $toolProcessor = $container->getDefinition('ai.tool.agent_processor.test_agent');
+        $agentDefinition = $container->getDefinition('ai.agent.test_agent');
 
-        $this->assertSame(50, $toolProcessor->getArguments()['index_5']);
+        $this->assertSame(50, $agentDefinition->getArgument('$maxToolCalls'));
     }
 
     /**
@@ -4710,9 +4706,9 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        $toolProcessor = $container->getDefinition('ai.tool.agent_processor.test_agent');
+        $agentDefinition = $container->getDefinition('ai.agent.test_agent');
 
-        $this->assertSame($maxToolCalls, $toolProcessor->getArguments()['index_5']);
+        $this->assertSame($maxToolCalls, $agentDefinition->getArgument('$maxToolCalls'));
     }
 
     #[TestDox('Processors work correctly when using the default toolbox')]
@@ -4731,31 +4727,9 @@ class AiBundleTest extends TestCase
 
         $agentId = 'ai.agent.agent_with_tools';
 
-        // When using default toolbox, the ai.tool.agent_processor service gets the tags
-        $defaultToolProcessor = $container->getDefinition('ai.tool.agent_processor.agent_with_tools');
-        $inputTags = $defaultToolProcessor->getTag('ai.agent.input_processor');
-        $outputTags = $defaultToolProcessor->getTag('ai.agent.output_processor');
-
-        // Find tags for our specific agent
-        $foundInput = false;
-        $foundOutput = false;
-
-        foreach ($inputTags as $tag) {
-            if (($tag['agent'] ?? '') === $agentId) {
-                $foundInput = true;
-                break;
-            }
-        }
-
-        foreach ($outputTags as $tag) {
-            if (($tag['agent'] ?? '') === $agentId) {
-                $foundOutput = true;
-                break;
-            }
-        }
-
-        $this->assertTrue($foundInput, 'Default tool processor should have input tag with full agent ID');
-        $this->assertTrue($foundOutput, 'Default tool processor should have output tag with full agent ID');
+        // When using the default toolbox, it is passed to the agent as the toolbox argument
+        $this->assertTrue($container->hasDefinition('ai.toolbox.agent_with_tools'));
+        $this->assertSame('ai.toolbox.agent_with_tools', (string) $container->getDefinition($agentId)->getArgument('$toolbox'));
     }
 
     public function testAgentWithoutToolsConfigDoesNotRegisterToolbox()
@@ -4771,7 +4745,6 @@ class AiBundleTest extends TestCase
         ]);
 
         $this->assertFalse($container->hasDefinition('ai.toolbox.my_agent'));
-        $this->assertFalse($container->hasDefinition('ai.tool.agent_processor.my_agent'));
         $this->assertFalse($container->hasDefinition('ai.toolbox.my_agent.memory_factory'));
         $this->assertFalse($container->hasDefinition('ai.toolbox.my_agent.chain_factory'));
         $this->assertFalse($container->hasDefinition('ai.fault_tolerant_toolbox.my_agent'));
@@ -4791,7 +4764,6 @@ class AiBundleTest extends TestCase
         ]);
 
         $this->assertFalse($container->hasDefinition('ai.toolbox.my_agent'));
-        $this->assertFalse($container->hasDefinition('ai.tool.agent_processor.my_agent'));
     }
 
     public function testToolsFalseDoesNotRegisterToolbox()
@@ -4808,7 +4780,6 @@ class AiBundleTest extends TestCase
         ]);
 
         $this->assertFalse($container->hasDefinition('ai.toolbox.my_agent'));
-        $this->assertFalse($container->hasDefinition('ai.tool.agent_processor.my_agent'));
     }
 
     public function testToolsEmptyListDoesNotRegisterToolbox()
@@ -4825,7 +4796,6 @@ class AiBundleTest extends TestCase
         ]);
 
         $this->assertFalse($container->hasDefinition('ai.toolbox.my_agent'));
-        $this->assertFalse($container->hasDefinition('ai.tool.agent_processor.my_agent'));
     }
 
     public function testToolsTrueRegistersToolboxWithAllTaggedTools()
@@ -4842,7 +4812,7 @@ class AiBundleTest extends TestCase
         ]);
 
         $this->assertTrue($container->hasDefinition('ai.toolbox.my_agent'));
-        $this->assertTrue($container->hasDefinition('ai.tool.agent_processor.my_agent'));
+        $this->assertSame('ai.toolbox.my_agent', (string) $container->getDefinition('ai.agent.my_agent')->getArgument('$toolbox'));
 
         $toolboxDefinition = $container->getDefinition('ai.toolbox.my_agent');
         $this->assertInstanceOf(ChildDefinition::class, $toolboxDefinition);
@@ -5680,7 +5650,7 @@ class AiBundleTest extends TestCase
         // Check that all processors are created
         $this->assertTrue($container->hasDefinition('ai.agent.test_agent.memory_input_processor'));
         $this->assertTrue($container->hasDefinition('ai.agent.test_agent.system_prompt_processor'));
-        $this->assertTrue($container->hasDefinition('ai.tool.agent_processor.test_agent'));
+        $this->assertSame('ai.toolbox.test_agent', (string) $container->getDefinition('ai.agent.test_agent')->getArgument('$toolbox'));
 
         // Verify memory processor configuration (static memory since service doesn't exist)
         $this->assertTrue($container->hasDefinition('ai.agent.test_agent.static_memory_provider'));
@@ -6148,7 +6118,7 @@ class AiBundleTest extends TestCase
         ]);
 
         $agentDefinition = $container->getDefinition('ai.agent.test');
-        $this->assertSame('gpt-4o-mini?temperature=0.5&max_tokens=2000', $agentDefinition->getArgument(1));
+        $this->assertSame('gpt-4o-mini?temperature=0.5&max_tokens=2000', $agentDefinition->getArgument('$model'));
     }
 
     #[TestDox('Model configuration with separate options array works correctly')]
@@ -6171,7 +6141,7 @@ class AiBundleTest extends TestCase
         ]);
 
         $agentDefinition = $container->getDefinition('ai.agent.test');
-        $this->assertSame('gpt-4o-mini?temperature=0.7&max_tokens=1500', $agentDefinition->getArgument(1));
+        $this->assertSame('gpt-4o-mini?temperature=0.7&max_tokens=1500', $agentDefinition->getArgument('$model'));
     }
 
     #[TestDox('Model configuration throws exception when using both query parameters and options array')]
@@ -6213,7 +6183,7 @@ class AiBundleTest extends TestCase
 
         $agentDefinition = $container->getDefinition('ai.agent.test');
         // Query parameters are maintained as strings when parsed from URL
-        $this->assertSame('gpt-4o-mini?temperature=0.5&max_tokens=2000&stream=true&presence_penalty=0', $agentDefinition->getArgument(1));
+        $this->assertSame('gpt-4o-mini?temperature=0.5&max_tokens=2000&stream=true&presence_penalty=0', $agentDefinition->getArgument('$model'));
     }
 
     #[TestDox('Vectorizer model configuration with query parameters works correctly')]
@@ -7496,7 +7466,7 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.agent.code_expert.static_memory_provider'));
 
         // Code expert should have tool processor
-        $this->assertTrue($container->hasDefinition('ai.tool.agent_processor.code_expert'));
+        $this->assertSame('ai.toolbox.code_expert', (string) $container->getDefinition('ai.agent.code_expert')->getArgument('$toolbox'));
 
         // Code expert should have system prompt processor
         $this->assertTrue($container->hasDefinition('ai.agent.code_expert.system_prompt_processor'));
@@ -7509,7 +7479,7 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasDefinition('ai.agent.general_support.memory_input_processor'));
 
         // Orchestrator should have tools processor
-        $this->assertTrue($container->hasDefinition('ai.tool.agent_processor.orchestrator'));
+        $this->assertSame('ai.toolbox.orchestrator', (string) $container->getDefinition('ai.agent.orchestrator')->getArgument('$toolbox'));
     }
 
     #[TestDox('Agent model configuration preserves colon notation in model names (e.g., qwen3:0.6b)')]
@@ -7533,7 +7503,7 @@ class AiBundleTest extends TestCase
 
         $agentDefinition = $container->getDefinition('ai.agent.test');
 
-        $this->assertSame($model, $agentDefinition->getArgument(1));
+        $this->assertSame($model, $agentDefinition->getArgument('$model'));
     }
 
     #[TestDox('Vectorizer model configuration preserves colon notation in model names (e.g., bge-m3:1024)')]
@@ -7582,7 +7552,7 @@ class AiBundleTest extends TestCase
 
         $agentDefinition = $container->getDefinition('ai.agent.test');
 
-        $this->assertSame('qwen3?stream=false&think=true&nested%5Bbool%5D=false', $agentDefinition->getArgument(1));
+        $this->assertSame('qwen3?stream=false&think=true&nested%5Bbool%5D=false', $agentDefinition->getArgument('$model'));
     }
 
     public function testVectorizerModelBooleanOptionsArePreserved()
