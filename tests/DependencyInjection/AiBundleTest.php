@@ -22,6 +22,7 @@ use PHPUnit\Framework\TestCase;
 use Probots\Pinecone\Client as PineconeClient;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Symfony\AI\Agent\Agent;
 use Symfony\AI\Agent\AgentInterface;
 use Symfony\AI\Agent\Memory\MemoryInputProcessor;
 use Symfony\AI\Agent\Memory\StaticMemoryProvider;
@@ -4503,6 +4504,28 @@ class AiBundleTest extends TestCase
 
         $this->assertTrue($definition->hasTag('proxy'));
         $this->assertSame([['interface' => PlatformInterface::class]], $definition->getTag('proxy'));
+    }
+
+    #[TestDox('Agent definition arguments match the Agent constructor signature')]
+    public function testAgentDefinitionHasNoSurplusArguments()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => 'gpt-4',
+                    ],
+                ],
+            ],
+        ]);
+
+        $arguments = $container->getDefinition('ai.agent.test_agent')->getArguments();
+
+        $this->assertCount(
+            (new \ReflectionMethod(Agent::class, '__construct'))->getNumberOfParameters(),
+            $arguments,
+        );
+        $this->assertSame('test_agent', $arguments[4]);
     }
 
     /**
