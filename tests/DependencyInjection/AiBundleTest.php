@@ -4596,6 +4596,53 @@ class AiBundleTest extends TestCase
         $this->assertCount(3, array_filter($secondSystemPrompt->getArguments()));
     }
 
+    public function testExcludeToolMessagesDefaultsToFalse()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => 'gpt-4',
+                        'tools' => true,
+                    ],
+                ],
+            ],
+        ]);
+
+        $toolProcessor = $container->getDefinition('ai.tool.agent_processor.test_agent');
+
+        $this->assertFalse($toolProcessor->getArguments()['index_3']);
+    }
+
+    /**
+     * @return iterable<string, array{bool}>
+     */
+    public static function provideExcludeToolMessages(): iterable
+    {
+        yield 'excluded' => [true];
+        yield 'preserved' => [false];
+    }
+
+    #[DataProvider('provideExcludeToolMessages')]
+    public function testExcludeToolMessagesIsPassedToAgentProcessor(bool $excludeToolMessages)
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test_agent' => [
+                        'model' => 'gpt-4',
+                        'tools' => true,
+                        'exclude_tool_messages' => $excludeToolMessages,
+                    ],
+                ],
+            ],
+        ]);
+
+        $toolProcessor = $container->getDefinition('ai.tool.agent_processor.test_agent');
+
+        $this->assertSame($excludeToolMessages, $toolProcessor->getArguments()['index_3']);
+    }
+
     public function testMaxToolCallsDefaultsToFifty()
     {
         $container = $this->buildContainer([

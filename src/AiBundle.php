@@ -1273,7 +1273,7 @@ final class AiBundle extends AbstractBundle
 
             $toolProcessorDefinition = (new ChildDefinition('ai.tool.agent_processor.abstract'))
                 ->replaceArgument(0, new Reference('ai.toolbox.'.$name))
-                ->replaceArgument(3, $config['keep_tool_messages'])
+                ->replaceArgument(3, $config['exclude_tool_messages'])
                 ->replaceArgument(4, $config['include_sources'])
                 ->replaceArgument(5, $config['max_tool_calls']);
 
