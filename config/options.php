@@ -274,16 +274,22 @@ return static function (DefinitionConfigurator $configurator): void {
                                 ->ifArray()
                                 ->then(static function (array $v): array {
                                     $services = $v['services'] ?? $v;
-                                    unset($services['enabled']);
+                                    unset($services['enabled'], $services['execution_strategy']);
+                                    $executionStrategy = $v['execution_strategy'] ?? null;
 
                                     return [
-                                        'enabled' => $v['enabled'] ?? [] !== $services,
+                                        'enabled' => $v['enabled'] ?? ([] !== $services || null !== $executionStrategy),
+                                        'execution_strategy' => $executionStrategy,
                                         'services' => $services,
                                     ];
                                 })
                             ->end()
                             ->children()
                                 ->booleanNode('enabled')->defaultFalse()->end()
+                                ->scalarNode('execution_strategy')
+                                    ->info('The tool execution strategy. Built-in options are "sequential" (default) and "fiber". A custom service ID implementing ToolExecutorInterface can also be provided.')
+                                    ->defaultNull()
+                                ->end()
                                 ->arrayNode('services')
                                     ->arrayPrototype()
                                         ->children()
