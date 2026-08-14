@@ -6144,6 +6144,45 @@ class AiBundleTest extends TestCase
         $this->assertSame('gpt-4o-mini?temperature=0.7&max_tokens=1500', $agentDefinition->getArgument('$model'));
     }
 
+    #[TestDox('Model configuration keeps periods in option names given in the model name')]
+    public function testModelConfigurationKeepsPeriodsInQueryParameters()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test' => [
+                        'model' => 'gpt-5?reasoning.effort=medium',
+                    ],
+                ],
+            ],
+        ]);
+
+        $agentDefinition = $container->getDefinition('ai.agent.test');
+        $this->assertSame('gpt-5?reasoning.effort=medium', $agentDefinition->getArgument('$model'));
+    }
+
+    #[TestDox('Model configuration keeps periods in option names given in the options array')]
+    public function testModelConfigurationKeepsPeriodsInSeparateOptions()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'test' => [
+                        'model' => [
+                            'name' => 'gpt-5',
+                            'options' => [
+                                'reasoning.effort' => 'medium',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $agentDefinition = $container->getDefinition('ai.agent.test');
+        $this->assertSame('gpt-5?reasoning.effort=medium', $agentDefinition->getArgument('$model'));
+    }
+
     #[TestDox('Model configuration throws exception when using both query parameters and options array')]
     public function testModelConfigurationConflictThrowsException()
     {
