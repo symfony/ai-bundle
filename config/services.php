@@ -79,6 +79,7 @@ use Symfony\AI\Platform\Contract\JsonSchema\Factory as SchemaFactory;
 use Symfony\AI\Platform\Event\InvocationEvent;
 use Symfony\AI\Platform\EventListener\StringToMessageBagListener;
 use Symfony\AI\Platform\EventListener\TemplateRendererListener;
+use Symfony\AI\Platform\Job\JobRunner;
 use Symfony\AI\Platform\Message\TemplateRenderer\ExpressionLanguageTemplateRenderer;
 use Symfony\AI\Platform\Message\TemplateRenderer\StringTemplateRenderer;
 use Symfony\AI\Platform\Message\TemplateRenderer\TemplateRendererRegistry;
@@ -180,6 +181,13 @@ return static function (ContainerConfigurator $container): void {
             ->tag('kernel.event_subscriber')
         ->set('ai.platform.string_to_message_bag_listener', StringToMessageBagListener::class)
             ->tag('kernel.event_listener', ['event' => InvocationEvent::class])
+
+        // asynchronous jobs
+        ->set('ai.platform.job_runner', JobRunner::class)
+            ->args([
+                service('clock'),
+            ])
+        ->alias(JobRunner::class, 'ai.platform.job_runner')
 
         // structured output
         ->set('ai.platform.response_format_factory', ResponseFormatFactory::class)

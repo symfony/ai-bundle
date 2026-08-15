@@ -86,6 +86,7 @@ use Symfony\AI\Platform\Bridge\Higgsfield\Factory as HiggsfieldFactory;
 use Symfony\AI\Platform\Bridge\HuggingFace\Factory as HuggingFaceFactory;
 use Symfony\AI\Platform\Bridge\LmStudio\Factory as LmStudioFactory;
 use Symfony\AI\Platform\Bridge\MiniMax\Factory as MiniMaxFactory;
+use Symfony\AI\Platform\Bridge\MiniMax\MiniMaxJobClient;
 use Symfony\AI\Platform\Bridge\Mistral\Factory as MistralFactory;
 use Symfony\AI\Platform\Bridge\Ollama\Factory as OllamaFactory;
 use Symfony\AI\Platform\Bridge\Ollama\ModelCatalog;
@@ -103,6 +104,7 @@ use Symfony\AI\Platform\Bridge\Voyage\Factory as VoyageFactory;
 use Symfony\AI\Platform\Capability;
 use Symfony\AI\Platform\Contract\JsonSchema\Provider\SchemaProviderInterface;
 use Symfony\AI\Platform\Exception\RuntimeException;
+use Symfony\AI\Platform\Job\JobClientInterface;
 use Symfony\AI\Platform\Message\Content\File;
 use Symfony\AI\Platform\Message\Template;
 use Symfony\AI\Platform\ModelCatalog\ModelCatalogInterface;
@@ -1052,6 +1054,18 @@ final class AiBundle extends AbstractBundle
 
             $container->setDefinition($platformId, $definition);
             $container->registerAliasForArgument($platformId, PlatformInterface::class, 'minimax');
+
+            $jobClientId = 'ai.platform.job_client.minimax';
+            $container->setDefinition($jobClientId, (new Definition(MiniMaxJobClient::class))
+                ->setFactory(MiniMaxFactory::class.'::createJobClient')
+                ->setArguments([
+                    $platform['api_key'],
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    $platform['endpoint'],
+                    'minimax',
+                ])
+                ->addTag('ai.platform.job_client', ['key' => 'minimax']));
+            $container->registerAliasForArgument($jobClientId, JobClientInterface::class, 'minimax');
 
             return;
         }
