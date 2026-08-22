@@ -819,10 +819,11 @@ class AiBundleTest extends TestCase
         $this->assertSame(ChromaDbStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
-        $this->assertCount(2, $definition->getArguments());
+        $this->assertCount(3, $definition->getArguments());
         $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
         $this->assertSame(Client::class, (string) $definition->getArgument(0));
         $this->assertSame('foo', (string) $definition->getArgument(1));
+        $this->assertNull($definition->getArgument(2));
 
         $this->assertTrue($definition->hasTag('proxy'));
         $this->assertSame([
@@ -857,10 +858,11 @@ class AiBundleTest extends TestCase
         $this->assertSame(ChromaDbStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
-        $this->assertCount(2, $definition->getArguments());
+        $this->assertCount(3, $definition->getArguments());
         $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
         $this->assertSame('bar', (string) $definition->getArgument(0));
         $this->assertSame('foo', (string) $definition->getArgument(1));
+        $this->assertNull($definition->getArgument(2));
 
         $this->assertTrue($definition->hasTag('proxy'));
         $this->assertSame([
@@ -892,10 +894,11 @@ class AiBundleTest extends TestCase
         $this->assertSame(ChromaDbStore::class, $definition->getClass());
 
         $this->assertTrue($definition->isLazy());
-        $this->assertCount(2, $definition->getArguments());
+        $this->assertCount(3, $definition->getArguments());
         $this->assertInstanceOf(Reference::class, $definition->getArgument(0));
         $this->assertSame(Client::class, (string) $definition->getArgument(0));
         $this->assertSame('my_chromadb_store', (string) $definition->getArgument(1));
+        $this->assertNull($definition->getArgument(2));
 
         $this->assertTrue($definition->hasTag('proxy'));
         $this->assertSame([
@@ -908,6 +911,28 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasAlias(StoreInterface::class.' $myChromadbStore'));
         $this->assertTrue($container->hasAlias(StoreInterface::class.' $chromadbMyChromadbStore'));
         $this->assertTrue($container->hasAlias(StoreInterface::class));
+    }
+
+    public function testChromaDbStoreCanBeConfiguredWithEmbeddingFunction()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'chromadb' => [
+                        'my_chromadb_store' => [
+                            'collection' => 'foo',
+                            'embedding_function' => 'app.chromadb.embedding_function',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $definition = $container->getDefinition('ai.store.chromadb.my_chromadb_store');
+
+        $this->assertCount(3, $definition->getArguments());
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(2));
+        $this->assertSame('app.chromadb.embedding_function', (string) $definition->getArgument(2));
     }
 
     #[TestDox('Configuring only one store type does not require packages for other store types')]

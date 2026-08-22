@@ -1478,6 +1478,7 @@ final class AiBundle extends AbstractBundle
                     ->setArguments([
                         new Reference($store['client']),
                         $store['collection'] ?? $name,
+                        isset($store['embedding_function']) ? new Reference($store['embedding_function']) : null,
                     ])
                     ->addTag('proxy', ['interface' => StoreInterface::class])
                     ->addTag('proxy', ['interface' => ManagedStoreInterface::class])
