@@ -1,6 +1,11 @@
 CHANGELOG
 =========
 
+0.14
+----
+
+ * Show agent calls, platform invocations and tool executions in the performance timeline of the profiler
+
 0.13
 ----
 

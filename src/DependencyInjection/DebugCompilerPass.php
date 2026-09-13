@@ -20,6 +20,7 @@ use Symfony\AI\Store\TraceableStore;
 use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -36,7 +37,10 @@ final class DebugCompilerPass implements CompilerPassInterface
         foreach (array_keys($container->findTaggedServiceIds('ai.platform')) as $platform) {
             $traceablePlatformDefinition = (new Definition(TraceablePlatform::class))
                 ->setDecoratedService($platform, priority: -1024)
-                ->setArguments([new Reference('.inner')])
+                ->setArguments([
+                    new Reference('.inner'),
+                    new Reference('debug.stopwatch', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                ])
                 ->addTag('ai.traceable_platform')
                 ->addTag('kernel.reset', ['method' => 'reset']);
             $suffix = u($platform)->after('ai.platform.')->toString();
@@ -72,7 +76,10 @@ final class DebugCompilerPass implements CompilerPassInterface
         foreach (array_keys($container->findTaggedServiceIds('ai.toolbox')) as $toolbox) {
             $traceableToolboxDefinition = (new Definition(TraceableToolbox::class))
                 ->setDecoratedService($toolbox, priority: -1024)
-                ->setArguments([new Reference('.inner')])
+                ->setArguments([
+                    new Reference('.inner'),
+                    new Reference('debug.stopwatch', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                ])
                 ->addTag('ai.traceable_toolbox')
                 ->addTag('kernel.reset', ['method' => 'reset']);
             $suffix = u($toolbox)->afterLast('.')->toString();
@@ -82,7 +89,10 @@ final class DebugCompilerPass implements CompilerPassInterface
         foreach (array_keys($container->findTaggedServiceIds('ai.agent')) as $agent) {
             $traceableAgentDefinition = (new Definition(TraceableAgent::class))
                 ->setDecoratedService($agent, priority: -1024)
-                ->setArguments([new Reference('.inner')])
+                ->setArguments([
+                    new Reference('.inner'),
+                    '$stopwatch' => new Reference('debug.stopwatch', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                ])
                 ->addTag('ai.traceable_agent')
                 ->addTag('kernel.reset', ['method' => 'reset']);
             $suffix = u($agent)->afterLast('.')->toString();

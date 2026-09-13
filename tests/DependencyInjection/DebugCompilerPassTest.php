@@ -21,6 +21,7 @@ use Symfony\AI\Platform\TraceablePlatform;
 use Symfony\AI\Store\TraceableStore;
 use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Reference;
 
 final class DebugCompilerPassTest extends TestCase
@@ -42,7 +43,7 @@ final class DebugCompilerPassTest extends TestCase
         $traceablePlatform = $container->getDefinition('ai.traceable_platform.azure.eu');
         $this->assertSame(TraceablePlatform::class, $traceablePlatform->getClass());
         $this->assertSame(['ai.platform.azure.eu', null, -1024], $traceablePlatform->getDecoratedService());
-        $this->assertEquals([new Reference('.inner')], $traceablePlatform->getArguments());
+        $this->assertEquals([new Reference('.inner'), new Reference('debug.stopwatch', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $traceablePlatform->getArguments());
         $this->assertTrue($traceablePlatform->hasTag('ai.traceable_platform'));
         $this->assertSame([['method' => 'reset']], $traceablePlatform->getTag('kernel.reset'));
 
@@ -63,14 +64,14 @@ final class DebugCompilerPassTest extends TestCase
         $traceableToolbox = $container->getDefinition('ai.traceable_toolbox.my_agent');
         $this->assertSame(TraceableToolbox::class, $traceableToolbox->getClass());
         $this->assertSame(['ai.toolbox.my_agent', null, -1024], $traceableToolbox->getDecoratedService());
-        $this->assertEquals([new Reference('.inner')], $traceableToolbox->getArguments());
+        $this->assertEquals([new Reference('.inner'), new Reference('debug.stopwatch', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $traceableToolbox->getArguments());
         $this->assertTrue($traceableToolbox->hasTag('ai.traceable_toolbox'));
         $this->assertSame([['method' => 'reset']], $traceableToolbox->getTag('kernel.reset'));
 
         $traceableAgent = $container->getDefinition('ai.traceable_agent.my_agent');
         $this->assertSame(TraceableAgent::class, $traceableAgent->getClass());
         $this->assertSame(['ai.agent.my_agent', null, -1024], $traceableAgent->getDecoratedService());
-        $this->assertEquals([new Reference('.inner')], $traceableAgent->getArguments());
+        $this->assertEquals([new Reference('.inner'), '$stopwatch' => new Reference('debug.stopwatch', ContainerInterface::NULL_ON_INVALID_REFERENCE)], $traceableAgent->getArguments());
         $this->assertTrue($traceableAgent->hasTag('ai.traceable_agent'));
         $this->assertSame([['method' => 'reset']], $traceableAgent->getTag('kernel.reset'));
 
