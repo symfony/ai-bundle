@@ -1338,6 +1338,9 @@ final class AiBundle extends AbstractBundle
                 }
 
                 $toolboxDefinition->replaceArgument(0, $tools);
+            } elseif ([] !== $mcpServers) {
+                // A list naming only MCP servers is still an explicit list: no tagged tool joins them.
+                $toolboxDefinition->replaceArgument(0, []);
             }
 
             // Wire a non-default tool executor when an execution strategy is configured.

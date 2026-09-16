@@ -604,7 +604,7 @@ class AiBundleTest extends TestCase
         ]);
     }
 
-    public function testMcpToolboxesSitNextToTheTaggedToolsOfTheLocalToolbox()
+    public function testAListOfOnlyMcpServersInjectsNoTaggedTools()
     {
         $container = $this->buildContainer([
             'ai' => [
@@ -617,7 +617,6 @@ class AiBundleTest extends TestCase
             ],
         ]);
 
-        // Nothing is injected into the local toolbox, so it keeps collecting every tagged tool.
         $localToolbox = $container->getDefinition('ai.toolbox.research.local');
         $this->assertInstanceOf(ChildDefinition::class, $localToolbox);
         $this->assertSame('ai.toolbox.abstract', $localToolbox->getParent());
@@ -625,7 +624,25 @@ class AiBundleTest extends TestCase
 
         (new ResolveChildDefinitionsPass())->process($container);
 
-        $tools = $container->getDefinition('ai.toolbox.research.local')->getArgument(0);
+        $this->assertSame([], $container->getDefinition('ai.toolbox.research.local')->getArgument(0));
+    }
+
+    public function testEnablingToolsWithoutAListStillInjectsEveryTaggedTool()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'agent' => [
+                    'research' => [
+                        'model' => 'gpt-4o-mini',
+                        'tools' => true,
+                    ],
+                ],
+            ],
+        ]);
+
+        (new ResolveChildDefinitionsPass())->process($container);
+
+        $tools = $container->getDefinition('ai.toolbox.research')->getArgument(0);
         $this->assertInstanceOf(TaggedIteratorArgument::class, $tools);
         $this->assertSame('ai.tool', $tools->getTag());
     }
