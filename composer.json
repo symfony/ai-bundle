@@ -3,6 +3,12 @@
     "description": "Integration bundle for Symfony AI components",
     "license": "MIT",
     "type": "symfony-bundle",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../platform/src/Bridge/TypeSafe"
+        }
+    ],
     "authors": [
         {
             "name": "Christopher Hertel",
@@ -103,6 +109,7 @@
         "symfony/ai-surreal-db-store": "^0.13",
         "symfony/ai-together-platform": "^0.13",
         "symfony/ai-transformers-php-platform": "^0.13",
+        "symfony/ai-type-safe-platform": "dev-main",
         "symfony/ai-typesense-store": "^0.13",
         "symfony/ai-vektor-store": "^0.13",
         "symfony/ai-venice-platform": "^0.13",

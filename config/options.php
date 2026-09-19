@@ -61,6 +61,7 @@ return static function (DefinitionConfigurator $configurator): void {
                     ->append($import('platform/scaleway'))
                     ->append($import('platform/together'))
                     ->append($import('platform/transformersphp'))
+                    ->append($import('platform/typesafe'))
                     ->append($import('platform/venice'))
                     ->append($import('platform/vertexai'))
                     ->append($import('platform/voyage'))

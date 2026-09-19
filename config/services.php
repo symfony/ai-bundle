@@ -64,6 +64,7 @@ use Symfony\AI\Platform\Bridge\Replicate\ModelCatalog as ReplicateModelCatalog;
 use Symfony\AI\Platform\Bridge\Scaleway\ModelCatalog as ScalewayModelCatalog;
 use Symfony\AI\Platform\Bridge\Together\Contract\TogetherContract;
 use Symfony\AI\Platform\Bridge\TransformersPhp\ModelCatalog as TransformersPhpModelCatalog;
+use Symfony\AI\Platform\Bridge\TypeSafe\ModelCatalog as TypeSafeModelCatalog;
 use Symfony\AI\Platform\Bridge\Venice\Contract\VeniceContract;
 use Symfony\AI\Platform\Bridge\VertexAi\Contract\GeminiContract as VertexAiGeminiContract;
 use Symfony\AI\Platform\Bridge\VertexAi\ModelCatalog as VertexAiModelCatalog;
@@ -157,6 +158,7 @@ return static function (ContainerConfigurator $container): void {
         ->set('ai.platform.model_catalog.vertexai.gemini', VertexAiModelCatalog::class)
         ->set('ai.platform.model_catalog.voyage', VoyageModelCatalog::class)
         ->set('ai.platform.model_catalog.transformersphp', TransformersPhpModelCatalog::class)
+        ->set('ai.platform.model_catalog.typesafe', TypeSafeModelCatalog::class)
 
         // message templates
         ->set('ai.platform.template_renderer.string', StringTemplateRenderer::class)
