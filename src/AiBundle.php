@@ -65,6 +65,7 @@ use Symfony\AI\Platform\Bridge\AmazeeAi\ModelApiCatalog as AmazeeAiModelApiCatal
 use Symfony\AI\Platform\Bridge\Anthropic\Factory as AnthropicFactory;
 use Symfony\AI\Platform\Bridge\Azure\OpenAi\Factory as AzureOpenAiFactory;
 use Symfony\AI\Platform\Bridge\Bedrock\Factory as BedrockFactory;
+use Symfony\AI\Platform\Bridge\Bedrock\Mantle\Factory as BedrockMantleFactory;
 use Symfony\AI\Platform\Bridge\Cache\CachePlatform;
 use Symfony\AI\Platform\Bridge\Cache\ResultNormalizer;
 use Symfony\AI\Platform\Bridge\Cartesia\Factory as CartesiaFactory;
@@ -542,21 +543,42 @@ final class AiBundle extends AbstractBundle
 
         if ('bedrock' === $type) {
             foreach ($platform as $name => $config) {
-                if (!ContainerBuilder::willBeAvailable('symfony/ai-bedrock-platform', BedrockFactory::class, ['symfony/ai-bundle'])) {
+                $isInvokeModel = 'invoke_model' === $config['api'];
+                $factory = $isInvokeModel ? BedrockFactory::class : BedrockMantleFactory::class;
+
+                if (!ContainerBuilder::willBeAvailable('symfony/ai-bedrock-platform', $factory, ['symfony/ai-bundle'])) {
                     throw new RuntimeException('Bedrock platform configuration requires "symfony/ai-bedrock-platform" package. Try running "composer require symfony/ai-bedrock-platform".');
                 }
 
-                $platformId = 'ai.platform.bedrock.'.$name;
-                $definition = (new Definition(Platform::class))
-                    ->setFactory(BedrockFactory::class.'::createPlatform')
-                    ->setLazy(true)
-                    ->addTag('proxy', ['interface' => PlatformInterface::class])
-                    ->setArguments([
+                if ($isInvokeModel) {
+                    $arguments = [
                         $config['bedrock_runtime_client'] ? new Reference($config['bedrock_runtime_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE) : null,
                         $config['model_catalog'] ? new Reference($config['model_catalog']) : new Reference('ai.platform.model_catalog.bedrock'),
                         null,
                         new Reference('event_dispatcher'),
-                    ])
+                    ];
+                } else {
+                    $arguments = [
+                        $config['api_key'] ?? null,
+                        $config['region'] ?? 'us-west-2',
+                        $config['api'],
+                        isset($config['credential_provider']) ? new Reference($config['credential_provider']) : null,
+                        new Reference($config['http_client'] ?? 'http_client', ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                        $config['model_catalog'] ? new Reference($config['model_catalog']) : null,
+                        null, // $contract
+                        new Reference('event_dispatcher'),
+                        $config['cache_retention'] ?? null,
+                        $config['workspace'] ?? null,
+                        $config['path'] ?? null,
+                    ];
+                }
+
+                $platformId = 'ai.platform.bedrock.'.$name;
+                $definition = (new Definition(Platform::class))
+                    ->setFactory($factory.'::createPlatform')
+                    ->setLazy(true)
+                    ->addTag('proxy', ['interface' => PlatformInterface::class])
+                    ->setArguments($arguments)
                     ->addTag('ai.platform', ['name' => 'bedrock.'.$name]);
 
                 $container->setDefinition($platformId, $definition);

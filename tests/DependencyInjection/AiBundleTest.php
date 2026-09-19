@@ -42,6 +42,8 @@ use Symfony\AI\AiBundle\Profiler\DeferredToolbox;
 use Symfony\AI\Chat\ChatInterface;
 use Symfony\AI\Chat\ManagedStoreInterface as ManagedMessageStoreInterface;
 use Symfony\AI\Chat\MessageStoreInterface;
+use Symfony\AI\Platform\Bridge\Bedrock\Factory as BedrockFactory;
+use Symfony\AI\Platform\Bridge\Bedrock\Mantle\Factory as BedrockMantleFactory;
 use Symfony\AI\Platform\Bridge\Cache\CachePlatform;
 use Symfony\AI\Platform\Bridge\Decart\Factory as DecartFactory;
 use Symfony\AI\Platform\Bridge\Deepgram\Factory as DeepgramFactory;
@@ -4614,6 +4616,192 @@ class AiBundleTest extends TestCase
 
         $this->assertTrue($container->hasAlias(PlatformInterface::class.' $minimax'));
         $this->assertTrue($container->hasAlias(PlatformInterface::class));
+    }
+
+    public function testBedrockMantlePlatformUsesCompletionsRouteByDefault()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'bedrock' => [
+                        'default' => [
+                            'api' => 'completions',
+                            'api_key' => 'bedrock_api_key',
+                            'region' => 'eu-central-1',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.platform.bedrock.default'));
+
+        $definition = $container->getDefinition('ai.platform.bedrock.default');
+
+        $this->assertTrue($definition->isLazy());
+        $this->assertSame([
+            BedrockMantleFactory::class,
+            'createPlatform',
+        ], $definition->getFactory());
+        $this->assertCount(11, $definition->getArguments());
+        $this->assertSame('bedrock_api_key', $definition->getArgument(0));
+        $this->assertSame('eu-central-1', $definition->getArgument(1));
+        $this->assertSame('completions', $definition->getArgument(2));
+        $this->assertNull($definition->getArgument(3));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(4));
+        $this->assertSame('http_client', (string) $definition->getArgument(4));
+        // No explicit catalog: the factory picks the one belonging to the route.
+        $this->assertNull($definition->getArgument(5));
+        $this->assertNull($definition->getArgument(6));
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(7));
+        $this->assertSame('event_dispatcher', (string) $definition->getArgument(7));
+        $this->assertNull($definition->getArgument(8));
+        $this->assertNull($definition->getArgument(9));
+        $this->assertSame([['name' => 'bedrock.default']], $definition->getTag('ai.platform'));
+    }
+
+    public function testBedrockMantlePlatformCanTargetResponsesRouteWithSigV4()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'bedrock' => [
+                        'gemma' => [
+                            'api' => 'responses',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.platform.bedrock.gemma'));
+
+        $definition = $container->getDefinition('ai.platform.bedrock.gemma');
+
+        $this->assertSame([
+            BedrockMantleFactory::class,
+            'createPlatform',
+        ], $definition->getFactory());
+
+        // Without an API key the bridge falls back to AWS SigV4 signing.
+        $this->assertNull($definition->getArgument(0));
+        $this->assertSame('us-west-2', $definition->getArgument(1));
+        $this->assertSame('responses', $definition->getArgument(2));
+        $this->assertSame([['name' => 'bedrock.gemma']], $definition->getTag('ai.platform'));
+    }
+
+    public function testBedrockMantlePlatformCanTargetAnthropicMessagesRoute()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'bedrock' => [
+                        'claude' => [
+                            'api' => 'messages',
+                            'api_key' => 'bedrock_api_key',
+                            'region' => 'us-east-1',
+                            'cache_retention' => 'long',
+                            'workspace' => 'proj_example',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.platform.bedrock.claude'));
+
+        $definition = $container->getDefinition('ai.platform.bedrock.claude');
+
+        $this->assertSame([
+            BedrockMantleFactory::class,
+            'createPlatform',
+        ], $definition->getFactory());
+        $this->assertCount(11, $definition->getArguments());
+        $this->assertSame('bedrock_api_key', $definition->getArgument(0));
+        $this->assertSame('us-east-1', $definition->getArgument(1));
+        $this->assertSame('messages', $definition->getArgument(2));
+        $this->assertSame('long', $definition->getArgument(8));
+        $this->assertSame('proj_example', $definition->getArgument(9));
+        $this->assertSame([['name' => 'bedrock.claude']], $definition->getTag('ai.platform'));
+    }
+
+    public function testBedrockMantleCanReferenceAnExplicitModelCatalog()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'bedrock' => [
+                        'claude' => [
+                            'api' => 'messages',
+                            'api_key' => 'bedrock_api_key',
+                            'model_catalog' => 'ai.platform.model_catalog.bedrock.messages',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $definition = $container->getDefinition('ai.platform.bedrock.claude');
+
+        $this->assertInstanceOf(Reference::class, $definition->getArgument(5));
+        $this->assertSame('ai.platform.model_catalog.bedrock.messages', (string) $definition->getArgument(5));
+    }
+
+    public function testBedrockMantleRejectsMessagesOnlyOptionsOnOtherRoutes()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('The "cache_retention" and "workspace" options are only supported with "api: messages".');
+
+        $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'bedrock' => [
+                        'default' => [
+                            'api' => 'completions',
+                            'api_key' => 'bedrock_api_key',
+                            'workspace' => 'proj_example',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function testBedrockRejectsMixingInvokeModelAndMantleOptions()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('belong to different inference engines and cannot be combined');
+
+        $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'bedrock' => [
+                        'default' => [
+                            'bedrock_runtime_client' => 'async_aws.client.bedrock_runtime',
+                            'api_key' => 'bedrock_api_key',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function testBedrockDefaultsToTheInvokeModelEngine()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'bedrock' => ['default' => []],
+                ],
+            ],
+        ]);
+
+        $definition = $container->getDefinition('ai.platform.bedrock.default');
+
+        // The pre-existing shape keeps working untouched: four arguments, SDK factory.
+        $this->assertSame([BedrockFactory::class, 'createPlatform'], $definition->getFactory());
+        $this->assertCount(4, $definition->getArguments());
+        $this->assertSame('ai.platform.model_catalog.bedrock', (string) $definition->getArgument(1));
     }
 
     public function testOllamaCanBeConfigured()
