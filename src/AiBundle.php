@@ -1088,7 +1088,6 @@ final class AiBundle extends AbstractBundle
                     $platform['api_key'],
                     new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
                     $platform['endpoint'],
-                    'minimax',
                 ])
                 ->addTag('ai.platform.job_client', ['key' => 'minimax']));
             $container->registerAliasForArgument($jobClientId, JobClientInterface::class, 'minimax');
