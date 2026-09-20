@@ -105,6 +105,7 @@
         "symfony/ai-transformers-php-platform": "^0.13",
         "symfony/ai-typesense-store": "^0.13",
         "symfony/ai-vektor-store": "^0.13",
+        "symfony/ai-venice-platform": "^0.13",
         "symfony/ai-vertex-ai-platform": "^0.13",
         "symfony/ai-voyage-platform": "^0.13",
         "symfony/ai-weaviate-store": "^0.13",
