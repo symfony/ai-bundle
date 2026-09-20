@@ -5891,6 +5891,84 @@ class AiBundleTest extends TestCase
         $this->assertSame('my_custom_http_client', (string) $arguments[1]);
     }
 
+    public function testHiggsfieldPlatformConfiguration()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'higgsfield' => [
+                        'api_key' => 'higgsfield-test-key',
+                        'api_secret' => 'higgsfield-test-secret',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.platform.higgsfield'));
+
+        $definition = $container->getDefinition('ai.platform.higgsfield');
+        $arguments = $definition->getArguments();
+
+        $this->assertCount(7, $arguments);
+        $this->assertSame('higgsfield-test-key', $arguments[0]);
+        $this->assertSame('higgsfield-test-secret', $arguments[1]);
+        $this->assertNull($arguments[2]);
+        $this->assertInstanceOf(Reference::class, $arguments[3]);
+        $this->assertSame('http_client', (string) $arguments[3]);
+        $this->assertNull($arguments[4]);
+        $this->assertInstanceOf(Reference::class, $arguments[5]);
+        $this->assertSame('ai.platform.contract.higgsfield', (string) $arguments[5]);
+        $this->assertInstanceOf(Reference::class, $arguments[6]);
+        $this->assertSame('event_dispatcher', (string) $arguments[6]);
+    }
+
+    #[TestDox('Higgsfield platform uses a custom model catalog service when configured')]
+    public function testHiggsfieldPlatformUsesCustomModelCatalog()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'higgsfield' => [
+                        'api_key' => 'higgsfield-test-key',
+                        'api_secret' => 'higgsfield-test-secret',
+                        'model_catalog' => 'my_custom_model_catalog',
+                    ],
+                ],
+            ],
+        ]);
+
+        $arguments = $container->getDefinition('ai.platform.higgsfield')->getArguments();
+
+        $this->assertInstanceOf(Reference::class, $arguments[4]);
+        $this->assertSame('my_custom_model_catalog', (string) $arguments[4]);
+    }
+
+    #[TestDox('Higgsfield platform uses custom base_url and http_client when configured')]
+    public function testHiggsfieldPlatformUsesCustomBaseUrlAndHttpClient()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'higgsfield' => [
+                        'api_key' => 'higgsfield-test-key',
+                        'api_secret' => 'higgsfield-test-secret',
+                        'base_url' => 'https://example.test',
+                        'http_client' => 'my_custom_http_client',
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertTrue($container->hasDefinition('ai.platform.higgsfield'));
+
+        $definition = $container->getDefinition('ai.platform.higgsfield');
+        $arguments = $definition->getArguments();
+
+        $this->assertSame('https://example.test', $arguments[2]);
+        $this->assertInstanceOf(Reference::class, $arguments[3]);
+        $this->assertSame('my_custom_http_client', (string) $arguments[3]);
+    }
+
     public function testTogetherPlatformConfiguration()
     {
         $container = $this->buildContainer([

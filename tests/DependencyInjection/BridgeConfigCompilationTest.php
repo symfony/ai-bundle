@@ -315,6 +315,7 @@ class BridgeConfigCompilationTest extends TestCase
         yield 'fireworks' => ['fireworks', ['api_key' => 'k'], 'ai.platform.fireworks'];
         yield 'gemini' => ['gemini', ['api_key' => 'k'], 'ai.platform.gemini'];
         yield 'generic' => ['generic', ['inst' => ['base_url' => 'http://localhost:8080']], 'ai.platform.generic.inst'];
+        yield 'higgsfield' => ['higgsfield', ['api_key' => 'k', 'api_secret' => 's'], 'ai.platform.higgsfield'];
         yield 'huggingface' => ['huggingface', ['api_key' => 'k'], 'ai.platform.huggingface'];
         yield 'lmstudio' => ['lmstudio', ['host_url' => 'http://localhost:1234'], 'ai.platform.lmstudio'];
         yield 'minimax' => ['minimax', ['api_key' => 'k'], 'ai.platform.minimax'];

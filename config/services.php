@@ -45,6 +45,7 @@ use Symfony\AI\Platform\Bridge\DockerModelRunner\ModelCatalog as DockerModelRunn
 use Symfony\AI\Platform\Bridge\ElevenLabs\Contract\ElevenLabsContract;
 use Symfony\AI\Platform\Bridge\Gemini\Contract\GeminiContract;
 use Symfony\AI\Platform\Bridge\Gemini\ModelCatalog as GeminiModelCatalog;
+use Symfony\AI\Platform\Bridge\Higgsfield\Contract\HiggsfieldContract;
 use Symfony\AI\Platform\Bridge\HuggingFace\Contract\HuggingFaceContract;
 use Symfony\AI\Platform\Bridge\HuggingFace\ModelCatalog as HuggingFaceModelCatalog;
 use Symfony\AI\Platform\Bridge\LmStudio\ModelCatalog as LmStudioModelCatalog;
@@ -118,6 +119,8 @@ return static function (ContainerConfigurator $container): void {
             ->factory([PerplexityContract::class, 'create'])
         ->set('ai.platform.contract.together', Contract::class)
             ->factory([TogetherContract::class, 'create'])
+        ->set('ai.platform.contract.higgsfield', Contract::class)
+            ->factory([HiggsfieldContract::class, 'create'])
 
         // model catalog
         ->set('ai.platform.model_catalog.aimlapi', AiMlApiModelCatalog::class)

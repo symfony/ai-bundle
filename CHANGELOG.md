@@ -10,6 +10,7 @@ CHANGELOG
  * Add an `api` option to the `bedrock` platform configuration, selecting the SDK-based InvokeModel API or one of the Bedrock Mantle routes (Chat Completions, Responses, Anthropic Messages)
  * Add `fireworks` platform configuration for OpenAI-compatible chat, embeddings and reranking
  * Add `together` platform configuration for chat, embeddings, image generation, text-to-speech, speech-to-text and reranking
+ * Add `higgsfield` platform configuration for asynchronous image and video generation
 
 0.13
 ----

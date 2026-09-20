@@ -47,6 +47,7 @@ return static function (DefinitionConfigurator $configurator): void {
                     ->append($import('platform/fireworks'))
                     ->append($import('platform/gemini'))
                     ->append($import('platform/generic'))
+                    ->append($import('platform/higgsfield'))
                     ->append($import('platform/huggingface'))
                     ->append($import('platform/lmstudio'))
                     ->append($import('platform/minimax'))

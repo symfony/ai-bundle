@@ -82,6 +82,7 @@ use Symfony\AI\Platform\Bridge\Fireworks\Factory as FireworksFactory;
 use Symfony\AI\Platform\Bridge\Gemini\Factory as GeminiFactory;
 use Symfony\AI\Platform\Bridge\Generic\Factory as GenericFactory;
 use Symfony\AI\Platform\Bridge\Generic\FallbackModelCatalog as GenericFallbackModelCatalog;
+use Symfony\AI\Platform\Bridge\Higgsfield\Factory as HiggsfieldFactory;
 use Symfony\AI\Platform\Bridge\HuggingFace\Factory as HuggingFaceFactory;
 use Symfony\AI\Platform\Bridge\LmStudio\Factory as LmStudioFactory;
 use Symfony\AI\Platform\Bridge\MiniMax\Factory as MiniMaxFactory;
@@ -774,6 +775,32 @@ final class AiBundle extends AbstractBundle
 
                 $container->setDefinition($platformId, $definition);
             }
+
+            return;
+        }
+
+        if ('higgsfield' === $type) {
+            if (!ContainerBuilder::willBeAvailable('symfony/ai-higgsfield-platform', HiggsfieldFactory::class, ['symfony/ai-bundle'])) {
+                throw new RuntimeException('Higgsfield platform configuration requires "symfony/ai-higgsfield-platform" package. Try running "composer require symfony/ai-higgsfield-platform".');
+            }
+
+            $platformId = 'ai.platform.higgsfield';
+            $definition = (new Definition(Platform::class))
+                ->setFactory(HiggsfieldFactory::class.'::createPlatform')
+                ->setLazy(true)
+                ->addTag('proxy', ['interface' => PlatformInterface::class])
+                ->setArguments([
+                    $platform['api_key'],
+                    $platform['api_secret'],
+                    $platform['base_url'] ?? null,
+                    new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                    isset($platform['model_catalog']) ? new Reference($platform['model_catalog']) : null,
+                    new Reference('ai.platform.contract.higgsfield'),
+                    new Reference('event_dispatcher'),
+                ])
+                ->addTag('ai.platform', ['name' => 'higgsfield']);
+
+            $container->setDefinition($platformId, $definition);
 
             return;
         }
