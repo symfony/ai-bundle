@@ -283,6 +283,10 @@ class AiBundleTest extends TestCase
             'ai.store.mariadb.my_mariadb_store' => ['dimensions' => 1024],
             'ai.store.mongodb.my_mongo_store' => ['fields' => [['path' => 'metadata.store_code', 'type' => 'filter']]],
             'ai.store.postgres.my_postgres_store' => ['vector_type' => 'vector', 'vector_size' => 1536, 'index_method' => 'ivfflat', 'index_opclass' => 'vector_cosine_ops'],
+            'ai.store.redis.my_redis_store' => ['vector_size' => 1536],
+            'ai.store.redis.my_redis_store_with_custom_client' => [],
+            'ai.store.redis.my_redis_store_with_custom_key_prefix' => [],
+            'ai.store.redis.my_redis_store_with_custom_distance' => [],
         ], $setupStoreCommandDefinition->getArgument(1));
         $this->assertArrayHasKey('console.command', $setupStoreCommandDefinition->getTags());
 
@@ -3902,6 +3906,34 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasAlias('.'.StoreInterface::class.' $redis_my_redis_store'));
         $this->assertTrue($container->hasAlias(StoreInterface::class.' $redisMyRedisStore'));
         $this->assertTrue($container->hasAlias(StoreInterface::class));
+    }
+
+    public function testRedisStoreWithSetupOptionsCanBeConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'redis' => [
+                        'my_redis_store' => [
+                            'client' => 'foo',
+                            'index_name' => 'my_vector_index',
+                            'setup_options' => [
+                                'vector_size' => 1536,
+                            ],
+                        ],
+                        'my_redis_store_without_setup_options' => [
+                            'client' => 'foo',
+                            'index_name' => 'my_other_vector_index',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertSame([
+            'ai.store.redis.my_redis_store' => ['vector_size' => 1536],
+            'ai.store.redis.my_redis_store_without_setup_options' => [],
+        ], $container->getDefinition('ai.command.setup_store')->getArgument(1));
     }
 
     public function testSqliteStoreCanBeConfigured()
@@ -10934,6 +10966,9 @@ class AiBundleTest extends TestCase
                                 'port' => 6379,
                             ],
                             'index_name' => 'my_vector_index',
+                            'setup_options' => [
+                                'vector_size' => 1536,
+                            ],
                         ],
                         'my_redis_store_with_custom_client' => [
                             'client' => 'foo',
