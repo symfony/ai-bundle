@@ -8970,7 +8970,7 @@ class AiBundleTest extends TestCase
 
         $agentDefinition = $container->getDefinition('ai.agent.test');
 
-        $this->assertSame('qwen3?stream=false&think=true&nested%5Bbool%5D=false', $agentDefinition->getArgument('$model'));
+        $this->assertSame('qwen3?stream=false&think=true&nested%%5Bbool%%5D=false', $agentDefinition->getArgument('$model'));
     }
 
     public function testVectorizerModelBooleanOptionsArePreserved()
@@ -8996,7 +8996,7 @@ class AiBundleTest extends TestCase
 
         $vectorizerDefinition = $container->getDefinition('ai.vectorizer.test');
 
-        $this->assertSame('text-embedding-3-small?normalize=false&cache=true&nested%5Bbool%5D=false', $vectorizerDefinition->getArgument(1));
+        $this->assertSame('text-embedding-3-small?normalize=false&cache=true&nested%%5Bbool%%5D=false', $vectorizerDefinition->getArgument(1));
     }
 
     public function testCachePlatformCanBeUsed()

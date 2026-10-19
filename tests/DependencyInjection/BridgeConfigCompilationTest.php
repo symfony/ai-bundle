@@ -14,11 +14,20 @@ namespace Symfony\AI\AiBundle\Tests\DependencyInjection;
 use AsyncAws\BedrockRuntime\BedrockRuntimeClient;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestDox;
+use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
+use Symfony\AI\Agent\Agent;
 use Symfony\AI\AiBundle\AiBundle;
+use Symfony\AI\Platform\ModelOptionsParser;
+use Symfony\AI\Platform\PlainConverter;
 use Symfony\AI\Platform\PlatformInterface;
+use Symfony\AI\Platform\Result\DeferredResult;
+use Symfony\AI\Platform\Result\InMemoryRawResult;
+use Symfony\AI\Platform\Result\VectorResult;
+use Symfony\AI\Platform\Vector\Vector;
+use Symfony\AI\Store\Document\VectorizerInterface;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Clock\ClockInterface;
 use Symfony\Component\Clock\MonotonicClock;
@@ -42,6 +51,78 @@ use Symfony\Component\Serializer\Serializer;
  */
 class BridgeConfigCompilationTest extends TestCase
 {
+    #[TestWith(['gpt-6-luna'])]
+    #[TestWith(['%model%'])]
+    public function testAgentWithNestedModelOptionsCompiles(string $model)
+    {
+        $container = $this->loadContainer([
+            'ai' => [
+                'platform' => ['openai' => ['api_key' => 'k']],
+                'agent' => [
+                    'test' => [
+                        'platform' => 'ai.platform.openai',
+                        'model' => [
+                            'name' => $model,
+                            'options' => ['reasoning' => ['effort' => 'low']],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+        $container->setParameter('kernel.debug', false);
+        $container->setParameter('model', 'gpt-6-luna');
+        $container->getDefinition('ai.agent.test')->setPublic(true);
+
+        (new AiBundle())->build($container);
+        $container->compile();
+
+        $agent = $container->get('ai.agent.test');
+        $this->assertInstanceOf(Agent::class, $agent);
+        $model = $agent->getModel();
+
+        $this->assertSame('gpt-6-luna?reasoning%5Beffort%5D=low', $model);
+        $this->assertSame(['reasoning' => ['effort' => 'low']], ModelOptionsParser::parse(explode('?', $model, 2)[1]));
+    }
+
+    #[TestWith(['text-embedding-3-small'])]
+    #[TestWith(['%model%'])]
+    public function testVectorizerWithNestedModelOptionsCompiles(string $model)
+    {
+        $container = $this->loadContainer([
+            'ai' => [
+                'vectorizer' => [
+                    'test' => [
+                        'platform' => 'test_platform',
+                        'model' => [
+                            'name' => $model,
+                            'options' => ['nested' => ['a' => 'value']],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+        $container->setParameter('kernel.debug', false);
+        $container->setParameter('model', 'text-embedding-3-small');
+        $container->register('test_platform', PlatformInterface::class)->setSynthetic(true)->setPublic(true);
+        $container->setAlias('logger', LoggerInterface::class);
+        $container->getDefinition('ai.vectorizer.test')->setPublic(true);
+
+        (new AiBundle())->build($container);
+        $container->compile();
+
+        $vector = new Vector([0.1, 0.2, 0.3]);
+        $platform = $this->createMock(PlatformInterface::class);
+        $platform->expects($this->once())
+            ->method('invoke')
+            ->with('text-embedding-3-small?nested%5Ba%5D=value', 'test input', [])
+            ->willReturn(new DeferredResult(new PlainConverter(new VectorResult([$vector])), new InMemoryRawResult([])));
+        $container->set('test_platform', $platform);
+
+        $vectorizer = $container->get('ai.vectorizer.test');
+        $this->assertInstanceOf(VectorizerInterface::class, $vectorizer);
+        $this->assertSame($vector, $vectorizer->vectorize('test input'));
+    }
+
     /**
      * @param array<string, mixed> $config
      */

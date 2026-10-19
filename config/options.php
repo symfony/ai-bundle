@@ -180,7 +180,7 @@ return static function (DefinitionConfigurator $configurator): void {
                                         }
                                     });
 
-                                    return $model.'?'.http_build_query($options);
+                                    return $model.'?'.str_replace('%', '%%', http_build_query($options));
                                 })
                             ->end()
                         ->end()
@@ -570,7 +570,7 @@ return static function (DefinitionConfigurator $configurator): void {
                                         }
                                     });
 
-                                    return $model.'?'.http_build_query($options);
+                                    return $model.'?'.str_replace('%', '%%', http_build_query($options));
                                 })
                             ->end()
                         ->end()
