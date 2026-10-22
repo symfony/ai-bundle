@@ -292,6 +292,7 @@ class AiBundleTest extends TestCase
             'ai.store.redis.my_redis_store_with_custom_client' => [],
             'ai.store.redis.my_redis_store_with_custom_key_prefix' => [],
             'ai.store.redis.my_redis_store_with_custom_distance' => [],
+            'ai.store.surrealdb.my_surrealdb_store' => ['forceDatabaseCreation' => true],
         ], $setupStoreCommandDefinition->getArgument(1));
         $this->assertArrayHasKey('console.command', $setupStoreCommandDefinition->getTags());
 
@@ -4547,6 +4548,40 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasAlias('.'.StoreInterface::class.' $surrealdb_my_surrealdb_store'));
         $this->assertTrue($container->hasAlias(StoreInterface::class.' $surrealdbMySurrealdbStore'));
         $this->assertTrue($container->hasAlias(StoreInterface::class));
+    }
+
+    public function testSurrealDbStoreWithSetupOptionsCanBeConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'surrealdb' => [
+                        'my_surrealdb_store' => [
+                            'endpoint' => 'http://127.0.0.1:8000',
+                            'username' => 'test',
+                            'password' => 'test',
+                            'namespace' => 'foo',
+                            'database' => 'bar',
+                            'setup_options' => [
+                                'force_database_creation' => true,
+                            ],
+                        ],
+                        'my_surrealdb_store_without_setup_options' => [
+                            'endpoint' => 'http://127.0.0.1:8000',
+                            'username' => 'test',
+                            'password' => 'test',
+                            'namespace' => 'foo',
+                            'database' => 'bar',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertSame([
+            'ai.store.surrealdb.my_surrealdb_store' => ['forceDatabaseCreation' => true],
+            'ai.store.surrealdb.my_surrealdb_store_without_setup_options' => [],
+        ], $container->getDefinition('ai.command.setup_store')->getArgument(1));
     }
 
     public function testSurrealDbStoreWithCustomTableCanBeConfigured()
@@ -11204,6 +11239,9 @@ class AiBundleTest extends TestCase
                             'strategy' => 'cosine',
                             'dimensions' => 768,
                             'namespaced_user' => true,
+                            'setup_options' => [
+                                'force_database_creation' => true,
+                            ],
                         ],
                     ],
                     'typesense' => [
