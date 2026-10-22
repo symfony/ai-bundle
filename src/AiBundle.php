@@ -2507,6 +2507,13 @@ final class AiBundle extends AbstractBundle
                 $container->setDefinition('ai.store.'.$type.'.'.$name, $definition);
                 $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $name);
                 $container->registerAliasForArgument('ai.store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
+
+                $setupOptions = [];
+                if (isset($store['setup_options']['force_database_creation'])) {
+                    $setupOptions['forceDatabaseCreation'] = $store['setup_options']['force_database_creation'];
+                }
+
+                $setupStoresOptions['ai.store.'.$type.'.'.$name] = $setupOptions;
             }
         }
 
