@@ -2193,6 +2193,8 @@ final class AiBundle extends AbstractBundle
                     $arguments[4] = $store['top_k'];
                 }
 
+                $setupStoresOptions['ai.store.'.$type.'.'.$name] = $store['setup_options'] ?? [];
+
                 $definition = new Definition(PineconeStore::class);
                 $definition
                     ->setLazy(true)

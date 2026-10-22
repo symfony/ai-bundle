@@ -283,6 +283,9 @@ class AiBundleTest extends TestCase
         $this->assertSame([
             'ai.store.mariadb.my_mariadb_store' => ['dimensions' => 1024],
             'ai.store.mongodb.my_mongo_store' => ['fields' => [['path' => 'metadata.store_code', 'type' => 'filter']]],
+            'ai.store.pinecone.my_pinecone_store' => [],
+            'ai.store.pinecone.my_pinecone_store_with_filter' => [],
+            'ai.store.pinecone.my_pinecone_store_with_top_k' => [],
             'ai.store.postgres.my_postgres_store' => ['vector_type' => 'vector', 'vector_size' => 1536, 'index_method' => 'hnsw', 'index_opclass' => 'vector_l2_ops'],
             'ai.store.s3vectors.my_s3vectors_store' => [],
             'ai.store.redis.my_redis_store' => ['vector_size' => 1536],
@@ -3171,6 +3174,83 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasAlias('.'.StoreInterface::class.' $pinecone_my_pinecone_store'));
         $this->assertTrue($container->hasAlias(StoreInterface::class.' $pineconeMyPineconeStore'));
         $this->assertTrue($container->hasAlias(StoreInterface::class));
+    }
+
+    public function testPineconeStoreWithSetupOptionsCanBeConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'pinecone' => [
+                        'my_pinecone_store' => [
+                            'index_name' => 'my-index',
+                            'setup_options' => [
+                                'dimension' => 1536,
+                                'metric' => 'cosine',
+                                'cloud' => 'aws',
+                                'region' => 'us-east-1',
+                            ],
+                        ],
+                        'my_pinecone_store_without_setup_options' => [
+                            'index_name' => 'my-other-index',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertSame([
+            'ai.store.pinecone.my_pinecone_store' => [
+                'dimension' => 1536,
+                'metric' => 'cosine',
+                'cloud' => 'aws',
+                'region' => 'us-east-1',
+            ],
+            'ai.store.pinecone.my_pinecone_store_without_setup_options' => [],
+        ], $container->getDefinition('ai.command.setup_store')->getArgument(1));
+    }
+
+    public function testPineconeStoreSetupOptionsRequireDimension()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('The child config "dimension" under "ai.store.pinecone.my_pinecone_store.setup_options" must be configured.');
+
+        $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'pinecone' => [
+                        'my_pinecone_store' => [
+                            'index_name' => 'my-index',
+                            'setup_options' => [
+                                'metric' => 'cosine',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+    }
+
+    public function testPineconeStoreSetupOptionsRejectUnknownMetric()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('The value "dot_product" is not allowed for path "ai.store.pinecone.my_pinecone_store.setup_options.metric".');
+
+        $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    'pinecone' => [
+                        'my_pinecone_store' => [
+                            'index_name' => 'my-index',
+                            'setup_options' => [
+                                'dimension' => 1536,
+                                'metric' => 'dot_product',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
     }
 
     public function testPineconeStoreWithCustomIndexNameCanBeConfigured()
