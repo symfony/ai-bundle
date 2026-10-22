@@ -2347,6 +2347,13 @@ final class AiBundle extends AbstractBundle
                     $arguments[4] = $store['top_k'];
                 }
 
+                $setupOptions = $store['setup_options'] ?? [];
+                if (\array_key_exists('distance_metric', $setupOptions)) {
+                    $setupOptions['distanceMetric'] = $setupOptions['distance_metric'];
+                    unset($setupOptions['distance_metric']);
+                }
+                $setupStoresOptions['ai.store.'.$type.'.'.$name] = $setupOptions;
+
                 $definition = new Definition(S3VectorsStore::class);
                 $definition
                     ->setLazy(true)

@@ -284,6 +284,7 @@ class AiBundleTest extends TestCase
             'ai.store.mariadb.my_mariadb_store' => ['dimensions' => 1024],
             'ai.store.mongodb.my_mongo_store' => ['fields' => [['path' => 'metadata.store_code', 'type' => 'filter']]],
             'ai.store.postgres.my_postgres_store' => ['vector_type' => 'vector', 'vector_size' => 1536, 'index_method' => 'hnsw', 'index_opclass' => 'vector_l2_ops'],
+            'ai.store.s3vectors.my_s3vectors_store' => [],
             'ai.store.redis.my_redis_store' => ['vector_size' => 1536],
             'ai.store.redis.my_redis_store_with_custom_client' => [],
             'ai.store.redis.my_redis_store_with_custom_key_prefix' => [],
@@ -3745,6 +3746,58 @@ class AiBundleTest extends TestCase
         $this->assertTrue($container->hasAlias('.'.StoreInterface::class.' $redis_my_redis_store'));
         $this->assertTrue($container->hasAlias(StoreInterface::class.' $redisMyRedisStore'));
         $this->assertTrue($container->hasAlias(StoreInterface::class));
+    }
+
+    public function testS3VectorsStoreWithSetupOptionsCanBeConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    's3vectors' => [
+                        'my_s3vectors_store' => [
+                            'vector_bucket_name' => 'my-bucket',
+                            'setup_options' => [
+                                'dimension' => 1536,
+                                'distance_metric' => 'euclidean',
+                            ],
+                        ],
+                        'my_s3vectors_store_without_setup_options' => [
+                            'vector_bucket_name' => 'my-other-bucket',
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        $this->assertSame([
+            'ai.store.s3vectors.my_s3vectors_store' => [
+                'dimension' => 1536,
+                'distanceMetric' => 'euclidean',
+            ],
+            'ai.store.s3vectors.my_s3vectors_store_without_setup_options' => [],
+        ], $container->getDefinition('ai.command.setup_store')->getArgument(1));
+    }
+
+    public function testS3VectorsStoreRejectsUnknownDistanceMetric()
+    {
+        $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('The value "cosin" is not allowed for path "ai.store.s3vectors.my_s3vectors_store.setup_options.distance_metric".');
+
+        $this->buildContainer([
+            'ai' => [
+                'store' => [
+                    's3vectors' => [
+                        'my_s3vectors_store' => [
+                            'vector_bucket_name' => 'my-bucket',
+                            'setup_options' => [
+                                'dimension' => 1536,
+                                'distance_metric' => 'cosin',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
     }
 
     public function testS3VectorsStoreCanBeConfiguredWithClientConfigurationAndFilter()
