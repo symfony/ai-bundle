@@ -86,7 +86,9 @@ use Symfony\AI\Platform\Bridge\Generic\Factory as GenericFactory;
 use Symfony\AI\Platform\Bridge\Generic\FallbackModelCatalog as GenericFallbackModelCatalog;
 use Symfony\AI\Platform\Bridge\Higgsfield\Factory as HiggsfieldFactory;
 use Symfony\AI\Platform\Bridge\Higgsfield\HiggsfieldJobClient;
+use Symfony\AI\Platform\Bridge\HuggingFace\ApiClient as HuggingFaceApiClient;
 use Symfony\AI\Platform\Bridge\HuggingFace\Factory as HuggingFaceFactory;
+use Symfony\AI\Platform\Bridge\HuggingFace\ModelApiCatalog as HuggingFaceModelApiCatalog;
 use Symfony\AI\Platform\Bridge\LmStudio\Factory as LmStudioFactory;
 use Symfony\AI\Platform\Bridge\MiniMax\Factory as MiniMaxFactory;
 use Symfony\AI\Platform\Bridge\MiniMax\MiniMaxJobClient;
@@ -840,6 +842,21 @@ final class AiBundle extends AbstractBundle
                 throw new RuntimeException('HuggingFace platform configuration requires "symfony/ai-hugging-face-platform" package. Try running "composer require symfony/ai-hugging-face-platform".');
             }
 
+            $modelCatalogId = 'ai.platform.model_catalog.huggingface';
+            if ($platform['api_catalog']) {
+                $modelCatalogId = 'ai.platform.model_catalog.huggingface.api';
+                $container->setDefinition($modelCatalogId, (new Definition(HuggingFaceModelApiCatalog::class))
+                    ->setLazy(true)
+                    ->setArguments([
+                        new Definition(HuggingFaceApiClient::class, [
+                            new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
+                            $platform['api_key'],
+                        ]),
+                        $platform['provider'],
+                    ])
+                    ->addTag('proxy', ['interface' => ModelCatalogInterface::class]));
+            }
+
             $platformId = 'ai.platform.huggingface';
             $definition = (new Definition(Platform::class))
                 ->setFactory(HuggingFaceFactory::class.'::createPlatform')
@@ -849,7 +866,7 @@ final class AiBundle extends AbstractBundle
                     $platform['api_key'],
                     $platform['provider'],
                     new Reference($platform['http_client'], ContainerInterface::NULL_ON_INVALID_REFERENCE),
-                    new Reference('ai.platform.model_catalog.huggingface'),
+                    new Reference($modelCatalogId),
                     new Reference('ai.platform.contract.huggingface'),
                     new Reference('event_dispatcher'),
                 ])

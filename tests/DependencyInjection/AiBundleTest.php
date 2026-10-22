@@ -54,6 +54,8 @@ use Symfony\AI\Platform\Bridge\ElevenLabs\Factory as ElevenLabsFactory;
 use Symfony\AI\Platform\Bridge\Failover\FailoverPlatform;
 use Symfony\AI\Platform\Bridge\Failover\FailoverPlatformFactory;
 use Symfony\AI\Platform\Bridge\Higgsfield\Factory as HiggsfieldFactory;
+use Symfony\AI\Platform\Bridge\HuggingFace\ApiClient as HuggingFaceApiClient;
+use Symfony\AI\Platform\Bridge\HuggingFace\ModelApiCatalog as HuggingFaceModelApiCatalog;
 use Symfony\AI\Platform\Bridge\MiniMax\Factory as MiniMaxFactory;
 use Symfony\AI\Platform\Bridge\Ollama\Factory as OllamaFactory;
 use Symfony\AI\Platform\Bridge\OpenAi\Factory as OpenAiFactory;
@@ -6715,6 +6717,56 @@ class AiBundleTest extends TestCase
         $this->assertSame('ai.platform.contract.higgsfield', (string) $arguments[5]);
         $this->assertInstanceOf(Reference::class, $arguments[6]);
         $this->assertSame('event_dispatcher', (string) $arguments[6]);
+    }
+
+    public function testHuggingFacePlatformUsesTheStaticModelCatalogByDefault()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'huggingface' => [
+                        'api_key' => 'hf-test-key',
+                    ],
+                ],
+            ],
+        ]);
+
+        $arguments = $container->getDefinition('ai.platform.huggingface')->getArguments();
+
+        $this->assertSame('hf-test-key', $arguments[0]);
+        $this->assertNull($arguments[1]);
+        $this->assertInstanceOf(Reference::class, $arguments[3]);
+        $this->assertSame('ai.platform.model_catalog.huggingface', (string) $arguments[3]);
+        $this->assertFalse($container->hasDefinition('ai.platform.model_catalog.huggingface.api'));
+    }
+
+    public function testHuggingFacePlatformResolvesModelsThroughTheHubApiWhenConfigured()
+    {
+        $container = $this->buildContainer([
+            'ai' => [
+                'platform' => [
+                    'huggingface' => [
+                        'api_key' => 'hf-test-key',
+                        'provider' => 'nscale',
+                        'api_catalog' => true,
+                    ],
+                ],
+            ],
+        ]);
+
+        $arguments = $container->getDefinition('ai.platform.huggingface')->getArguments();
+        $this->assertSame('nscale', $arguments[1]);
+        $this->assertSame('ai.platform.model_catalog.huggingface.api', (string) $arguments[3]);
+
+        $catalog = $container->getDefinition('ai.platform.model_catalog.huggingface.api');
+        $this->assertSame(HuggingFaceModelApiCatalog::class, $catalog->getClass());
+        $this->assertSame('nscale', $catalog->getArgument(1));
+
+        $apiClient = $catalog->getArgument(0);
+        $this->assertInstanceOf(Definition::class, $apiClient);
+        $this->assertSame(HuggingFaceApiClient::class, $apiClient->getClass());
+        $this->assertSame('http_client', (string) $apiClient->getArgument(0));
+        $this->assertSame('hf-test-key', $apiClient->getArgument(1));
     }
 
     #[TestDox('Higgsfield platform uses a custom model catalog service when configured')]

@@ -11,6 +11,8 @@ CHANGELOG
  * Add `dimensions` and `similarity` configuration for MongoDB store, used by `ai:store:setup` to create the vector index
  * Add `setup_options` configuration for Pinecone store to set the `dimension`, `metric`, `cloud` and `region` used by `ai:store:setup`
  * Add `setup_options.force_database_creation` configuration for SurrealDB store to create the namespace and database in `ai:store:setup`
+ * Add `api_catalog` option to the `huggingface` platform to resolve models through the Hugging Face Hub API
+ * [BC BREAK] Change the default `provider` of the `huggingface` platform to `null`, letting Hugging Face pick the provider for chat completion
 
 0.14
 ----
