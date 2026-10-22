@@ -9617,6 +9617,10 @@ class AiBundleTest extends TestCase
             ['interface' => ManagedMessageStoreInterface::class],
         ], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.message_store'));
+        $this->assertTrue($container->hasAlias(MessageStoreInterface::class.' $custom'));
+        $this->assertTrue($container->hasAlias('.'.MessageStoreInterface::class.' $mongodb_custom'));
+        $this->assertFalse($container->hasAlias(StoreInterface::class.' $custom'));
+        $this->assertFalse($container->hasAlias('.'.StoreInterface::class.' $mongodb_custom'));
     }
 
     public function testMongoDbMessageStoreIsConfiguredWithCustomClient()
@@ -9820,6 +9824,10 @@ class AiBundleTest extends TestCase
             ['interface' => ManagedMessageStoreInterface::class],
         ], $definition->getTag('proxy'));
         $this->assertTrue($definition->hasTag('ai.message_store'));
+        $this->assertTrue($container->hasAlias(MessageStoreInterface::class.' $custom'));
+        $this->assertTrue($container->hasAlias('.'.MessageStoreInterface::class.' $surrealdb_custom'));
+        $this->assertFalse($container->hasAlias(StoreInterface::class.' $custom'));
+        $this->assertFalse($container->hasAlias('.'.StoreInterface::class.' $surrealdb_custom'));
     }
 
     public function testSurrealDbMessageStoreIsConfiguredWithCustomTable()

@@ -2761,8 +2761,8 @@ final class AiBundle extends AbstractBundle
                     ->addTag('ai.message_store');
 
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $type.'_'.$name);
             }
         }
 
@@ -2876,8 +2876,8 @@ final class AiBundle extends AbstractBundle
                     ->setArguments($arguments);
 
                 $container->setDefinition('ai.message_store.'.$type.'.'.$name, $definition);
-                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, StoreInterface::class, $name);
-                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, StoreInterface::class, $type.'_'.$name);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $name);
+                $container->registerAliasForArgument('ai.message_store.'.$type.'.'.$name, MessageStoreInterface::class, $type.'_'.$name);
             }
         }
     }
